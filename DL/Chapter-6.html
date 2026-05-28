@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DL — Chapter 6: Reinforcement Learning (Unit VI)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details open>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="Chapter-4.html">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="Chapter-5.html">Ch 5 — Deep Generative Models</a>
+    <a href="Chapter-6.html" class="current">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="../NLP/Chapter-3.html">Ch 3 — Syntax Analysis</a>
+    <a href="../NLP/Chapter-4.html">Ch 4 — Semantic Analysis</a>
+    <a href="../NLP/Chapter-5.html">Ch 5 — Discourse / Pragmatics</a>
+    <a href="../NLP/Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="../BI/Chapter-3.html">Ch 3 — Data Warehousing</a>
+    <a href="../BI/Chapter-4.html">Ch 4 — Data Mining</a>
+    <a href="../BI/Chapter-5.html">Ch 5 — BI Tools &amp; OLAP</a>
+    <a href="../BI/Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>DL — Chapter 6: Reinforcement Learning (Unit VI)</h1>
+<p class="meta">
+  Subject Code: 410251 &nbsp;|&nbsp; End-Sem: 04 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q7 or Q8 in the paper).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — what is reinforcement learning?</a></li>
+    <li><a href="#q1">Q1 — Markov Decision Process (MDP) (asked 4 times)</a></li>
+    <li><a href="#q2">Q2 — Dynamic Programming for RL (asked 5 times)</a></li>
+    <li><a href="#q3">Q3 — Q-Learning and Deep Q-Networks (asked 5 times)</a></li>
+    <li><a href="#q4">Q4 — RL for Tic-Tac-Toe (asked 4 times)</a></li>
+    <li><a href="#q5">Q5 — Deep Reinforcement Learning (asked 3 times)</a></li>
+    <li><a href="#q6">Q6 — Challenges of Reinforcement Learning (asked 3 times)</a></li>
+    <li><a href="#q7">Q7 — Reinforcement Learning Basics: state, action, reward, policy (asked 1 time)</a></li>
+    <li><a href="#q8">Q8 — Types of RL / Active vs Passive RL (asked 2 times)</a></li>
+    <li><a href="#q9">Q9 — Characteristics / advantages-disadvantages of RL (asked 2 times)</a></li>
+    <li><a href="#q10">Q10 — Deep Recurrent Q-Networks (DQRN) (asked 1 time)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+Imagine teaching a dog new tricks. You don't show the dog all possible actions; instead, when the dog does something good (sits when told), you give a TREAT (reward). When it does something bad, you don't reward it. Over time, the dog learns by trial and error which actions lead to treats. That's exactly how Reinforcement Learning works — an AGENT learns by interacting with an ENVIRONMENT, getting REWARDS for good actions and figuring out a strategy that maximizes long-term reward.
+</div>
+
+<h3>1. What is Reinforcement Learning?</h3>
+<p><b>Reinforcement Learning (RL)</b> is a type of machine learning where an <b>agent</b> learns to make decisions by interacting with an <b>environment</b>, receiving <b>rewards</b> for good actions and <b>penalties</b> for bad ones, with the goal of maximizing the total reward over time.</p>
+
+<h3>2. RL vs Supervised vs Unsupervised Learning</h3>
+<table>
+  <tr><th>Type</th><th>Has labels?</th><th>Learning signal</th><th>Example</th></tr>
+  <tr><td>Supervised</td><td>Yes (input, label)</td><td>Direct labels</td><td>Image classification</td></tr>
+  <tr><td>Unsupervised</td><td>No</td><td>Find patterns</td><td>Clustering, PCA</td></tr>
+  <tr><td>Reinforcement</td><td>No (only rewards)</td><td>Trial and error + rewards</td><td>Game playing, robotics</td></tr>
+</table>
+
+<h3>3. Five basic elements of RL</h3>
+<ul>
+  <li><b>Agent</b> — the learner / decision-maker.</li>
+  <li><b>Environment</b> — the world the agent interacts with.</li>
+  <li><b>State (s)</b> — current situation of the agent.</li>
+  <li><b>Action (a)</b> — what the agent can do.</li>
+  <li><b>Reward (r)</b> — feedback from the environment after each action.</li>
+</ul>
+
+<hr>
+
+<h2 id="q1">Q1 — Markov Decision Process (MDP)</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'25, Nov'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Explain Markov Decision Process with Markov property.</p>
+    <p><b>(Nov'23, 6 marks)</b> Explain Markov decision process.</p>
+    <p><b>(May'25, 6 marks)</b> Explain Markov Decision Process.</p>
+    <p><b>(Nov'25, 5 marks)</b> What is a Markov Decision Process (MDP)? Define its components.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A grandmaster chess player doesn't need to remember every single move from the start of the game — looking at the CURRENT board position alone is enough to plan the next move. The current position fully describes the game state. This idea — "the FUTURE depends only on the PRESENT, not on the past" — is called the Markov Property, and decisions made in such systems are modeled as a Markov Decision Process.
+</div>
+
+<h3>1. Definition</h3>
+<p>A <b>Markov Decision Process (MDP)</b> is a mathematical framework used to model decision-making in situations where outcomes are partly random and partly controlled by the agent. It is the foundation of reinforcement learning.</p>
+
+<h3>2. The Markov Property</h3>
+<p>"The future depends ONLY on the present state, NOT on the past history."</p>
+<div class="formula-line">
+  P(s<sub>t+1</sub> | s<sub>t</sub>, a<sub>t</sub>, s<sub>t-1</sub>, a<sub>t-1</sub>, …) = P(s<sub>t+1</sub> | s<sub>t</sub>, a<sub>t</sub>)
+</div>
+<p>In simple words: to decide what happens next, we only need to know the CURRENT state and CURRENT action — past history doesn't matter.</p>
+
+<h3>3. Components of an MDP (5-tuple)</h3>
+<p>An MDP is formally a tuple (S, A, P, R, γ):</p>
+<ul>
+  <li><b>S — Set of states.</b> All possible situations the agent can be in. Example: chess positions.</li>
+  <li><b>A — Set of actions.</b> All possible moves the agent can take. Example: moving a chess piece.</li>
+  <li><b>P — Transition probability function.</b> P(s' | s, a) = probability of moving to state s' if action a is taken in state s.</li>
+  <li><b>R — Reward function.</b> R(s, a) = reward received for taking action a in state s.</li>
+  <li><b>γ — Discount factor.</b> γ ∈ [0, 1]; how much we value future rewards vs immediate. γ near 1 = far-sighted; γ near 0 = short-sighted.</li>
+</ul>
+
+<h3>4. Key concepts in MDP</h3>
+<ul>
+  <li><b>Policy (π):</b> a mapping from states to actions. π(s) = action to take in state s.</li>
+  <li><b>Value function (V<sup>π</sup>(s)):</b> expected total discounted reward starting from state s and following policy π.</li>
+  <li><b>Action-value function (Q<sup>π</sup>(s, a)):</b> expected reward starting from s, taking action a, then following π.</li>
+  <li><b>Optimal policy (π*):</b> the policy that maximizes total reward.</li>
+</ul>
+
+<h3>5. Bellman equation</h3>
+<div class="formula-line">
+  V(s) = max<sub>a</sub> [ R(s, a) + γ · Σ<sub>s'</sub> P(s' | s, a) · V(s') ]
+</div>
+<p>The value of a state = best immediate reward + discounted value of likely next states.</p>
+
+<h3>6. Diagram (text)</h3>
+<pre>
+                action a
+   state s ──────────────►  state s'    (with probability P(s' | s, a))
+                │
+                │  reward r = R(s, a)
+                ▼
+           Agent observes r, s'
+           and decides next action a'
+</pre>
+
+<h3>7. Example — simple grid world</h3>
+<ul>
+  <li>States: each cell of a 4×4 grid.</li>
+  <li>Actions: up, down, left, right.</li>
+  <li>Rewards: +10 for reaching the goal; −1 for each step; −100 for falling into a hole.</li>
+  <li>Transitions: 80% you go in chosen direction, 10% slip left, 10% slip right (stochastic).</li>
+  <li>Discount factor γ = 0.9 (slightly far-sighted).</li>
+  <li>Solution: find policy π that maximizes expected total reward.</li>
+</ul>
+
+<h3>8. Applications of MDP</h3>
+<ul>
+  <li>Robotics (path planning, motor control).</li>
+  <li>Game-playing AI (Chess, Go, Atari).</li>
+  <li>Autonomous driving.</li>
+  <li>Inventory and resource management.</li>
+  <li>Healthcare treatment optimization.</li>
+  <li>Recommendation systems.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>MDP = (S, A, P, R, γ) — 5-tuple.</li>
+    <li>Markov property: future depends ONLY on current state, not past.</li>
+    <li>Policy π(s) = action to take in each state.</li>
+    <li>Goal: find optimal policy π* that maximizes total expected reward.</li>
+    <li>Bellman equation: V(s) = max<sub>a</sub>[R(s,a) + γ Σ P(s'|s,a) V(s')].</li>
+    <li>γ = discount factor (0 to 1); controls how much we value future rewards.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — Dynamic Programming for Reinforcement Learning</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Explain in detail Dynamic programming algorithms for reinforcement learning.</p>
+    <p><b>(Nov'23, 6 marks)</b> Explain dynamic programming algorithms for reinforcement learning.</p>
+    <p><b>(May'24, 5 marks)</b> Explain in detail Dynamic programming algorithms for reinforcement learning.</p>
+    <p><b>(May'25, 5 marks)</b> Explain Dynamic programming algorithm for reinforcement learning.</p>
+    <p><b>(Nov'25, 6 marks)</b> What is dynamic programming in RL? How does it differ from traditional DP?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is Dynamic Programming (DP) in RL?</h3>
+<p><b>Dynamic Programming</b> in RL refers to a class of algorithms that compute the optimal policy and value function of an MDP by breaking down the problem into smaller sub-problems and solving them recursively using the Bellman equations. It REQUIRES complete knowledge of the MDP (transition probabilities P and rewards R).</p>
+
+<h3>2. Two main DP algorithms in RL</h3>
+
+<h4>(a) Policy Iteration</h4>
+<p>Repeatedly evaluates a policy and improves it until it converges.</p>
+<ol>
+  <li><b>Initialize</b> a policy π randomly.</li>
+  <li><b>Policy Evaluation:</b> compute V<sup>π</sup>(s) for all states by repeatedly applying:
+    <pre>V(s) = Σ P(s' | s, π(s)) · [R + γ V(s')]</pre>
+    until convergence.
+  </li>
+  <li><b>Policy Improvement:</b> for each state s, choose the action that maximizes the Bellman expectation:
+    <pre>π(s) = argmax<sub>a</sub> [Σ P(s' | s, a) · (R + γ V(s'))]</pre>
+  </li>
+  <li>Repeat steps 2–3 until policy stops changing.</li>
+</ol>
+
+<h4>(b) Value Iteration</h4>
+<p>Combines policy evaluation and improvement in one update.</p>
+<ol>
+  <li>Initialize V(s) = 0 for all states.</li>
+  <li>Repeat until convergence:
+    <pre>V(s) ← max<sub>a</sub> [Σ P(s' | s, a) · (R + γ V(s'))]</pre>
+  </li>
+  <li>Once V converges, extract the optimal policy:
+    <pre>π*(s) = argmax<sub>a</sub> [Σ P(s' | s, a) · (R + γ V(s'))]</pre>
+  </li>
+</ol>
+
+<h3>3. Comparison: Policy Iteration vs Value Iteration</h3>
+<table>
+  <tr><th>Aspect</th><th>Policy Iteration</th><th>Value Iteration</th></tr>
+  <tr><td>Update style</td><td>Full evaluation, then one improvement</td><td>One-step improvement each iteration</td></tr>
+  <tr><td>Convergence speed</td><td>Faster in iterations (fewer)</td><td>Faster per iteration (cheaper)</td></tr>
+  <tr><td>Memory</td><td>Stores V and π</td><td>Stores only V</td></tr>
+</table>
+
+<h3>4. How RL's DP differs from traditional (CS) Dynamic Programming</h3>
+<table>
+  <tr><th>Aspect</th><th>Traditional DP (CS)</th><th>DP in Reinforcement Learning</th></tr>
+  <tr><td>Problem domain</td><td>Optimization (shortest path, knapsack, etc.)</td><td>Sequential decision making in MDPs</td></tr>
+  <tr><td>Recurrence type</td><td>Bellman recursion on indices</td><td>Bellman equation over states</td></tr>
+  <tr><td>Deterministic vs Stochastic</td><td>Usually deterministic</td><td>Stochastic (transition probabilities)</td></tr>
+  <tr><td>Knowledge required</td><td>Problem definition</td><td>Full MDP (states, actions, P, R, γ) — model-based</td></tr>
+  <tr><td>Output</td><td>Optimal value / decision path</td><td>Optimal policy + value function</td></tr>
+  <tr><td>Iterative process</td><td>Bottom-up table fill</td><td>Iterative policy/value updates until convergence</td></tr>
+</table>
+
+<h3>5. Limitations of DP in RL</h3>
+<ul>
+  <li>Needs FULL knowledge of MDP (P and R) — not realistic for most real problems.</li>
+  <li>Computational cost grows quickly with state-space size ("curse of dimensionality").</li>
+  <li>Not suitable for very large or continuous state spaces.</li>
+  <li>For unknown MDPs, we use model-free RL (Q-learning, Monte Carlo, TD).</li>
+</ul>
+
+<h3>6. Applications</h3>
+<ul>
+  <li>Small grid worlds, gambling problems, simple games.</li>
+  <li>Inventory management with known demand distributions.</li>
+  <li>Sometimes used as a sub-routine in more complex algorithms (e.g., AlphaZero-style planning).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>DP in RL = Policy Iteration + Value Iteration; solves MDPs using Bellman equations.</li>
+    <li>Policy Iteration: alternate evaluation and improvement until convergence.</li>
+    <li>Value Iteration: iteratively apply Bellman optimality update on V.</li>
+    <li>Requires FULL MDP knowledge (model-based).</li>
+    <li>Differs from traditional DP: stochastic, sequential, uses Bellman over states.</li>
+    <li>Limitations: curse of dimensionality, needs known model.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — Q-Learning and Deep Q-Networks</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Write Short Note on Q Learning and Deep Q-Networks.</p>
+    <p><b>(Nov'23, 6 marks)</b> Write Short Note on Q Learning and Deep Q-Networks.</p>
+    <p><b>(May'24, 6 marks)</b> Write short note on Deep Q-Learning.</p>
+    <p><b>(May'25, 6 marks)</b> Explain the process of Deep Q-learning.</p>
+    <p><b>(Nov'25, 6 marks)</b> What is Q-learning? How does it differ from other RL algorithms?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine a child learning a video game without instructions. The child tries random moves; sometimes they get points (reward), sometimes they lose. Over time, the child builds a mental table: "If I'm in this game-screen, and I press THIS button, I usually do well." This mental table is the Q-table — Q stands for QUALITY of an action in a state.
+</div>
+
+<h3>Part A — Q-Learning</h3>
+
+<h4>1. Definition</h4>
+<p><b>Q-Learning</b> is a popular model-free, off-policy reinforcement learning algorithm. It learns the optimal action-value function Q*(s, a) — the expected total future reward of taking action a in state s and then following the best policy.</p>
+
+<h4>2. Q-table</h4>
+<ul>
+  <li>A table with rows = states, columns = actions, entries = Q-values.</li>
+  <li>Initially all Q-values are 0 (or random).</li>
+  <li>Updated as the agent interacts with the environment.</li>
+</ul>
+
+<h4>3. Q-Learning update rule</h4>
+<div class="formula-line">
+  Q(s, a) ← Q(s, a) + α · [ r + γ · max<sub>a'</sub> Q(s', a') − Q(s, a) ]
+</div>
+<ul>
+  <li>α = learning rate (e.g., 0.1)</li>
+  <li>γ = discount factor (e.g., 0.9)</li>
+  <li>r = immediate reward received</li>
+  <li>max<sub>a'</sub> Q(s', a') = best future Q-value from the next state s'</li>
+</ul>
+
+<h4>4. Algorithm</h4>
+<ol>
+  <li>Initialize Q(s, a) = 0 for all s, a.</li>
+  <li>For each episode:
+    <ul>
+      <li>Start in some state s.</li>
+      <li>Choose action a (often using ε-greedy: random with probability ε, best Q-value otherwise).</li>
+      <li>Take action; observe reward r and new state s'.</li>
+      <li>Update Q(s, a) using the formula above.</li>
+      <li>s ← s'.</li>
+      <li>Repeat until episode ends.</li>
+    </ul>
+  </li>
+  <li>Repeat for many episodes until Q-values converge.</li>
+  <li>The optimal policy is π*(s) = argmax<sub>a</sub> Q*(s, a).</li>
+</ol>
+
+<h4>5. Why Q-Learning is special (differs from other RL)</h4>
+<ul>
+  <li><b>Model-free:</b> doesn't need to know transition probabilities or rewards in advance.</li>
+  <li><b>Off-policy:</b> learns the optimal policy even while following a different (exploratory) policy.</li>
+  <li><b>Value-based:</b> learns value of actions (not policy directly).</li>
+  <li><b>Guaranteed convergence</b> (to Q*) under certain conditions.</li>
+  <li>Other RL types: policy gradient (REINFORCE, PPO), actor-critic, model-based.</li>
+</ul>
+
+<hr>
+
+<h3>Part B — Deep Q-Networks (DQN)</h3>
+
+<h4>6. Why we need DQN</h4>
+<ul>
+  <li>Q-table works fine for small state spaces, but BLOWS UP for large/continuous state spaces.</li>
+  <li>Example: Atari games — millions of possible pixel states.</li>
+  <li>Solution: APPROXIMATE Q(s, a) with a neural network.</li>
+</ul>
+
+<h4>7. What is DQN?</h4>
+<p>A <b>Deep Q-Network (DQN)</b> uses a deep neural network to approximate Q(s, a). The network takes the state as input and outputs Q-values for all possible actions.</p>
+
+<h4>8. DQN architecture</h4>
+<pre>
+   State (e.g., game frame) → CNN layers → FC layers → Q-values for each action
+                                                          ─────────────────
+                                                          [Q(s, a₁), Q(s, a₂), …]
+</pre>
+
+<h4>9. Key innovations of DQN (DeepMind 2013/2015)</h4>
+<ul>
+  <li><b>Experience replay:</b> store past experiences in a buffer; randomly sample batches for training. Breaks temporal correlations.</li>
+  <li><b>Target network:</b> use a SEPARATE slowly-updated network for computing target Q-values. Stabilizes training.</li>
+  <li><b>ε-greedy exploration:</b> mix of random actions and greedy actions.</li>
+</ul>
+
+<h4>10. DQN training step</h4>
+<ol>
+  <li>Observe current state s.</li>
+  <li>Choose action a using ε-greedy on Q-network.</li>
+  <li>Execute action; observe reward r and next state s'.</li>
+  <li>Store (s, a, r, s') in experience replay buffer.</li>
+  <li>Sample random mini-batch from buffer.</li>
+  <li>Compute target: y = r + γ · max<sub>a'</sub> Q<sub>target</sub>(s', a').</li>
+  <li>Compute loss: L = (y − Q(s, a))².</li>
+  <li>Backpropagate and update Q-network weights.</li>
+  <li>Periodically update target network: Q<sub>target</sub> ← Q.</li>
+</ol>
+
+<h4>11. Famous applications of DQN</h4>
+<ul>
+  <li>Atari game playing (DeepMind 2015) — superhuman performance on many Atari games.</li>
+  <li>AlphaGo (combined with policy networks and tree search).</li>
+  <li>Robotics manipulation and control.</li>
+  <li>Resource allocation in data centres.</li>
+  <li>Autonomous driving sub-tasks.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Q-Learning = model-free, off-policy, value-based RL.</li>
+    <li>Updates Q(s, a) using: Q ← Q + α[r + γ max Q(s', a') − Q].</li>
+    <li>DQN = neural network approximating Q-values for large/continuous state spaces.</li>
+    <li>Innovations: experience replay + target network + ε-greedy.</li>
+    <li>Famous for: superhuman Atari game playing.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — Reinforcement Learning for Tic-Tac-Toe</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'25, Nov'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 5 marks)</b> Explain Simple reinforcement learning for Tic-Tac-Toe.</p>
+    <p><b>(Nov'23, 5 marks)</b> Explain Simple reinforcement learning for Tic-Tac-Toe.</p>
+    <p><b>(May'25, 6 marks)</b> Explain reinforcement learning for Tic-Tac-Toe game.</p>
+    <p><b>(Nov'25, 5 marks)</b> How can the game of Tic-Tac-Toe be formulated as a reinforcement learning problem?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Two kids play Tic-Tac-Toe many times. Initially they make random moves. When kid X wins, they remember: "When the board looked like THIS, I made THIS move and won — let me try this again next time." After many games, they figure out which moves lead to wins, which lead to draws, which lead to losses. That's reinforcement learning for Tic-Tac-Toe.
+</div>
+
+<h3>1. Tic-Tac-Toe as an MDP</h3>
+<ul>
+  <li><b>States (S):</b> all possible board configurations (3×3 grid with X, O, or empty in each cell). About 5,478 reachable states.</li>
+  <li><b>Actions (A):</b> in each state, the legal moves are the empty cells where the current player can place their mark.</li>
+  <li><b>Transitions (P):</b> deterministic for the player's own move; stochastic from the player's view if opponent's strategy is unknown.</li>
+  <li><b>Rewards (R):</b>
+    <ul>
+      <li>+1 for winning.</li>
+      <li>−1 for losing.</li>
+      <li>0 for a draw or intermediate move.</li>
+    </ul>
+  </li>
+  <li><b>Discount factor (γ):</b> usually 1 (episodic task — game eventually ends).</li>
+</ul>
+
+<h3>2. Simple RL algorithm for Tic-Tac-Toe (value-based)</h3>
+<ol>
+  <li>Maintain a <b>value table</b> V(s) for every possible board state.</li>
+  <li>Initialize:
+    <ul>
+      <li>For winning states: V = 1.</li>
+      <li>For losing states: V = 0.</li>
+      <li>For draws and intermediate states: V = 0.5.</li>
+    </ul>
+  </li>
+  <li>During a game, at each turn:
+    <ul>
+      <li>Most of the time, play GREEDY: pick the move leading to the state with the highest V (exploitation).</li>
+      <li>Occasionally, pick a RANDOM move (exploration) — with probability ε.</li>
+    </ul>
+  </li>
+  <li>After each non-random (greedy) move, update the value of the previous state toward the value of the new state:
+    <pre>V(s_t) ← V(s_t) + α · [V(s_{t+1}) − V(s_t)]</pre>
+  </li>
+  <li>Repeat for thousands of games until V converges.</li>
+  <li>The greedy policy on the converged V is the optimal strategy.</li>
+</ol>
+
+<h3>3. Why this works</h3>
+<ul>
+  <li>The value of winning states "propagates backward" through V updates.</li>
+  <li>States leading to wins get high V; states leading to losses get low V.</li>
+  <li>Eventually V tells the agent which move is best from any given board.</li>
+  <li>This is a TEMPORAL DIFFERENCE (TD) learning approach — a simple form of model-free RL.</li>
+</ul>
+
+<h3>4. Exploration vs Exploitation in Tic-Tac-Toe</h3>
+<ul>
+  <li><b>Exploitation:</b> always pick the move with the highest V → may miss better options.</li>
+  <li><b>Exploration:</b> occasionally pick a random move → discovers new strategies.</li>
+  <li>Balance using ε-greedy (e.g., ε = 0.1 → 10% random moves).</li>
+</ul>
+
+<h3>5. Optional improvements</h3>
+<ul>
+  <li>Use Q-learning (with Q-table over (state, action) pairs) instead of V-table.</li>
+  <li>Train two RL agents against each other (self-play) for better learning.</li>
+  <li>Use a small neural network instead of a table for larger games like Connect Four.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Tic-Tac-Toe as MDP: states = board configs; actions = legal moves; rewards = +1/0/−1.</li>
+    <li>Use a value table V(s); update by TD: V(s) ← V(s) + α[V(s') − V(s)].</li>
+    <li>Use ε-greedy: mostly greedy, sometimes random for exploration.</li>
+    <li>Train over many games until V converges, then play greedy.</li>
+    <li>This is a classic introductory RL example.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Deep Reinforcement Learning</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, Nov'23, May'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 5 marks)</b> What is deep reinforcement learning? Explain in detail.</p>
+    <p><b>(Nov'23, 6 marks)</b> What is deep reinforcement learning? Explain in detail.</p>
+    <p><b>(May'25, 6 marks)</b> Explain deep reinforcement learning.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Deep Reinforcement Learning (Deep RL)</b> is a combination of Reinforcement Learning (decision-making via trial and error) with Deep Learning (function approximation using neural networks). It uses deep neural networks to approximate the value function, policy, or model in an RL algorithm.</p>
+
+<h3>2. Why Deep RL?</h3>
+<ul>
+  <li>Traditional RL (Q-table, V-table) works only for small, discrete state spaces.</li>
+  <li>Real-world problems have HUGE or continuous state spaces (images, video, sensor data).</li>
+  <li>Deep neural networks can approximate complex value / policy functions.</li>
+  <li>Lets RL scale to large problems like video games, robotics, autonomous driving.</li>
+</ul>
+
+<h3>3. Building blocks of Deep RL</h3>
+<ul>
+  <li><b>Value-based:</b> use deep network to approximate Q-function (e.g., DQN).</li>
+  <li><b>Policy-based:</b> use deep network to directly output a probability distribution over actions (REINFORCE, Policy Gradient).</li>
+  <li><b>Actor-Critic:</b> uses two networks — actor (policy) and critic (value function). Examples: A2C, A3C, PPO, DDPG.</li>
+  <li><b>Model-based:</b> learn a deep model of the environment dynamics.</li>
+</ul>
+
+<h3>4. How Deep RL works (general flow)</h3>
+<ol>
+  <li>Agent observes state s (e.g., a game-frame image).</li>
+  <li>Neural network processes s to produce action a (or Q-values, or policy probabilities).</li>
+  <li>Agent takes action; receives reward r and new state s'.</li>
+  <li>Loss is computed based on RL objective (Bellman error, policy gradient, etc.).</li>
+  <li>Backpropagation updates the network weights.</li>
+  <li>Repeat over millions of interactions until policy is good.</li>
+</ol>
+
+<h3>5. Famous Deep RL milestones</h3>
+<ul>
+  <li><b>DQN (2015):</b> superhuman performance on Atari games (DeepMind).</li>
+  <li><b>AlphaGo (2016):</b> beat world champion Go player.</li>
+  <li><b>AlphaZero (2017):</b> learned chess, shogi, Go from scratch via self-play.</li>
+  <li><b>OpenAI Five (2019):</b> beat professional Dota 2 players.</li>
+  <li><b>AlphaStar (2019):</b> beat top StarCraft II players.</li>
+  <li><b>ChatGPT (RLHF):</b> uses reinforcement learning with human feedback to refine language models.</li>
+</ul>
+
+<h3>6. Applications of Deep RL</h3>
+<ul>
+  <li>Video and board games (Atari, Go, Chess, Dota, StarCraft).</li>
+  <li>Robotics (grasping, walking, manipulation).</li>
+  <li>Autonomous driving (lane changing, navigation).</li>
+  <li>Recommendation systems.</li>
+  <li>Healthcare (treatment optimization).</li>
+  <li>Finance (algorithmic trading, portfolio management).</li>
+  <li>Industrial control (data centre cooling, manufacturing).</li>
+  <li>LLM fine-tuning via RLHF (Reinforcement Learning with Human Feedback).</li>
+</ul>
+
+<h3>7. Challenges of Deep RL</h3>
+<ul>
+  <li>Sample inefficient — needs millions of interactions.</li>
+  <li>Training instability and sensitivity to hyperparameters.</li>
+  <li>Sparse reward problem.</li>
+  <li>Hard to debug and reproduce.</li>
+  <li>Computationally expensive.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Deep RL = RL + Deep Neural Networks.</li>
+    <li>Neural network approximates Q, policy, or model.</li>
+    <li>Categories: value-based (DQN), policy-based (REINFORCE), actor-critic, model-based.</li>
+    <li>Famous: DQN, AlphaGo, AlphaZero, OpenAI Five.</li>
+    <li>Applications: games, robotics, self-driving, LLM training (RLHF).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — Challenges of Reinforcement Learning</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, Nov'23, May'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> What are the challenges of reinforcement learning? Explain any four in detail.</p>
+    <p><b>(Nov'23, 5 marks)</b> What are the challenges of reinforcement learning? Explain any four in detail.</p>
+    <p><b>(May'25, 5 marks)</b> What are the challenges of reinforcement learning?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>The 7 main challenges of Reinforcement Learning</h3>
+
+<h4>(1) Exploration vs Exploitation trade-off</h4>
+<ul>
+  <li>Agent must EXPLORE to find new strategies, but also EXPLOIT known good strategies.</li>
+  <li>Too much exploration → wasted time on bad moves.</li>
+  <li>Too much exploitation → stuck in a local optimum.</li>
+  <li>Balancing this is tricky (ε-greedy, UCB, Thompson sampling).</li>
+</ul>
+
+<h4>(2) Sparse and delayed rewards</h4>
+<ul>
+  <li>In many problems, rewards come only at the end (win/lose in chess, +1 for goal in soccer).</li>
+  <li>Hard for the agent to figure out WHICH move actually caused the reward.</li>
+  <li>This is called the <b>credit assignment problem</b>.</li>
+</ul>
+
+<h4>(3) Sample inefficiency</h4>
+<ul>
+  <li>RL needs MANY interactions (millions) to learn a good policy.</li>
+  <li>Real-world data collection (e.g., robot in physical environment) is expensive and slow.</li>
+  <li>Sample efficiency is a major research bottleneck.</li>
+</ul>
+
+<h4>(4) Large state/action space (curse of dimensionality)</h4>
+<ul>
+  <li>State and action spaces explode in real-world problems (e.g., images, continuous control).</li>
+  <li>Q-tables become infeasible.</li>
+  <li>Function approximation (neural networks) helps but introduces training instability.</li>
+</ul>
+
+<h4>(5) Training instability</h4>
+<ul>
+  <li>Deep RL training oscillates, diverges, or collapses.</li>
+  <li>Small changes in hyperparameters dramatically affect performance.</li>
+  <li>Techniques: experience replay, target networks, gradient clipping help, but don't fully solve.</li>
+</ul>
+
+<h4>(6) Non-stationarity / Partial observability</h4>
+<ul>
+  <li>Environment can change over time, or agent doesn't see the full state (POMDP).</li>
+  <li>Multi-agent settings make the environment non-stationary (other agents change strategies).</li>
+  <li>Requires RNNs or memory-augmented networks.</li>
+</ul>
+
+<h4>(7) Reward hacking and safety</h4>
+<ul>
+  <li>Agent may find unintended ways to maximize reward (gaming the reward function).</li>
+  <li>Hard to define a good reward function (reward shaping).</li>
+  <li>Safety: an RL agent may take dangerous actions during exploration in a real environment.</li>
+</ul>
+
+<h3>Other challenges</h3>
+<ul>
+  <li><b>Difficulty in evaluation</b> — no clear single metric.</li>
+  <li><b>Computationally expensive training.</b></li>
+  <li><b>Transfer learning is hard</b> — policies don't generalize well across environments.</li>
+  <li><b>Reproducibility issues</b> — random seeds dramatically affect results.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>7 main challenges: exploration-exploitation, sparse rewards, sample inefficiency, large state space, training instability, partial observability, reward hacking.</li>
+    <li>Credit assignment problem = figuring out which action caused the reward.</li>
+    <li>Sample inefficiency is a major real-world bottleneck.</li>
+    <li>Safety and reward shaping are critical for real deployment.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — RL Basics: State, Action, Reward, Policy</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'25 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'25, 6 marks)</b> Define the terms: state, action, reward, and policy in the context of Reinforcement Learning (RL).</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. State (s)</h3>
+<ul>
+  <li>A complete description of the situation the agent is currently in.</li>
+  <li>Contains all the information the agent needs to make a decision (under Markov property).</li>
+  <li>Example: in chess, the state is the current board position. In a video game, the state could be the current screen image.</li>
+  <li>The set of all possible states is denoted S.</li>
+</ul>
+
+<h3>2. Action (a)</h3>
+<ul>
+  <li>A choice the agent makes that affects the environment.</li>
+  <li>The set of all possible actions is denoted A (may depend on the state).</li>
+  <li>Actions can be DISCRETE (e.g., move left/right) or CONTINUOUS (e.g., steering angle).</li>
+  <li>Example: in chess, an action is a legal move. In driving, an action is steering + acceleration.</li>
+</ul>
+
+<h3>3. Reward (r)</h3>
+<ul>
+  <li>A scalar feedback signal from the environment after the agent takes an action.</li>
+  <li>Indicates how good the action was in that state.</li>
+  <li>Positive reward = good action; negative reward = bad action.</li>
+  <li>Agent's goal is to maximize the CUMULATIVE reward over time.</li>
+  <li>Example: +10 for scoring a goal, −1 for losing a piece, −0.01 for each time step (energy cost).</li>
+</ul>
+
+<h3>4. Policy (π)</h3>
+<ul>
+  <li>A strategy that tells the agent what action to take in each state.</li>
+  <li>Can be:
+    <ul>
+      <li><b>Deterministic:</b> π(s) = a (always the same action in state s).</li>
+      <li><b>Stochastic:</b> π(a | s) = probability of taking action a in state s.</li>
+    </ul>
+  </li>
+  <li>The goal of RL is to find the OPTIMAL policy π* that maximizes total expected reward.</li>
+</ul>
+
+<h3>5. Other related terms</h3>
+<ul>
+  <li><b>Episode:</b> a complete sequence from start state to terminal state.</li>
+  <li><b>Return (G):</b> total accumulated reward in an episode.</li>
+  <li><b>Value function V(s):</b> expected return from state s under policy π.</li>
+  <li><b>Q-function Q(s, a):</b> expected return from taking action a in state s and then following π.</li>
+  <li><b>Discount factor γ:</b> [0, 1] — how much we value future rewards.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>State (s) = current situation; Action (a) = what agent does; Reward (r) = feedback; Policy (π) = strategy.</li>
+    <li>Agent's goal: find optimal policy π* maximizing total reward.</li>
+    <li>Policy can be deterministic π(s) = a or stochastic π(a|s).</li>
+    <li>Value V(s) and Q(s, a) measure expected return.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — Types of RL / Active vs Passive RL</h2>
+<span class="freq-tag">Asked 2 times</span>(May'24 — 6 + 5 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 6 marks)</b> What are different types of Reinforcement Learning? Explain in brief.</p>
+    <p><b>(May'24, 5 marks)</b> Compare Active and Passive Reinforcement Learning.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>Part A — Types of Reinforcement Learning</h3>
+
+<h4>(1) Based on knowledge of environment</h4>
+<ul>
+  <li><b>Model-based RL:</b> agent knows or learns the model (transition probabilities, rewards). Uses planning (DP).</li>
+  <li><b>Model-free RL:</b> agent does NOT know the model; learns directly from experience. Examples: Q-Learning, SARSA.</li>
+</ul>
+
+<h4>(2) Based on what is learned</h4>
+<ul>
+  <li><b>Value-based:</b> learn value function V or Q. Policy is implicit (greedy). Examples: Q-Learning, DQN.</li>
+  <li><b>Policy-based:</b> learn policy directly. Examples: REINFORCE, PPO.</li>
+  <li><b>Actor-Critic:</b> combine both — actor learns policy, critic learns value. Examples: A2C, A3C, DDPG.</li>
+</ul>
+
+<h4>(3) Based on policy used for exploration</h4>
+<ul>
+  <li><b>On-policy:</b> learn the policy that is being used to explore. Example: SARSA.</li>
+  <li><b>Off-policy:</b> learn the optimal policy while following a different (exploratory) policy. Example: Q-Learning.</li>
+</ul>
+
+<h4>(4) Based on agent's involvement (Active vs Passive)</h4>
+<ul>
+  <li><b>Active RL:</b> agent chooses its own actions, exploring the environment.</li>
+  <li><b>Passive RL:</b> agent's policy is FIXED; it just observes the rewards and evaluates the given policy.</li>
+</ul>
+
+<hr>
+
+<h3>Part B — Active vs Passive RL — comparison</h3>
+<table>
+  <tr><th>Aspect</th><th>Passive RL</th><th>Active RL</th></tr>
+  <tr><td>Policy</td><td>Fixed (given)</td><td>Agent chooses actions</td></tr>
+  <tr><td>Goal</td><td>Evaluate value of the given policy</td><td>Find the OPTIMAL policy</td></tr>
+  <tr><td>Exploration</td><td>None (agent just follows policy)</td><td>Yes (try new actions)</td></tr>
+  <tr><td>Algorithms</td><td>Direct utility estimation, Temporal Difference (TD) evaluation</td><td>Q-Learning, SARSA, Policy Gradient</td></tr>
+  <tr><td>Output</td><td>Value function V<sup>π</sup> for the given π</td><td>Optimal policy π* and Q*</td></tr>
+  <tr><td>Difficulty</td><td>Easier</td><td>Harder</td></tr>
+  <tr><td>Real-world use</td><td>Policy evaluation, simulation</td><td>Most practical RL applications</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>RL types: model-based vs model-free; value-based vs policy-based vs actor-critic; on-policy vs off-policy; active vs passive.</li>
+    <li>Active RL: agent picks actions and learns optimal policy.</li>
+    <li>Passive RL: policy is fixed; agent only evaluates it.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q9">Q9 — Characteristics / Advantages-Disadvantages of RL</h2>
+<span class="freq-tag">Asked 2 times</span>(May'24 — 6 marks each)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 6 marks)</b> What is Reinforcement Learning? State and explain its advantages and disadvantages.</p>
+    <p><b>(May'24, 6 marks)</b> What are different characteristics of Reinforcement Learning?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is Reinforcement Learning?</h3>
+<p>RL is a type of machine learning where an agent learns to make sequential decisions by interacting with an environment, receiving rewards for good actions and penalties for bad ones, with the goal of maximizing cumulative reward.</p>
+
+<h3>2. Characteristics of RL</h3>
+<ul>
+  <li><b>Trial-and-error learning:</b> agent learns by experimenting, not from labeled data.</li>
+  <li><b>Sequential decision making:</b> each action affects future states and rewards.</li>
+  <li><b>Delayed rewards:</b> reward may come long after the action.</li>
+  <li><b>Goal-directed behavior:</b> agent aims to maximize a cumulative reward.</li>
+  <li><b>Exploration vs Exploitation trade-off:</b> must balance trying new vs sticking to known good.</li>
+  <li><b>No supervisor:</b> no teacher providing correct actions.</li>
+  <li><b>Time matters:</b> states are visited sequentially.</li>
+  <li><b>Feedback is evaluative</b> (telling how good an action was), NOT instructive (which action was correct).</li>
+</ul>
+
+<h3>3. Advantages of RL</h3>
+<ul>
+  <li>Can solve complex sequential decision problems with no human-provided labels.</li>
+  <li>Learns directly from experience — no need for explicit programming.</li>
+  <li>Can outperform humans (Go, Chess, video games).</li>
+  <li>Adapts to changing environments.</li>
+  <li>Discovers novel strategies not designed by humans.</li>
+  <li>Generalizes to new but similar problems.</li>
+  <li>No need for a pre-existing dataset (generates own data via interaction).</li>
+</ul>
+
+<h3>4. Disadvantages of RL</h3>
+<ul>
+  <li>Needs LOTS of data / interactions to learn (sample-inefficient).</li>
+  <li>Training is slow and computationally expensive.</li>
+  <li>Sensitive to hyperparameters and reward design.</li>
+  <li>Sparse/delayed rewards make credit assignment hard.</li>
+  <li>Training instability — small changes break performance.</li>
+  <li>Hard to debug and reproduce results.</li>
+  <li>Safety issues — bad actions during exploration may be dangerous in the real world.</li>
+  <li>Difficult to apply in real-world due to need for simulators or huge data.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>RL = learning by trial-and-error from environment rewards.</li>
+    <li>Characteristics: sequential, delayed rewards, evaluative feedback, exploration-exploitation.</li>
+    <li>Advantages: powerful, no labels needed, can exceed human performance.</li>
+    <li>Disadvantages: sample-inefficient, unstable, hard to debug, safety concerns.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q10">Q10 — Deep Recurrent Q-Networks (DQRN)</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'25 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'25, 6 marks)</b> How does the recurrent layer in a Deep Recurrent Q-Networks (DQRN) help in decision-making over sequences?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is DQRN?</h3>
+<p>A <b>Deep Recurrent Q-Network (DRQN / DQRN)</b> is an extension of Deep Q-Networks (DQN) that replaces one fully-connected layer with a RECURRENT layer (usually LSTM or GRU). This allows the network to use information from PAST observations, not just the current state.</p>
+
+<h3>2. Why we need DQRN — limitation of plain DQN</h3>
+<ul>
+  <li>Standard DQN assumes the current observation is ENOUGH (Markov property holds).</li>
+  <li>In many real-world problems, the current observation alone is NOT sufficient (partial observability / POMDP).</li>
+  <li>Example: in Atari "Pong" or "Breakout", a single frame doesn't show the BALL'S DIRECTION — you need a few previous frames.</li>
+  <li>The standard DQN trick is to stack 4 frames as input, but this is a hack with a fixed window.</li>
+</ul>
+
+<h3>3. How DQRN's recurrent layer helps</h3>
+<ul>
+  <li>An LSTM/GRU layer maintains a hidden state that summarizes the history of all past observations.</li>
+  <li>This gives the agent a "memory" that persists across time steps.</li>
+  <li>The agent can use this memory to figure out latent variables (ball direction, opponent's pattern, etc.).</li>
+  <li>It is more flexible than the 4-frame stacking trick — can use ANY amount of history.</li>
+  <li>Particularly useful in environments where future state depends on a long sequence of past observations.</li>
+</ul>
+
+<h3>4. Architecture of DQRN</h3>
+<pre>
+   Observation o_t → CNN layers → LSTM cell → FC layer → Q-values
+
+   Hidden state h_{t-1} ────► LSTM ────► h_t (passed to next step)
+</pre>
+
+<h3>5. Training process</h3>
+<ul>
+  <li>Use experience replay just like DQN, but replay SEQUENCES (not single transitions).</li>
+  <li>The LSTM is unrolled over the sequence; backprop through time updates weights.</li>
+  <li>Hidden state is initialized at the start of each sequence (or carried over).</li>
+</ul>
+
+<h3>6. Benefits over standard DQN</h3>
+<ul>
+  <li>Handles partial observability (POMDPs) gracefully.</li>
+  <li>No need to artificially stack frames as input.</li>
+  <li>Can learn long-range dependencies in observations.</li>
+  <li>Better performance in environments where memory matters.</li>
+</ul>
+
+<h3>7. Applications</h3>
+<ul>
+  <li>Atari games with partial observability (e.g., flickering versions).</li>
+  <li>3D first-person navigation tasks.</li>
+  <li>Robotic control with noisy or limited sensors.</li>
+  <li>Real-time strategy games where opponent strategy must be inferred from past moves.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>DQRN = DQN + recurrent layer (LSTM/GRU).</li>
+    <li>Recurrent layer adds MEMORY of past observations.</li>
+    <li>Handles partial observability (POMDPs).</li>
+    <li>Avoids the frame-stacking hack of standard DQN.</li>
+    <li>Useful when the optimal action depends on a LONG history.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>Dynamic Programming for RL</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>Q-Learning / Deep Q-Networks</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>Markov Decision Process</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Tic-Tac-Toe RL</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Deep Reinforcement Learning</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>3</td></tr>
+  <tr><td>Challenges of RL</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>3</td></tr>
+  <tr><td>Types of RL / Active vs Passive</td><td>—</td><td>—</td><td>✓ ×2</td><td>—</td><td>—</td><td>2</td></tr>
+  <tr><td>Characteristics / Advantages of RL</td><td>—</td><td>—</td><td>✓ ×2</td><td>—</td><td>—</td><td>2</td></tr>
+  <tr><td>State / action / reward / policy</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>1</td></tr>
+  <tr><td>Deep Recurrent Q-Networks</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>1</td></tr>
+</table>
+
+<h3>Must-remember 6 lines</h3>
+<ol>
+  <li><b>RL</b> = agent learns by trial-and-error in environment, maximizing cumulative reward.</li>
+  <li><b>MDP</b> = (S, A, P, R, γ) — formalism of RL. Markov property: future depends only on current state.</li>
+  <li><b>DP for RL</b>: Policy Iteration + Value Iteration; needs known model.</li>
+  <li><b>Q-Learning</b>: Q ← Q + α[r + γ max Q(s', a') − Q]. Model-free, off-policy.</li>
+  <li><b>DQN</b>: deep network approximates Q; uses experience replay + target network.</li>
+  <li><b>Challenges</b>: exploration-exploitation, sparse rewards, sample inefficiency, training instability.</li>
+</ol>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>RL = learn by reward; MDP formalizes the problem; DP/Q-Learning/DQN solve it; Deep RL scales it to images, games, robotics.</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  DL Chapter 6 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open this file in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BI — Chapter 3: Reporting Authoring (Unit III)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="../DL/Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="../DL/Chapter-4.html">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="../DL/Chapter-5.html">Ch 5 — Deep Generative Models</a>
+    <a href="../DL/Chapter-6.html">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="../NLP/Chapter-3.html">Ch 3 — Language Modelling</a>
+    <a href="../NLP/Chapter-4.html">Ch 4 — Information Retrieval</a>
+    <a href="../NLP/Chapter-5.html">Ch 5 — NLP Tools &amp; Techniques</a>
+    <a href="../NLP/Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details open>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="Chapter-3.html" class="current">Ch 3 — Reporting Authoring</a>
+    <a href="Chapter-4.html">Ch 4 — Data Preparation</a>
+    <a href="Chapter-5.html">Ch 5 — ML in BI</a>
+    <a href="Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>BI — Chapter 3: Reporting Authoring (Unit III)</h1>
+<p class="meta">
+  Subject Code: 410253(C) (Elective VI) | End-Sem: 11 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q1 or Q2).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — what is BI reporting?</a></li>
+    <li><a href="#q1">Q1 — Data Grouping, Sorting, Filtering Reports (asked 5 times)</a></li>
+    <li><a href="#q2">Q2 — Types of Reports (asked 4 times)</a></li>
+    <li><a href="#q3">Q3 — Drill up, Drill down, Drill through (asked 4 times)</a></li>
+    <li><a href="#q4">Q4 — Multidimensional Data Model (asked 3 times)</a></li>
+    <li><a href="#q5">Q5 — Relational Data Model (asked 2 times)</a></li>
+    <li><a href="#q6">Q6 — Relational vs Multidimensional (asked 2 times)</a></li>
+    <li><a href="#q7">Q7 — BI Architecture &amp; Mathematical Models (asked 2 times)</a></li>
+    <li><a href="#q8">Q8 — Other (CSV, Conditional formatting, DSS, Ethics, etc.)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+A business has TONS of data (sales, customers, inventory). Managers can't make decisions from raw numbers — they need REPORTS: nicely formatted tables, charts, dashboards that summarize key facts. BI Reporting is the art of turning raw data into useful visual reports. This chapter covers report TYPES, how to GROUP and FILTER data, how to ZOOM in or out (drill up/down), and the DATA MODELS underlying reports.
+</div>
+
+<h3>Key concepts you'll meet</h3>
+<ul>
+  <li><b>Report</b> = a structured presentation of data (tables, charts).</li>
+  <li><b>Dashboard</b> = a single screen with multiple visualizations.</li>
+  <li><b>Drill-down</b> = zoom into more detail.</li>
+  <li><b>Drill-up</b> = zoom out to summary.</li>
+  <li><b>OLAP cube</b> = multidimensional data structure for fast analysis.</li>
+  <li><b>Relational vs Multidimensional</b> = two ways to model data.</li>
+</ul>
+
+<hr>
+
+<h2 id="q1">Q1 — Data Grouping, Sorting, and Filtering in Reports</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23 ×2, Nov'23, May'24, Nov'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 5 marks)</b> What is data grouping and sorting? Write example of each.</p>
+    <p><b>(May'23, 5 marks)</b> Write short note on filtering reports.</p>
+    <p><b>(Nov'23, 6 marks)</b> Suggest the use of Data Grouping &amp; Sorting, Filtering Reports.</p>
+    <p><b>(May'24, 5 marks)</b> Explain with examples the use of Data Grouping and sorting, Filtering in BI Reports.</p>
+    <p><b>(Nov'25, 6 marks)</b> Suggest the use of Data Grouping &amp; Sorting, Filtering Reports.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine a shop's sales report with 10,000 rows. Hard to read! GROUPING bundles them by region/product, SORTING arranges by amount, FILTERING shows only what you care about (e.g., only last month). These 3 tricks make any raw data report instantly useful.
+</div>
+
+<h3>1. Data Grouping</h3>
+<p><b>Data Grouping</b> means combining records that share a COMMON VALUE in one or more columns into groups. Each group can then be summarized (sum, count, average, etc.).</p>
+
+<h4>Why grouping matters</h4>
+<ul>
+  <li>Reveals patterns at higher levels of detail (by region, year, product).</li>
+  <li>Reduces clutter in long reports.</li>
+  <li>Enables aggregate calculations per group.</li>
+  <li>Easier comparison across categories.</li>
+</ul>
+
+<h4>Example</h4>
+<pre>
+Raw data:
+   Sale #1 | Region: West | Amount: 500
+   Sale #2 | Region: East | Amount: 300
+   Sale #3 | Region: West | Amount: 200
+   Sale #4 | Region: East | Amount: 700
+
+After grouping by Region:
+   Region: East | Total Sales: 1000  (2 sales)
+   Region: West | Total Sales: 700   (2 sales)
+</pre>
+
+<h3>2. Data Sorting</h3>
+<p><b>Sorting</b> arranges records in ASCENDING or DESCENDING order based on one or more columns.</p>
+
+<h4>Why sorting matters</h4>
+<ul>
+  <li>Quickly identify top performers / worst performers.</li>
+  <li>Easier to scan for specific values.</li>
+  <li>Helps with ranking analyses.</li>
+  <li>Improves readability.</li>
+</ul>
+
+<h4>Example</h4>
+<pre>
+Sales sorted DESCENDING by Amount:
+   1. Sale #4 | East | 700
+   2. Sale #1 | West | 500
+   3. Sale #3 | West | 200
+   4. Sale #2 | East | 300  (or 300 between 200 and 500)
+</pre>
+
+<h3>3. Filtering Reports</h3>
+<p><b>Filtering</b> shows ONLY the rows that match certain conditions, hiding the rest. It is one of the most powerful ways to focus a report.</p>
+
+<h4>Why filtering matters</h4>
+<ul>
+  <li>Show only relevant data (e.g., "only sales &gt; ₹1000").</li>
+  <li>Reduces report size and improves performance.</li>
+  <li>Lets one report serve different audiences (by changing filter).</li>
+  <li>Combines with parameters for interactive reports.</li>
+</ul>
+
+<h4>Types of filters</h4>
+<ul>
+  <li><b>Static filters</b> — fixed conditions (e.g., "Region = West").</li>
+  <li><b>Dynamic filters</b> — based on user input or current date.</li>
+  <li><b>Pre-aggregation filters (WHERE)</b> — applied before grouping.</li>
+  <li><b>Post-aggregation filters (HAVING)</b> — applied after grouping (e.g., groups with sum &gt; 1000).</li>
+  <li><b>Cross-tab filters</b> — filter rows or columns of a crosstab.</li>
+</ul>
+
+<h4>Example</h4>
+<pre>
+Filter: "Show only sales above 400"
+Result:
+   Sale #4 | East | 700
+   Sale #1 | West | 500
+</pre>
+
+<h3>4. Combined use of grouping + sorting + filtering</h3>
+<p>A typical BI report often uses ALL THREE:</p>
+<ol>
+  <li>Filter: only show 2025 sales.</li>
+  <li>Group: by Region and Product.</li>
+  <li>Sort: by Total Sales (descending).</li>
+</ol>
+<p>Result: a clean, focused, ordered summary perfect for management dashboards.</p>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Grouping = combine rows with same value; enables aggregate.</li>
+    <li>Sorting = arrange in ASC or DESC order on one or more columns.</li>
+    <li>Filtering = show only rows matching a condition.</li>
+    <li>Filters: static, dynamic, WHERE (pre-aggregation), HAVING (post-aggregation).</li>
+    <li>Used together: filter → group → sort, for clean management reports.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — Different Types of Reports</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'25, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'25, 6 marks)</b> Explain different types of reports in detail.</p>
+    <p><b>(Nov'23 &amp; Nov'25, 6 marks)</b> State different types of reports with their applications.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Common types of BI reports</h3>
+
+<h4>(a) List Report</h4>
+<ul>
+  <li>Simple tabular list of records, row-by-row.</li>
+  <li>Example: list of all customers with their contact details.</li>
+  <li>Best for detail-level data examination.</li>
+</ul>
+
+<h4>(b) Crosstab Report (Pivot Table)</h4>
+<ul>
+  <li>Summary table with rows and columns showing aggregated values.</li>
+  <li>Example: rows = product, columns = quarter, cell = total sales.</li>
+  <li>Excellent for comparing values across two dimensions.</li>
+</ul>
+
+<h4>(c) Statistical Report</h4>
+<ul>
+  <li>Provides statistical summaries (mean, median, mode, std deviation).</li>
+  <li>Example: average order value per customer segment.</li>
+  <li>Common in finance, science, manufacturing quality control.</li>
+</ul>
+
+<h4>(d) Chart Report</h4>
+<ul>
+  <li>Graphical visualization: bar, pie, line, scatter, area charts.</li>
+  <li>Example: line chart of monthly revenue trend.</li>
+  <li>Highly visual; easier for non-technical viewers.</li>
+</ul>
+
+<h4>(e) Map Report</h4>
+<ul>
+  <li>Data plotted on geographic maps.</li>
+  <li>Example: sales heatmap by state in India.</li>
+  <li>Useful for location-based insights (logistics, retail).</li>
+</ul>
+
+<h4>(f) Financial Report</h4>
+<ul>
+  <li>Income statements, balance sheets, cash-flow reports.</li>
+  <li>Used by finance and accounts teams.</li>
+  <li>Often follows accounting standards (GAAP, IFRS).</li>
+</ul>
+
+<h4>(g) Dashboard</h4>
+<ul>
+  <li>Combines multiple visualizations on a single screen.</li>
+  <li>Real-time KPIs for executives.</li>
+  <li>Interactive — clicking one chart filters others.</li>
+</ul>
+
+<h4>(h) Scorecard Report</h4>
+<ul>
+  <li>Tracks Key Performance Indicators (KPIs) against targets.</li>
+  <li>Often used in Balanced Scorecard frameworks.</li>
+</ul>
+
+<h4>(i) Operational Report</h4>
+<ul>
+  <li>Daily / weekly reports showing current operational state.</li>
+  <li>Example: today's sales, current stock levels.</li>
+</ul>
+
+<h4>(j) Ad-hoc Report</h4>
+<ul>
+  <li>User-created on-the-fly for one-time analysis.</li>
+  <li>Typically built using drag-and-drop BI tools.</li>
+</ul>
+
+<h3>2. Output formats for reports</h3>
+<ul>
+  <li><b>PDF</b> — formal documents, printed copies.</li>
+  <li><b>Excel (XLSX)</b> — for further analysis.</li>
+  <li><b>CSV</b> — raw data exchange.</li>
+  <li><b>XML / JSON</b> — for system integration.</li>
+  <li><b>HTML</b> — for web-based viewing.</li>
+</ul>
+
+<h3>3. Application areas of each report type</h3>
+<table>
+  <tr><th>Report type</th><th>Best for</th></tr>
+  <tr><td>List</td><td>Detailed transaction logs</td></tr>
+  <tr><td>Crosstab</td><td>Comparative analysis (sales by region/quarter)</td></tr>
+  <tr><td>Statistical</td><td>Quality control, performance metrics</td></tr>
+  <tr><td>Chart</td><td>Executive summaries, trend analysis</td></tr>
+  <tr><td>Map</td><td>Geographic / logistics analysis</td></tr>
+  <tr><td>Financial</td><td>Accounting, audits</td></tr>
+  <tr><td>Dashboard</td><td>Real-time KPI monitoring</td></tr>
+  <tr><td>Scorecard</td><td>Strategy tracking</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Common report types: List, Crosstab, Statistical, Chart, Map, Financial, Dashboard, Scorecard, Operational, Ad-hoc.</li>
+    <li>Output formats: PDF, XLSX, CSV, XML, JSON, HTML.</li>
+    <li>Choose type based on audience (technical / executive / financial).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — Drill Up, Drill Down, Drill Through</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'24, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'23, 6 marks)</b> Explain in detail drill up &amp; drill down.</p>
+    <p><b>(May'24, 6 marks)</b> Discuss the importance of drill up, drill-down and drill-through capabilities in report preparation.</p>
+    <p><b>(Nov'25, 6 marks)</b> Explain in detail Drill up and Drill Down.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Drill down is like ZOOMING IN with Google Maps — start at the country level, drill down to state, then city, then street. Drill up is the reverse — ZOOM OUT to the bigger picture. Drill through is like CLICKING A LINK to jump to a related detailed view. These are essential OLAP operations.
+</div>
+
+<h3>1. Drill Down</h3>
+<p><b>Drill Down</b> is the operation of navigating from a SUMMARY level to a MORE DETAILED level of data, descending the hierarchy.</p>
+
+<h4>Example</h4>
+<pre>
+Yearly Sales: 2024 = ₹10 crore
+   ↓ drill down by Quarter
+Q1 = ₹2.5 cr | Q2 = ₹3 cr | Q3 = ₹2 cr | Q4 = ₹2.5 cr
+   ↓ drill down by Month (Q3)
+Jul = ₹0.7 cr | Aug = ₹0.6 cr | Sep = ₹0.7 cr
+   ↓ drill down by Day (Sep)
+Sep 1 = ₹2.3 lakh | ... | Sep 30 = ₹2.5 lakh
+</pre>
+
+<h4>Hierarchy in OLAP</h4>
+<p>Drill down works because data is organized in HIERARCHIES, e.g.:</p>
+<ul>
+  <li>Time: Year → Quarter → Month → Day</li>
+  <li>Geography: Country → State → City → Pincode</li>
+  <li>Product: Category → Sub-category → Product → SKU</li>
+</ul>
+
+<h3>2. Drill Up (Roll Up)</h3>
+<p><b>Drill Up</b> is the OPPOSITE of drill down — it summarizes data from a DETAILED level to a HIGHER level.</p>
+
+<h4>Example</h4>
+<pre>
+Daily Sales (Sep 1 to Sep 30)
+   ↑ drill up by Month
+September: ₹0.7 cr
+   ↑ drill up by Quarter
+Q3 (Jul-Sep): ₹2 cr
+   ↑ drill up by Year
+2024: ₹10 cr
+</pre>
+
+<h3>3. Drill Through</h3>
+<p><b>Drill Through</b> is navigating from a summarized report to a different (often more detailed) report or to the SOURCE TRANSACTIONS, usually by clicking on a cell.</p>
+
+<h4>Example</h4>
+<ul>
+  <li>You see "Total Sales for Customer X = ₹50,000" in a summary report.</li>
+  <li>Click on this number → drill through to the list of actual transactions for Customer X.</li>
+  <li>Each transaction has date, item, amount, sales representative.</li>
+</ul>
+
+<h3>4. Comparison</h3>
+<table>
+  <tr><th>Operation</th><th>Direction</th><th>Action</th><th>Example</th></tr>
+  <tr><td>Drill Down</td><td>Summary → Detail</td><td>Expand a category</td><td>Year → Month</td></tr>
+  <tr><td>Drill Up (Roll Up)</td><td>Detail → Summary</td><td>Collapse to higher level</td><td>Month → Year</td></tr>
+  <tr><td>Drill Through</td><td>Aggregate → Source</td><td>Jump to underlying transactions</td><td>Total → list of transactions</td></tr>
+</table>
+
+<h3>5. Other related OLAP operations</h3>
+<ul>
+  <li><b>Slice:</b> select one dimension value (e.g., only Q3 sales).</li>
+  <li><b>Dice:</b> select a sub-cube (e.g., Q3 + Region West + Product Electronics).</li>
+  <li><b>Pivot (Rotate):</b> change row and column dimensions.</li>
+</ul>
+
+<h3>6. Importance in BI reports</h3>
+<ul>
+  <li>Allow users to start with HIGH-LEVEL overview and ZOOM IN as needed.</li>
+  <li>Avoid showing all data at once — better UX.</li>
+  <li>Make reports interactive and exploratory.</li>
+  <li>Connect summary insights with detailed evidence (drill through).</li>
+  <li>Essential in dashboards used by executives and analysts.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Drill down: summary → detail (Year → Month).</li>
+    <li>Drill up: detail → summary (Month → Year).</li>
+    <li>Drill through: jump from aggregate to underlying source records.</li>
+    <li>Work along data hierarchies (time, geography, product).</li>
+    <li>Related ops: slice, dice, pivot.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — Multidimensional Data Model</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, May'24, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'25, 6 marks)</b> Explain multidimensional data model with example.</p>
+    <p><b>(May'24, 6 marks)</b> Explain the multi-dimensional Data Model with a suitable case study. Advantages.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A relational table is FLAT — like a spreadsheet. A multidimensional model is a CUBE with multiple axes (dimensions). You can quickly answer "How much did we sell of Product X in Region Y in Quarter Z?" because the data is pre-organized along those dimensions.
+</div>
+
+<h3>1. Definition</h3>
+<p>The <b>Multidimensional Data Model</b> represents data as a cube with multiple DIMENSIONS (axes) and MEASURES (numerical values at the intersection of dimensions). Used in OLAP systems for fast multi-angle analysis.</p>
+
+<h3>2. Key components</h3>
+<ul>
+  <li><b>Dimensions:</b> categorical axes (Time, Product, Geography).</li>
+  <li><b>Measures (Facts):</b> numerical values at the intersection (Sales Amount, Quantity).</li>
+  <li><b>Hierarchies:</b> within each dimension (Year → Quarter → Month → Day).</li>
+  <li><b>Cube:</b> the multi-dimensional data structure.</li>
+</ul>
+
+<h3>3. Example — 3-dimensional sales cube</h3>
+<pre>
+            Time (Quarters)
+            Q1  Q2  Q3  Q4
+   Region          ↑
+   East   ┌──┬──┬──┬──┐
+          │ 100│120│ 90│140│  ← Cell = total sales for (Region=East, Q3, Product=X)
+   West   ├──┼──┼──┼──┤
+          │200 │220│240│180│
+   North  ├──┼──┼──┼──┤
+          │150 │160│170│180│
+          └──┴──┴──┴──┘
+        Product = Electronics (slice)
+</pre>
+
+<h3>4. Common schemas for multidimensional models</h3>
+<ul>
+  <li><b>Star schema:</b> central fact table + dimension tables radiating outward.</li>
+  <li><b>Snowflake schema:</b> dimensions further normalized into multiple tables.</li>
+  <li><b>Fact constellation (galaxy):</b> multiple fact tables sharing dimension tables.</li>
+</ul>
+
+<h3>5. Operations on the cube</h3>
+<ul>
+  <li><b>Slice</b> — select one dimension value.</li>
+  <li><b>Dice</b> — select sub-cube.</li>
+  <li><b>Roll-up</b> — aggregate to higher level.</li>
+  <li><b>Drill-down</b> — break to lower level.</li>
+  <li><b>Pivot</b> — rotate axes.</li>
+</ul>
+
+<h3>6. Advantages of Multidimensional Data Model</h3>
+<ul>
+  <li>Fast query response (data is pre-aggregated).</li>
+  <li>Intuitive for business users — think in terms of dimensions.</li>
+  <li>Easy slice-and-dice analysis.</li>
+  <li>Supports drill-down and roll-up naturally.</li>
+  <li>Optimized for read-heavy analytical workloads.</li>
+  <li>Better visualization (charts, dashboards).</li>
+</ul>
+
+<h3>7. Disadvantages</h3>
+<ul>
+  <li>Higher storage requirements (pre-computed aggregates).</li>
+  <li>Less flexible for ad-hoc queries outside the modeled dimensions.</li>
+  <li>Updates are expensive (must rebuild cubes).</li>
+  <li>More complex to design initially.</li>
+</ul>
+
+<h3>8. Case study (Retail)</h3>
+<p>A retail chain analyzes sales using a multidimensional cube with dimensions: Time, Store Location, Product, Customer Segment. The cube allows queries like:</p>
+<ul>
+  <li>"What were Electronics sales in Pune stores during Q3 2025?"</li>
+  <li>"Which customer segment buys the most Apparel in West region?"</li>
+  <li>"Show year-on-year growth by product category."</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Multidimensional model = data as cube with dimensions + measures.</li>
+    <li>Schemas: star, snowflake, fact constellation.</li>
+    <li>Operations: slice, dice, roll-up, drill-down, pivot.</li>
+    <li>Advantages: fast queries, intuitive, optimized for OLAP.</li>
+    <li>Disadvantages: storage cost, expensive updates.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Relational Data Model</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'25, 6 marks)</b> Explain relational data Model with example.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p>The <b>Relational Data Model</b> (proposed by E.F. Codd, 1970) represents data as a collection of TABLES (relations), each consisting of rows (tuples) and columns (attributes). Tables are linked via primary and foreign keys.</p>
+
+<h3>2. Key concepts</h3>
+<ul>
+  <li><b>Table (Relation):</b> a set of rows with the same set of columns.</li>
+  <li><b>Row (Tuple):</b> one record / instance.</li>
+  <li><b>Column (Attribute):</b> a property of the entity.</li>
+  <li><b>Primary Key:</b> unique identifier of a row.</li>
+  <li><b>Foreign Key:</b> reference to a primary key in another table.</li>
+  <li><b>Schema:</b> the structure of tables.</li>
+  <li><b>SQL:</b> language used to query relational databases.</li>
+</ul>
+
+<h3>3. Example</h3>
+<pre>
+Table: Customers
++------+----------+----------+
+| CID  |  Name    |   City   |
++------+----------+----------+
+| C001 |  Rahul   | Pune     |
+| C002 |  Priya   | Mumbai   |
++------+----------+----------+
+
+Table: Orders
++------+------+-------+----------+
+| OID  | CID  | Item  |  Amount  |
++------+------+-------+----------+
+| O01  | C001 | Phone |   25000  |
+| O02  | C002 | Laptop|   60000  |
++------+------+-------+----------+
+
+Relationship: Orders.CID → Customers.CID (Foreign Key)
+</pre>
+
+<h3>4. Properties</h3>
+<ul>
+  <li>Highly NORMALIZED — minimizes redundancy.</li>
+  <li>Supports ACID transactions.</li>
+  <li>SQL is standard query language.</li>
+  <li>Excellent for transactional (OLTP) workloads.</li>
+  <li>Supports joins, group-by, aggregations.</li>
+</ul>
+
+<h3>5. Advantages</h3>
+<ul>
+  <li>Mature technology (50+ years).</li>
+  <li>Data integrity via constraints.</li>
+  <li>Flexibility — easy ad-hoc queries.</li>
+  <li>Standardized (SQL, ACID).</li>
+  <li>Wide vendor support (Oracle, MySQL, PostgreSQL, SQL Server).</li>
+</ul>
+
+<h3>6. Limitations for BI</h3>
+<ul>
+  <li>Slow for complex analytical queries (many joins).</li>
+  <li>Not optimized for read-heavy OLAP workloads.</li>
+  <li>Hierarchical drill-down is complex to model.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Relational model = data in tables with rows + columns.</li>
+    <li>Tables linked via primary key + foreign key.</li>
+    <li>SQL is standard query language.</li>
+    <li>Excellent for OLTP; slower for analytical (OLAP) queries.</li>
+    <li>Highly normalized — minimizes redundancy but slows analytical joins.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — Relational vs Multidimensional Data Model</h2>
+<span class="freq-tag">Asked 2 times</span>(Nov'23, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23 &amp; Nov'25, 6 marks)</b> State the difference between relational and multidimensional data model.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>Comparison table</h3>
+<table>
+  <tr><th>Aspect</th><th>Relational Data Model</th><th>Multidimensional Data Model</th></tr>
+  <tr><td>Data structure</td><td>Tables (rows &amp; columns)</td><td>Cubes (dimensions &amp; measures)</td></tr>
+  <tr><td>Optimized for</td><td>Transactions (OLTP)</td><td>Analysis (OLAP)</td></tr>
+  <tr><td>Storage</td><td>Normalized; low redundancy</td><td>De-normalized; pre-aggregated</td></tr>
+  <tr><td>Query speed (analytics)</td><td>Slower (many joins)</td><td>Very fast (pre-computed)</td></tr>
+  <tr><td>Query speed (transactions)</td><td>Fast</td><td>Slower</td></tr>
+  <tr><td>Query language</td><td>SQL</td><td>MDX (Multidimensional Expressions)</td></tr>
+  <tr><td>Schema</td><td>ER diagrams, normalized</td><td>Star, snowflake, galaxy</td></tr>
+  <tr><td>Drill-down / Roll-up</td><td>Complex queries</td><td>Native, fast</td></tr>
+  <tr><td>Updates</td><td>Easy and frequent</td><td>Expensive (rebuild cubes)</td></tr>
+  <tr><td>Best for</td><td>CRUD operations, order systems</td><td>Reporting, dashboards, BI</td></tr>
+  <tr><td>Examples</td><td>MySQL, PostgreSQL, Oracle</td><td>SSAS, Mondrian, Oracle OLAP</td></tr>
+  <tr><td>Storage size</td><td>Smaller (no redundancy)</td><td>Larger (pre-aggregated data)</td></tr>
+</table>
+
+<h3>When to use which</h3>
+<ul>
+  <li><b>Use Relational</b> for transactional applications (order processing, inventory, banking).</li>
+  <li><b>Use Multidimensional</b> for analytical reporting (sales analysis, dashboards, executive summaries).</li>
+  <li>Many enterprises use BOTH: relational for OLTP + multidimensional for OLAP analytics.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Relational = tables, OLTP, SQL, fast updates.</li>
+    <li>Multidimensional = cubes, OLAP, MDX, fast analytics.</li>
+    <li>Relational stores raw data; multidimensional stores pre-aggregated data.</li>
+    <li>Many systems use both: relational ETL → multidimensional cubes for BI.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — BI Architecture and Mathematical Models</h2>
+<span class="freq-tag">Asked 2 times</span>(May'25 — 6 marks each)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 6 marks)</b> Explain in detail business intelligence architectures with suitable diagram.</p>
+    <p><b>(May'25, 6 marks)</b> Explain the role of mathematical models in BI.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. BI Architecture (3-tier)</h3>
+<pre>
+        ┌────────────────────────────────────┐
+        │  TIER 3: Presentation Layer        │
+        │  Dashboards, Reports, Visualizations│
+        │  (Power BI, Tableau, QlikView)     │
+        └────────────────┬───────────────────┘
+                         │
+        ┌────────────────▼───────────────────┐
+        │  TIER 2: Application / Analytics    │
+        │  OLAP Engine, Data Mining,          │
+        │  ML models, Statistical analysis    │
+        └────────────────┬───────────────────┘
+                         │
+        ┌────────────────▼───────────────────┐
+        │  TIER 1: Data Layer                 │
+        │  Data Warehouse, Data Marts, ETL    │
+        │  Source DBs (sales, HR, inventory)  │
+        └────────────────────────────────────┘
+</pre>
+
+<h3>2. Components of BI Architecture</h3>
+<ul>
+  <li><b>Data sources:</b> transactional databases, ERP, CRM, external feeds.</li>
+  <li><b>ETL (Extract-Transform-Load):</b> moves data from sources to warehouse.</li>
+  <li><b>Data Warehouse:</b> centralized analytical store.</li>
+  <li><b>Data Marts:</b> subject-specific subsets of warehouse.</li>
+  <li><b>OLAP Server:</b> serves multidimensional queries.</li>
+  <li><b>Analytics / Mining tools:</b> statistical analysis, ML, predictive models.</li>
+  <li><b>Reporting / Visualization layer:</b> dashboards, reports.</li>
+  <li><b>Metadata repository:</b> data about data (definitions, lineage).</li>
+</ul>
+
+<h3>3. Role of Mathematical Models in BI</h3>
+<ul>
+  <li><b>Descriptive models</b> — summarize what happened (mean, variance, distributions).</li>
+  <li><b>Diagnostic models</b> — explain WHY something happened (regression, correlation).</li>
+  <li><b>Predictive models</b> — forecast future events (regression, classification, time series).</li>
+  <li><b>Prescriptive models</b> — recommend optimal actions (optimization, simulation).</li>
+  <li><b>Inferential statistics</b> — make conclusions from samples.</li>
+  <li><b>Machine learning</b> — pattern recognition, clustering, classification.</li>
+  <li><b>Optimization</b> — linear programming, integer programming.</li>
+  <li><b>Simulation</b> — Monte Carlo for risk analysis.</li>
+</ul>
+
+<h3>4. Examples</h3>
+<ul>
+  <li>Sales forecasting using time-series ARIMA.</li>
+  <li>Customer churn prediction using classification.</li>
+  <li>Market basket analysis using association rules.</li>
+  <li>Customer segmentation using clustering (k-means).</li>
+  <li>Supply chain optimization using linear programming.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>BI architecture = 3-tier: Data → Analytics → Presentation.</li>
+    <li>Key components: ETL, Data Warehouse, OLAP, Analytics, Reporting tools.</li>
+    <li>Math models: descriptive, diagnostic, predictive, prescriptive.</li>
+    <li>Used for forecasting, segmentation, churn prediction, optimization.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — Other Questions (combined)</h2>
+
+<div class="question-block">
+  <div class="qhead">How these appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 6 marks)</b> What is a File Extension? Explain the structure of CSV file.</p>
+    <p><b>(May'24, 6 marks)</b> Importance of adding Conditional formatting and calculations.</p>
+    <p><b>(May'24, 6 marks)</b> What are the important BI reporting practices?</p>
+    <p><b>(May'25, 6 marks)</b> Explain Decision Support System in detail.</p>
+    <p><b>(May'25, 5 marks)</b> Write short note on Ethics and business intelligence.</p>
+    <p><b>(May'25, 5 marks)</b> What is data, information and knowledge?</p>
+    <p><b>(Nov'23, 6 marks)</b> Best practices in dashboard design.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer (Quick reference for these single-asked topics)</div>
+
+<h3>1. CSV File Structure</h3>
+<ul>
+  <li><b>CSV (Comma-Separated Values)</b> — plain text file format.</li>
+  <li>Each row = one record; columns separated by commas.</li>
+  <li>First row often contains column headers.</li>
+  <li>Extension: <code>.csv</code>. Used by Excel, databases, BI tools.</li>
+  <li>Simple, language-independent, easy to parse.</li>
+  <li>Limitations: no data types, no formulas, problems with commas in data.</li>
+</ul>
+
+<h3>2. Conditional Formatting in Reports</h3>
+<ul>
+  <li>Apply visual rules to cells based on values (e.g., red if sales &lt; target).</li>
+  <li>Makes patterns instantly visible.</li>
+  <li>Examples: traffic-light colors, data bars, icon sets.</li>
+  <li>Useful for KPIs, exception highlighting, performance reviews.</li>
+</ul>
+
+<h3>3. Adding Calculations to Reports</h3>
+<ul>
+  <li>Compute derived values from existing data (totals, averages, ratios).</li>
+  <li>Examples: gross margin = (revenue − cost) / revenue.</li>
+  <li>Adds analytical value beyond raw data.</li>
+  <li>Improves decision-making with derived KPIs.</li>
+</ul>
+
+<h3>4. BI Reporting Best Practices</h3>
+<ul>
+  <li>Know your audience — adapt detail level.</li>
+  <li>Use clear, simple visuals — avoid clutter.</li>
+  <li>Highlight key metrics with conditional formatting.</li>
+  <li>Use consistent design (colors, fonts) across reports.</li>
+  <li>Provide context (time periods, comparisons).</li>
+  <li>Make reports interactive (filters, drill-downs).</li>
+  <li>Validate data quality before publishing.</li>
+  <li>Use proper labels and units.</li>
+  <li>Keep reports concise and focused.</li>
+</ul>
+
+<h3>5. Dashboard Design Best Practices</h3>
+<ul>
+  <li>Display most important info at top-left (most-read area).</li>
+  <li>Use 5-7 KPIs max per screen.</li>
+  <li>Choose right chart for the data (line for trend, bar for comparison, pie for parts of whole).</li>
+  <li>Consistent color schemes.</li>
+  <li>Filters and slicers for interactivity.</li>
+  <li>Refresh frequency clearly indicated.</li>
+  <li>Mobile-friendly responsive design.</li>
+  <li>Tell a story — flow from overview to detail.</li>
+</ul>
+
+<h3>6. Decision Support System (DSS)</h3>
+<ul>
+  <li>Interactive computer system that helps decision-makers analyze problems and make choices.</li>
+  <li>Combines data, analytical models, and a friendly interface.</li>
+  <li>Used for semi-structured / unstructured decisions.</li>
+  <li>Components: data management (DBMS), model management, user interface, knowledge base.</li>
+  <li>Differs from MIS (which produces routine reports) — DSS supports ad-hoc analysis.</li>
+  <li>Examples: financial planning systems, medical diagnosis systems, route optimization for logistics.</li>
+</ul>
+
+<h3>7. Ethics in BI</h3>
+<ul>
+  <li>Data privacy — comply with GDPR, India's DPDP Act.</li>
+  <li>Consent for data collection.</li>
+  <li>Anonymization of personal data.</li>
+  <li>Avoid bias in models (algorithmic fairness).</li>
+  <li>Transparency in how decisions are made.</li>
+  <li>Accountability for AI-driven decisions.</li>
+  <li>Security — protect against breaches.</li>
+  <li>Honest reporting — don't manipulate data to mislead.</li>
+</ul>
+
+<h3>8. Data vs Information vs Knowledge</h3>
+<table>
+  <tr><th>Concept</th><th>Definition</th><th>Example</th></tr>
+  <tr><td>Data</td><td>Raw, unprocessed facts</td><td>"sales: 500, 200, 300"</td></tr>
+  <tr><td>Information</td><td>Processed data with context</td><td>"Daily sales for last week"</td></tr>
+  <tr><td>Knowledge</td><td>Information with insight/experience</td><td>"Sales drop every Sunday; staff differently"</td></tr>
+  <tr><td>Wisdom</td><td>Applied knowledge for decision-making</td><td>"Promotion campaign for Sundays"</td></tr>
+</table>
+<p>This is called the <b>DIKW pyramid</b> (Data → Information → Knowledge → Wisdom).</p>
+
+<div class="key-points">
+  <h4>Key points to remember (quick recall)</h4>
+  <ul>
+    <li>CSV = plain text, commas separating columns.</li>
+    <li>Conditional formatting = visual rules on cells.</li>
+    <li>Dashboard best practices: 5-7 KPIs, consistency, interactivity.</li>
+    <li>DSS = supports semi-structured decisions; differs from MIS.</li>
+    <li>BI Ethics: privacy, consent, bias, transparency, security.</li>
+    <li>DIKW pyramid: Data → Information → Knowledge → Wisdom.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>Data Grouping / Sorting / Filtering</td><td>✓ ×2</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>5</td></tr>
+  <tr><td>Types of Reports</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Drill up / Drill down</td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>4</td></tr>
+  <tr><td>Multidimensional data model</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>3</td></tr>
+  <tr><td>Relational data model</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>Relational vs Multidimensional</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>BI Architecture / Math models</td><td>—</td><td>—</td><td>—</td><td>✓ ×2</td><td>—</td><td>2</td></tr>
+</table>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>BI Reports = visual presentation of data. Use Grouping + Sorting + Filtering for cleanup; pick the right Report TYPE (List, Crosstab, Chart, Dashboard); use Drill up/down for interactive exploration; choose Multidimensional model for analytics, Relational for transactions.</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  BI Chapter 3 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

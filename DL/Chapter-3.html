@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DL — Chapter 3: Convolutional Neural Network (Unit III)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details open>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="Chapter-3.html" class="current">Ch 3 — CNN Basics</a>
+    <a href="Chapter-4.html">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="Chapter-5.html">Ch 5 — Deep Generative Models</a>
+    <a href="Chapter-6.html">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="../NLP/Chapter-3.html">Ch 3 — Syntax Analysis</a>
+    <a href="../NLP/Chapter-4.html">Ch 4 — Semantic Analysis</a>
+    <a href="../NLP/Chapter-5.html">Ch 5 — Discourse / Pragmatics</a>
+    <a href="../NLP/Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="../BI/Chapter-3.html">Ch 3 — Data Warehousing</a>
+    <a href="../BI/Chapter-4.html">Ch 4 — Data Mining</a>
+    <a href="../BI/Chapter-5.html">Ch 5 — BI Tools &amp; OLAP</a>
+    <a href="../BI/Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>DL — Chapter 3: Convolutional Neural Network (Unit III)</h1>
+<p class="meta">
+  Subject Code: 410251 &nbsp;|&nbsp; End-Sem: 04 June 2026, Thursday (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q1 or Q2 in the paper).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — what is a CNN, and why do we need it?</a></li>
+    <li><a href="#q1">Q1 — Pooling Layer (asked 6 times)</a></li>
+    <li><a href="#q2">Q2 — ReLU Layer (asked 5 times)</a></li>
+    <li><a href="#q3">Q3 — CNN Architecture (asked 4 times)</a></li>
+    <li><a href="#q4">Q4 — Padding and its types (asked 3 times)</a></li>
+    <li><a href="#q5">Q5 — Convolution Layer working (asked 2 times)</a></li>
+    <li><a href="#q6">Q6 — Stride convolution (asked 2 times)</a></li>
+    <li><a href="#q7">Q7 — Dropout Layer (asked 2 times)</a></li>
+    <li><a href="#q8">Q8 — Local Response Normalization (asked 2 times)</a></li>
+    <li><a href="#q9">Q9 — Applications of CNN (asked 2 times)</a></li>
+    <li><a href="#q10">Q10 — Interleaving between Layers (asked 1 time)</a></li>
+    <li><a href="#q11">Q11 — Training a CNN + normalization (asked 1 time)</a></li>
+    <li><a href="#q12">Q12 — Output size calculation problem (asked 1 time)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+A normal neural network treats an image as a flat list of numbers — it loses all the "shape" information (which pixel is next to which). A CNN keeps the image as a 2-D grid, and uses small "magnifying glasses" (called filters or kernels) that slide over the image looking for specific patterns — edges, corners, textures, faces, etc. This is exactly how the visual cortex of the human brain works.
+</div>
+
+<h3>1. What is a Convolutional Neural Network (CNN)?</h3>
+<p>A CNN is a type of deep neural network specially designed to process data with a grid-like structure, such as images. It uses three special types of layers — <b>convolution</b>, <b>pooling</b>, and <b>fully-connected</b> — to automatically learn useful features from raw pixel data.</p>
+
+<h3>2. Why CNN over a normal neural network for images?</h3>
+<ul>
+  <li><b>Parameter sharing:</b> the same small filter is used across the whole image, so the network has FAR fewer parameters than a fully-connected net.</li>
+  <li><b>Local connectivity:</b> each neuron looks only at a small patch of the image (not the whole thing).</li>
+  <li><b>Translation invariance:</b> a feature (e.g., an edge) is detected the same way no matter where it appears in the image.</li>
+  <li><b>Preserves spatial structure:</b> doesn't flatten the image away.</li>
+</ul>
+
+<h3>3. The 4 key layer types in a CNN</h3>
+<ol>
+  <li><b>Convolution layer</b> — slides filters across the image to detect features.</li>
+  <li><b>Activation layer (usually ReLU)</b> — adds non-linearity.</li>
+  <li><b>Pooling layer</b> — reduces the size of feature maps (down-sampling).</li>
+  <li><b>Fully-connected layer (FC)</b> — at the end, makes the final classification.</li>
+</ol>
+
+<hr>
+
+<h2 id="q1">Q1 — Pooling Layer (with types and features)</h2>
+<span class="freq-tag">Asked 6 times</span>(May'23 twice, May'24, Nov'23, May'25 twice — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Explain Pooling Layer with its need and different types.</p>
+    <p><b>(May'23, 6 marks)</b> Explain all the features of pooling layer.</p>
+    <p><b>(May'24, 6 marks)</b> Explain Pooling Layer with its different types.</p>
+    <p><b>(Nov'23, 6 marks)</b> Explain Pooling layers and its types with examples.</p>
+    <p><b>(May'25 twice, 6 marks)</b> Explain pooling layers and its type / Explain all the features of pooling layer.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+After the convolution layer detects many small features (edges, corners), we get LOTS of feature maps — too many numbers. Pooling is like taking a high-resolution photo and shrinking it to a smaller thumbnail. We keep the most important parts and throw away the unnecessary details.
+</div>
+
+<h3>1. Definition</h3>
+<p>The <b>Pooling layer</b> is a layer in a CNN that <b>down-samples</b> (shrinks) the feature maps produced by the convolution layer. It does this by sliding a small window over the feature map and replacing each window with ONE summary value.</p>
+
+<h3>2. Need / Purpose of Pooling Layer</h3>
+<ul>
+  <li><b>Reduces the spatial size</b> of feature maps → fewer parameters → less computation.</li>
+  <li><b>Controls overfitting</b> by reducing the number of features.</li>
+  <li><b>Provides translation invariance</b> — small shifts in the input do not change the pooled output.</li>
+  <li><b>Increases the receptive field</b> — each neuron in deeper layers "sees" a bigger region of the original image.</li>
+  <li><b>Speeds up training and inference</b> by shrinking data size at each layer.</li>
+</ul>
+
+<h3>3. Features / Properties of Pooling Layer</h3>
+<ul>
+  <li>Has NO learnable parameters (no weights or biases).</li>
+  <li>Operates independently on each channel of the input.</li>
+  <li>Defined by 3 hyperparameters: <b>window size (e.g., 2×2)</b>, <b>stride</b>, and <b>type</b> (max / average / etc.).</li>
+  <li>Reduces both the width and height of the feature map (but keeps the depth / channels the same).</li>
+  <li>Typically placed AFTER convolution + ReLU.</li>
+  <li>Common output size after 2×2 pooling with stride 2: half the input width and half the input height.</li>
+</ul>
+
+<h3>4. Types of Pooling</h3>
+
+<h4>(a) Max Pooling</h4>
+<ul>
+  <li>For each window, takes the MAXIMUM value.</li>
+  <li>Captures the strongest activation in each region.</li>
+  <li>Most commonly used in practice (in AlexNet, VGG, ResNet).</li>
+</ul>
+
+<h4>(b) Average Pooling</h4>
+<ul>
+  <li>For each window, takes the AVERAGE of all values.</li>
+  <li>Smooths the feature map.</li>
+  <li>Used in some older models (LeNet) and in Global Average Pooling at the end of modern CNNs.</li>
+</ul>
+
+<h4>(c) Min Pooling</h4>
+<ul>
+  <li>For each window, takes the MINIMUM value.</li>
+  <li>Rarely used in practice.</li>
+</ul>
+
+<h4>(d) Global Pooling (Average / Max)</h4>
+<ul>
+  <li>Window size = the entire feature map.</li>
+  <li>Reduces each feature map to a single number.</li>
+  <li>Used to replace fully-connected layers (e.g., in GoogLeNet, ResNet).</li>
+</ul>
+
+<h4>(e) Sum Pooling, L2 Pooling, Stochastic Pooling</h4>
+<ul>
+  <li>Less common variants. Sum pooling = sum of values; L2 pooling = root mean square; stochastic = random sample weighted by activation.</li>
+</ul>
+
+<h3>5. Example — 2×2 Max Pooling with stride = 2</h3>
+<pre>
+Input feature map (4×4):                  After 2×2 max pooling (stride 2):
+
+   1   3   2   1                              max(1,3,4,2) = 4    max(2,1,1,0) = 2
+   4   2   1   0                              max(0,5,1,2) = 5    max(2,3,8,4) = 8
+   0   5   2   3
+   1   2   8   4                              Result (2×2):
+                                                  4   2
+                                                  5   8
+</pre>
+
+<h3>6. Pooling output size formula</h3>
+<div class="formula-line">
+  Output size = ((Input size − Window size) / Stride) + 1
+</div>
+<p>Example: Input = 32, Window = 2, Stride = 2 → Output = (32-2)/2 + 1 = 16.</p>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Pooling = down-sampling layer in CNN; no learnable parameters.</li>
+    <li>Need: reduce size, reduce overfitting, give translation invariance, speed up.</li>
+    <li>Types: Max (most common), Average, Min, Global, Sum / L2 / Stochastic.</li>
+    <li>Defined by window size, stride, type.</li>
+    <li>Common configuration: 2×2 window, stride 2 → halves the spatial size.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — ReLU Layer</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, May'24, Nov'23, May'25, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Explain ReLU Layer in detail. What are the advantages of ReLU over Sigmoid?</p>
+    <p><b>(May'24, 6 marks)</b> Define ReLU. Explain disadvantages of ReLU.</p>
+    <p><b>(Nov'23, 6 marks)</b> Explain ReLU Layer and its advantages.</p>
+    <p><b>(May'25, 6 marks)</b> Explain ReLU Layer in detail.</p>
+    <p><b>(Nov'25, 6 marks)</b> What is the ReLU activation function? Write its mathematical expression and describe how it transforms the input.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+ReLU is like a one-way valve: positive water passes through unchanged; negative water is blocked completely. Simple, fast, and surprisingly very effective for deep learning.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>ReLU (Rectified Linear Unit)</b> is the most popular activation function used in CNNs. It outputs the input directly if it is positive; otherwise it outputs zero.</p>
+
+<div class="formula-line">f(x) = max(0, x)</div>
+
+<h3>2. Graph (text description)</h3>
+<pre>
+     f(x)
+       |       /
+       |      /
+       |     /
+       |    /
+       |   /
+   ────|──/──────────── x
+       | /
+       |/_______________
+       0  (output is 0 for x ≤ 0)
+</pre>
+
+<h3>3. Example transformation</h3>
+<p>If input x = [−3, −2, −1, 0, 2, 5, 8], then ReLU(x) = [0, 0, 0, 0, 2, 5, 8]. All negatives become 0; positives unchanged.</p>
+
+<h3>4. Why we need an activation function</h3>
+<ul>
+  <li>Without an activation function, a neural network is just a chain of linear transformations — equivalent to one big linear function (useless).</li>
+  <li>Activation functions add NON-LINEARITY so the network can learn complex patterns.</li>
+</ul>
+
+<h3>5. Advantages of ReLU (over Sigmoid / Tanh)</h3>
+<ol>
+  <li><b>Very fast computation</b> — just one max operation; no exponentials.</li>
+  <li><b>No vanishing gradient for positive inputs</b> — gradient is 1, so signals flow back easily in deep networks.</li>
+  <li><b>Sparse activation</b> — about half the neurons output 0; this acts like automatic dropout, reduces co-adaptation.</li>
+  <li><b>Better convergence</b> — networks with ReLU train several times faster than with sigmoid/tanh.</li>
+  <li><b>Biologically inspired</b> — real neurons fire in a similar one-sided way.</li>
+  <li><b>Easier to optimize</b> — gradient does not saturate for large positive values.</li>
+</ol>
+
+<h3>6. Disadvantages of ReLU</h3>
+<ol>
+  <li><b>Dying ReLU problem</b> — once a neuron's input becomes very negative, gradient is 0 and the neuron may never recover (stays dead forever).</li>
+  <li><b>Not zero-centered output</b> — output is always ≥ 0; can introduce bias in gradient updates.</li>
+  <li><b>Unbounded output</b> — can cause exploding activations.</li>
+  <li><b>Discontinuous derivative at x = 0</b> — minor mathematical inconvenience.</li>
+</ol>
+
+<h3>7. Variants of ReLU (solve some disadvantages)</h3>
+<ul>
+  <li><b>Leaky ReLU:</b> f(x) = max(0.01x, x) — allows small negative slope, avoids dying ReLU.</li>
+  <li><b>Parametric ReLU (PReLU):</b> slope for negative values is learned.</li>
+  <li><b>ELU (Exponential Linear Unit):</b> smooth, has negative values.</li>
+  <li><b>GELU:</b> used in transformers like BERT.</li>
+</ul>
+
+<h3>8. ReLU vs Sigmoid — comparison table</h3>
+<table>
+  <tr><th>Aspect</th><th>ReLU</th><th>Sigmoid</th></tr>
+  <tr><td>Formula</td><td>max(0, x)</td><td>1 / (1 + e<sup>-x</sup>)</td></tr>
+  <tr><td>Output range</td><td>[0, ∞)</td><td>(0, 1)</td></tr>
+  <tr><td>Computation</td><td>Very fast</td><td>Slow (exponential)</td></tr>
+  <tr><td>Vanishing gradient</td><td>No (for x &gt; 0)</td><td>Yes (saturates at both ends)</td></tr>
+  <tr><td>Zero-centered</td><td>No</td><td>No (centered at 0.5)</td></tr>
+  <tr><td>Dying problem</td><td>Yes (dying ReLU)</td><td>No</td></tr>
+  <tr><td>Use today</td><td>Default for hidden layers</td><td>Mostly for binary output</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>ReLU: f(x) = max(0, x). Outputs 0 for negative, x for positive.</li>
+    <li>Adds non-linearity so deep networks can learn complex functions.</li>
+    <li>Advantages: fast, no vanishing gradient (for x &gt; 0), sparse activation.</li>
+    <li>Disadvantages: dying ReLU, not zero-centered, unbounded.</li>
+    <li>Variants: Leaky ReLU, PReLU, ELU, GELU.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — CNN Architecture (Draw and Explain)</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, May'24, Nov'23, May'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Draw and explain CNN (Convolution Neural Network) architecture in detail.</p>
+    <p><b>(May'24, 6 marks)</b> Explain CNN architecture with its application.</p>
+    <p><b>(Nov'23, 6 marks)</b> Draw CNN architecture and explain its working.</p>
+    <p><b>(May'25, 6 marks)</b> Draw and Explain CNN Architecture in detail.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p>A <b>CNN (Convolutional Neural Network)</b> is a deep neural network specialized for processing grid-like data such as images. Its architecture consists of an input layer, followed by alternating <b>convolution</b> and <b>pooling</b> layers, then one or more <b>fully connected</b> layers, ending with an <b>output</b> layer.</p>
+
+<h3>2. CNN Architecture diagram</h3>
+<pre>
+Input         Conv         ReLU       Pool       Conv       ReLU      Pool      Flatten    FC       Softmax    Output
+Image  ───►  Filters ───► (max 0) ──► (max)  ──► Filters ─► (max 0) ─►(max) ──► (vector)─► Dense ─► (probs) ──► Class
+(32×32×3)    (28×28×16)            (14×14×16)  (10×10×32)         (5×5×32)
+</pre>
+
+<h3>3. Layer-by-layer explanation</h3>
+
+<h4>(a) Input Layer</h4>
+<ul>
+  <li>Raw image (e.g., 32 × 32 × 3 for a colour image: 32 height, 32 width, 3 RGB channels).</li>
+  <li>Pixel values are usually normalized to [0, 1] or [−1, 1].</li>
+</ul>
+
+<h4>(b) Convolution Layer</h4>
+<ul>
+  <li>Applies many small filters (e.g., 16 filters of size 3 × 3 × 3) that slide over the image.</li>
+  <li>Each filter detects a specific feature (edge, texture).</li>
+  <li>Produces feature maps (one per filter).</li>
+</ul>
+
+<h4>(c) ReLU Activation Layer</h4>
+<ul>
+  <li>Applies f(x) = max(0, x) element-wise on the feature map.</li>
+  <li>Adds non-linearity, replaces all negatives with 0.</li>
+</ul>
+
+<h4>(d) Pooling Layer</h4>
+<ul>
+  <li>Downsamples the feature map (e.g., 2 × 2 max pooling).</li>
+  <li>Reduces dimensions by half.</li>
+</ul>
+
+<h4>(e) Repeat (multiple conv + ReLU + pool blocks)</h4>
+<ul>
+  <li>Deeper layers detect more complex features (edges → textures → shapes → objects).</li>
+</ul>
+
+<h4>(f) Flatten Layer</h4>
+<ul>
+  <li>Converts the multi-dimensional feature map into a 1-D vector.</li>
+</ul>
+
+<h4>(g) Fully Connected (FC) Layer</h4>
+<ul>
+  <li>Traditional dense layers; combine features for classification.</li>
+</ul>
+
+<h4>(h) Output Layer with Softmax</h4>
+<ul>
+  <li>For classification: a softmax layer outputs probabilities for each class.</li>
+  <li>For regression: a single linear neuron.</li>
+</ul>
+
+<h3>4. Applications of CNN</h3>
+<ul>
+  <li>Image classification (ImageNet, CIFAR-10).</li>
+  <li>Object detection (YOLO, SSD, Faster R-CNN).</li>
+  <li>Face recognition (FaceNet).</li>
+  <li>Medical imaging (tumor detection, X-ray analysis).</li>
+  <li>Self-driving cars (lane detection, pedestrian detection).</li>
+  <li>OCR (handwritten character recognition).</li>
+  <li>Image segmentation (U-Net).</li>
+  <li>Style transfer and image generation.</li>
+</ul>
+
+<h3>5. Famous CNN architectures (case studies)</h3>
+<ul>
+  <li><b>LeNet-5 (1998)</b> — first successful CNN, for handwritten digit recognition.</li>
+  <li><b>AlexNet (2012)</b> — won ImageNet, kicked off the deep learning revolution.</li>
+  <li><b>VGGNet (2014)</b> — very deep, simple 3×3 filters everywhere.</li>
+  <li><b>GoogLeNet / Inception (2014)</b> — uses "Inception modules".</li>
+  <li><b>ResNet (2015)</b> — residual / skip connections; allows 100+ layers.</li>
+  <li><b>EfficientNet, ConvNeXt</b> — modern efficient designs.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>CNN = Input → (Conv + ReLU + Pool) ×N → Flatten → FC → Softmax → Output.</li>
+    <li>Conv detects features; ReLU adds non-linearity; Pool downsamples.</li>
+    <li>Deeper layers detect more complex features.</li>
+    <li>FC layers combine features for classification.</li>
+    <li>Famous: LeNet, AlexNet, VGG, GoogLeNet, ResNet.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — Padding and its Types</h2>
+<span class="freq-tag">Asked 3 times</span>(May'24, Nov'23, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 6 marks)</b> What is Padding? Enlist and explain types of padding.</p>
+    <p><b>(Nov'23, 6 marks)</b> Explain Padding and its types.</p>
+    <p><b>(Nov'25, 6 marks)</b> How does padding help retain the spatial size?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+When we slide a filter over the edge of an image, the filter "falls off" the side — the corners of the image get less coverage than the centre. Padding is like adding a picture frame around the image — extra pixels around the border — so that the filter can slide over the edge pixels evenly.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Padding</b> in a CNN is the technique of adding extra rows and columns of pixels (usually zeros) around the input image before applying the convolution. It controls the output size of the feature map and allows the filter to process edge pixels fairly.</p>
+
+<h3>2. Need for Padding</h3>
+<ul>
+  <li>Without padding, the output feature map is smaller than the input — repeatedly losing pixels at edges over many layers.</li>
+  <li>Pixels at the corners get fewer overlaps with the filter than central pixels — corner information is "underused".</li>
+  <li>Padding preserves the spatial dimensions across layers.</li>
+  <li>Allows for "same" output size, useful in deep architectures (ResNet, U-Net).</li>
+</ul>
+
+<h3>3. Output size formula (with padding p)</h3>
+<div class="formula-line">
+  Output size = ((Input − Filter + 2 × Padding) / Stride) + 1
+</div>
+
+<h3>4. Types of padding</h3>
+
+<h4>(a) Valid Padding (no padding, p = 0)</h4>
+<ul>
+  <li>NO extra pixels added.</li>
+  <li>Output is SMALLER than input.</li>
+  <li>Used when shrinking the feature map is desired.</li>
+  <li>Example: input 28×28, filter 3×3, stride 1, valid → output 26×26.</li>
+</ul>
+
+<h4>(b) Same Padding (output = input size)</h4>
+<ul>
+  <li>Padding is chosen so that output size = input size (with stride 1).</li>
+  <li>For a filter of size k×k, padding = (k−1)/2.</li>
+  <li>Most popular type in modern CNNs.</li>
+  <li>Example: input 28×28, filter 3×3, padding 1, stride 1 → output 28×28.</li>
+</ul>
+
+<h4>(c) Full Padding</h4>
+<ul>
+  <li>Padding = filter_size − 1.</li>
+  <li>Output is LARGER than input.</li>
+  <li>Rare; used in certain signal-processing tasks.</li>
+</ul>
+
+<h4>(d) Causal Padding</h4>
+<ul>
+  <li>Pads only on ONE side (typically the left/past).</li>
+  <li>Used for sequence data so the convolution does not look at future values.</li>
+  <li>Common in temporal convolutions and WaveNet.</li>
+</ul>
+
+<h3>5. What values are used for padding?</h3>
+<ul>
+  <li><b>Zero padding</b> — most common; fill with 0s.</li>
+  <li><b>Reflection padding</b> — mirror the image edges.</li>
+  <li><b>Replication padding</b> — repeat the edge pixel values.</li>
+  <li><b>Constant padding</b> — fill with a user-specified constant.</li>
+</ul>
+
+<h3>6. Visual example (zero padding)</h3>
+<pre>
+Original 4×4 image:        After zero padding (1 pixel border):
+
+   1  2  3  4                  0  0  0  0  0  0
+   5  6  7  8                  0  1  2  3  4  0
+   9 10 11 12                  0  5  6  7  8  0
+  13 14 15 16                  0  9 10 11 12  0
+                               0 13 14 15 16  0
+                               0  0  0  0  0  0
+</pre>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Padding = adding extra (usually zero) pixels around the image before convolution.</li>
+    <li>Need: preserve size, give edge pixels fair treatment.</li>
+    <li>Types: Valid (no), Same (preserves size), Full, Causal.</li>
+    <li>Formula: Output = (Input − Filter + 2·Padding)/Stride + 1.</li>
+    <li>Most CNNs use ZERO padding with SAME mode.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Working of Convolution Layer</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, May'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Explain working of Convolution Layer with its features.</p>
+    <p><b>(May'25, 6 marks)</b> Explain working of Convolution Layer.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine you have a small magnifying glass (filter / kernel) and a big poster (the image). You slide the magnifying glass across the poster from left to right, top to bottom, looking at one small region at a time. At each position, you do a quick calculation (multiply &amp; add) and write down ONE number. The collection of all these numbers forms a new "feature map".
+</div>
+
+<h3>1. Definition</h3>
+<p>The <b>Convolution layer</b> is the core building block of a CNN. It takes an input (image or feature map) and a set of small learnable filters, and produces an output called a "feature map" by sliding each filter across the input and computing dot products at every position.</p>
+
+<h3>2. Step-by-step working</h3>
+<ol>
+  <li>Take a small filter (e.g., 3 × 3 × depth) with learnable weights.</li>
+  <li>Place the filter at the top-left corner of the input.</li>
+  <li>Compute the element-wise product of filter weights and the input pixels under it.</li>
+  <li>Sum these products to get one number → this is one output pixel.</li>
+  <li>Slide the filter to the right by "stride" pixels and repeat.</li>
+  <li>Continue across the row, then go down to the next row, until the entire input is covered.</li>
+  <li>All output values form one 2-D feature map.</li>
+  <li>If there are K filters, we get K feature maps (stacked into a depth-K output).</li>
+</ol>
+
+<h3>3. Numerical example (3×3 input, 2×2 filter, stride 1)</h3>
+<pre>
+Input:         Filter:
+ 1 2 3         1 0
+ 4 5 6         0 1
+ 7 8 9
+
+Output:
+  (1·1 + 2·0 + 4·0 + 5·1) = 6      (2·1 + 3·0 + 5·0 + 6·1) = 8
+  (4·1 + 5·0 + 7·0 + 8·1) = 12     (5·1 + 6·0 + 8·0 + 9·1) = 14
+
+Feature map:
+  6   8
+ 12  14
+</pre>
+
+<h3>4. Features of the Convolution Layer</h3>
+<ul>
+  <li><b>Local connectivity:</b> each output neuron looks only at a small region of the input (the receptive field).</li>
+  <li><b>Weight sharing:</b> the SAME filter weights are used at every position → drastically fewer parameters.</li>
+  <li><b>Translation equivariance:</b> if the input shifts, the output shifts the same way.</li>
+  <li><b>Hierarchical features:</b> deeper conv layers learn higher-level features (edges → shapes → objects).</li>
+  <li><b>Learnable filters:</b> filter weights are learned during training via backpropagation.</li>
+  <li><b>Multiple filters per layer:</b> each detects a different feature.</li>
+  <li><b>Preserves spatial structure:</b> output is still a 2-D grid.</li>
+</ul>
+
+<h3>5. Hyperparameters of a Convolution Layer</h3>
+<ul>
+  <li><b>Number of filters (K)</b> — how many feature maps to produce.</li>
+  <li><b>Filter size (F)</b> — usually 3×3 or 5×5.</li>
+  <li><b>Stride (S)</b> — how many pixels to skip when sliding.</li>
+  <li><b>Padding (P)</b> — extra pixels around input border.</li>
+</ul>
+
+<h3>6. Output size formula</h3>
+<div class="formula-line">
+  Output size = ((Input − F + 2P) / S) + 1
+</div>
+
+<h3>7. Number of parameters per filter</h3>
+<div class="formula-line">
+  Params per filter = F × F × InputDepth + 1 (for bias)
+</div>
+<p>Example: a 3×3 filter on a 64-channel input has 3·3·64 + 1 = 577 parameters.</p>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Convolution = sliding small filter over input, computing dot products.</li>
+    <li>Features: local connectivity, weight sharing, translation equivariance.</li>
+    <li>Output = (Input − F + 2P)/S + 1.</li>
+    <li>Hyperparameters: number of filters K, filter size F, stride S, padding P.</li>
+    <li>Each output pixel = sum of element-wise products of filter and input patch.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — Stride Convolution</h2>
+<span class="freq-tag">Asked 2 times</span>(May'24, Nov'23 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 6 marks)</b> What is Strides in CNN? Explain in brief.</p>
+    <p><b>(Nov'23, 6 marks)</b> Explain stride Convolution with example.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Stride is HOW MANY PIXELS you move the filter each time. Stride = 1 means take one tiny step at a time. Stride = 2 means take a big step, skipping every other position — your output becomes half the size.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Stride</b> is the step size by which the convolution filter slides across the input. With stride 1, the filter moves 1 pixel at a time; with stride 2, it skips every other position.</p>
+
+<h3>2. Effect of stride on output size</h3>
+<div class="formula-line">
+  Output size = ((Input − Filter + 2 · Padding) / Stride) + 1
+</div>
+
+<h3>3. Why use larger stride?</h3>
+<ul>
+  <li><b>Reduces output size</b> → fewer parameters and faster computation.</li>
+  <li><b>Acts like pooling</b> — downsamples the feature map.</li>
+  <li><b>Reduces redundancy</b> — neighbouring outputs were highly correlated; skipping some loses little.</li>
+  <li>Used in modern networks (e.g., ResNet's "stride-2 convolutions" replace pooling).</li>
+</ul>
+
+<h3>4. Trade-offs</h3>
+<ul>
+  <li><b>Larger stride:</b> faster, smaller output, but loses some detail.</li>
+  <li><b>Smaller stride:</b> more detail, more computation.</li>
+</ul>
+
+<h3>5. Example — stride 2 on 5×5 input with 3×3 filter, no padding</h3>
+<pre>
+Input (5×5):                Filter (3×3):
+1 2 3 4 5                   1 0 1
+6 7 8 9 0                   0 1 0
+1 2 3 4 5                   1 0 1
+6 7 8 9 0
+1 2 3 4 5
+
+With stride 2, filter is placed at positions:
+   (0, 0), (0, 2)           → 2 positions in this row
+   (2, 0), (2, 2)           → 2 positions in this row
+
+Output size = ((5 − 3) / 2) + 1 = 2
+
+Output (2×2):  values calculated by dot product at each position
+</pre>
+
+<h3>6. Common stride values</h3>
+<ul>
+  <li><b>Stride 1</b> — most common; keeps full spatial resolution.</li>
+  <li><b>Stride 2</b> — halves the spatial size; used to downsample without pooling.</li>
+  <li><b>Stride 3 or higher</b> — rare; loses too much information.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Stride = how many pixels the filter moves at a time.</li>
+    <li>Larger stride → smaller output, faster, less detail.</li>
+    <li>Output size = (Input − F + 2P)/S + 1.</li>
+    <li>Stride 2 ≈ a form of downsampling, can replace pooling.</li>
+    <li>Common: stride 1 (most layers), stride 2 (downsample layers).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — Dropout Layer</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, May'24 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Explain Dropout Layer in Convolutional Neural Network.</p>
+    <p><b>(May'24, 6 marks)</b> Explain Dropout Layer in Convolutional Neural Network.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A teacher wants their students to NOT depend too much on one star pupil. So every day, the teacher randomly tells some students "stay home today, the rest of you handle everything". This forces ALL students to learn the material individually. Dropout does the same to neurons — randomly switches them off during training so all neurons learn useful features.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Dropout</b> is a regularization technique in deep learning where, during training, a random subset of neurons in a layer is "dropped" (set to 0) at each forward pass. This prevents the network from over-relying on any specific neuron and reduces overfitting.</p>
+
+<h3>2. Why we need Dropout</h3>
+<ul>
+  <li>Deep networks have millions of parameters → tend to <b>overfit</b> the training data.</li>
+  <li>Overfitting = high accuracy on training data, but poor accuracy on new (test) data.</li>
+  <li>Dropout forces the network to develop redundant representations and not depend on any one neuron.</li>
+</ul>
+
+<h3>3. How Dropout works</h3>
+<ol>
+  <li>Set a <b>dropout rate</b> p (e.g., 0.5 = 50% of neurons dropped).</li>
+  <li>During EACH training step:
+    <ul>
+      <li>For each neuron, generate a random number.</li>
+      <li>If &lt; p, set that neuron's output to 0.</li>
+      <li>Else, scale the output by 1/(1−p) to keep total magnitude constant.</li>
+    </ul>
+  </li>
+  <li>During <b>testing/inference</b>: all neurons are active; no dropping.</li>
+  <li>Different neurons are dropped in each training step (random pattern changes).</li>
+</ol>
+
+<h3>4. Properties of Dropout</h3>
+<ul>
+  <li>Only active during TRAINING; turned off during testing.</li>
+  <li>No learnable parameters (just the dropout rate).</li>
+  <li>Acts like training an ensemble of many smaller networks and averaging them.</li>
+  <li>Most effective when placed AFTER fully-connected layers.</li>
+  <li>Common rates: 0.2–0.5 (deeper layers usually higher).</li>
+</ul>
+
+<h3>5. Advantages of Dropout</h3>
+<ul>
+  <li>Reduces overfitting significantly.</li>
+  <li>Acts as a model averaging / ensemble approximation.</li>
+  <li>Improves generalization to unseen data.</li>
+  <li>Simple to implement (just one line in modern frameworks).</li>
+  <li>Forces neurons to be more independent and robust.</li>
+</ul>
+
+<h3>6. Disadvantages of Dropout</h3>
+<ul>
+  <li>Increases training time (more epochs needed for convergence).</li>
+  <li>Choosing the right dropout rate is empirical (trial and error).</li>
+  <li>Less commonly used in CNN convolutional layers (use Batch Normalization there instead).</li>
+  <li>Can hurt performance if dropout rate is too high.</li>
+</ul>
+
+<h3>7. Variants</h3>
+<ul>
+  <li><b>Spatial Dropout</b> — drops entire feature maps (channels) instead of individual neurons; better for CNNs.</li>
+  <li><b>DropConnect</b> — drops individual weights rather than neurons.</li>
+  <li><b>AlphaDropout</b> — preserves mean and variance, used with SELU activation.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Dropout randomly switches off neurons during training to prevent overfitting.</li>
+    <li>Dropout rate p (typically 0.2–0.5) = fraction of neurons dropped.</li>
+    <li>Only active during training; disabled at test time.</li>
+    <li>Acts like ensemble of smaller networks.</li>
+    <li>Variants: Spatial Dropout (for CNN), DropConnect, AlphaDropout.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — Local Response Normalization</h2>
+<span class="freq-tag">Asked 2 times</span>(Nov'23, May'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 6 marks)</b> Explain Local response normalization and need of it.</p>
+    <p><b>(May'25, 6 marks)</b> Explain local response Normalization.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Local Response Normalization (LRN)</b> is a normalization layer used in CNNs that normalizes the activations of a neuron based on the responses of NEIGHBOURING neurons (either spatially or across channels). It was introduced in AlexNet to mimic <b>lateral inhibition</b> in biological neurons.</p>
+
+<h3>2. Why we need LRN</h3>
+<ul>
+  <li>Encourages competition between neurons — only the strongest activations stand out.</li>
+  <li>Improves generalization by spreading activations across many neurons.</li>
+  <li>Helps with brightness normalization in images.</li>
+  <li>Inspired by lateral inhibition in real neurons (one firing neuron suppresses its neighbours).</li>
+</ul>
+
+<h3>3. How it works (simplified)</h3>
+<ol>
+  <li>For each activation a<sub>i</sub>, look at neighbouring activations (e.g., across nearby channels at the same spatial position).</li>
+  <li>Compute the sum of squares of these neighbours.</li>
+  <li>Divide a<sub>i</sub> by this sum (with some constants to control strength).</li>
+</ol>
+
+<h3>4. Formula</h3>
+<div class="formula-line">
+  b<sub>i</sub> = a<sub>i</sub> / (k + α · Σ a<sub>j</sub>²)<sup>β</sup>
+</div>
+<ul>
+  <li>a<sub>i</sub> = original activation</li>
+  <li>b<sub>i</sub> = normalized activation</li>
+  <li>k, α, β = hyperparameters (typical values: k=2, α=10⁻⁴, β=0.75)</li>
+  <li>Σ = sum over neighbouring channels j around channel i</li>
+</ul>
+
+<h3>5. Two types of LRN</h3>
+<ul>
+  <li><b>Inter-channel LRN</b> — normalizes across DIFFERENT channels at the same spatial position. Used in AlexNet.</li>
+  <li><b>Intra-channel LRN</b> — normalizes within the same channel at neighbouring spatial positions.</li>
+</ul>
+
+<h3>6. Pros and cons</h3>
+<ul>
+  <li><b>Pro:</b> small accuracy improvement in early CNNs (AlexNet).</li>
+  <li><b>Pro:</b> brightness invariance.</li>
+  <li><b>Con:</b> mostly replaced by <b>Batch Normalization (BN)</b> in modern networks (BN is faster and more effective).</li>
+  <li><b>Con:</b> additional hyperparameters (k, α, β) to tune.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>LRN normalizes activations using neighbouring activations.</li>
+    <li>Inspired by lateral inhibition in biological neurons.</li>
+    <li>Two types: inter-channel and intra-channel.</li>
+    <li>Used in AlexNet; mostly replaced by Batch Normalization now.</li>
+    <li>Formula: divides activation by sum of squared neighbours (with constants).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q9">Q9 — Applications of CNN / Convolution</h2>
+<span class="freq-tag">Asked 2 times</span>(Nov'23, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 6 marks)</b> What are the applications of Convolution with examples?</p>
+    <p><b>(Nov'25, 6 marks)</b> What are Convolutional Neural Networks (CNNs) primarily used for? List at least four real-world applications.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Major application areas of CNN</h3>
+
+<h4>(a) Image classification</h4>
+<ul>
+  <li>Assign a label to an image (cat, dog, car, …).</li>
+  <li>Datasets: ImageNet, CIFAR-10, MNIST.</li>
+  <li>Models: AlexNet, VGG, ResNet, EfficientNet.</li>
+</ul>
+
+<h4>(b) Object detection</h4>
+<ul>
+  <li>Find and label multiple objects in one image, with bounding boxes.</li>
+  <li>Models: YOLO (You Only Look Once), Faster R-CNN, SSD.</li>
+  <li>Used in autonomous driving, security cameras, retail analytics.</li>
+</ul>
+
+<h4>(c) Image segmentation</h4>
+<ul>
+  <li>Label EVERY pixel of the image (semantic or instance segmentation).</li>
+  <li>Models: U-Net (medical), Mask R-CNN (instance segmentation).</li>
+  <li>Used in medical imaging, autonomous driving, satellite imagery.</li>
+</ul>
+
+<h4>(d) Face recognition</h4>
+<ul>
+  <li>Identify or verify a person from a face image.</li>
+  <li>Models: FaceNet, DeepFace.</li>
+  <li>Used in phone unlock, attendance, security.</li>
+</ul>
+
+<h4>(e) Medical imaging</h4>
+<ul>
+  <li>Detect tumours in CT/MRI scans.</li>
+  <li>Classify skin lesions (melanoma detection).</li>
+  <li>Diabetic retinopathy detection from eye images.</li>
+  <li>X-ray analysis (e.g., pneumonia, COVID detection).</li>
+</ul>
+
+<h4>(f) Self-driving cars</h4>
+<ul>
+  <li>Lane detection, traffic sign recognition, pedestrian detection.</li>
+  <li>Real-time decision making.</li>
+</ul>
+
+<h4>(g) Optical Character Recognition (OCR)</h4>
+<ul>
+  <li>Reading printed or handwritten text from images.</li>
+  <li>Used in: postal mail sorting, document digitization, license plate readers.</li>
+</ul>
+
+<h4>(h) Video analysis</h4>
+<ul>
+  <li>Action recognition, sports analytics, surveillance.</li>
+  <li>3D CNNs or CNN + RNN combinations.</li>
+</ul>
+
+<h4>(i) Image generation and style transfer</h4>
+<ul>
+  <li>Generate new images (CNN + GAN).</li>
+  <li>Transfer artistic style from one image to another (Neural Style Transfer).</li>
+</ul>
+
+<h4>(j) Other applications</h4>
+<ul>
+  <li>Satellite image analysis (land use classification).</li>
+  <li>Agriculture (crop disease detection).</li>
+  <li>Audio processing (treat spectrogram as image).</li>
+  <li>Natural language processing (sentence classification using 1-D CNN).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Top 4 applications: image classification, object detection, segmentation, face recognition.</li>
+    <li>Other big areas: medical imaging, self-driving, OCR, video analysis.</li>
+    <li>CNN is used wherever data has 2-D / grid structure.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q10">Q10 — Interleaving between Layers in CNN</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'25 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'25, 6 marks)</b> What is Interleaving Between Layers in CNN? Why is Interleaving Important? Explain the role of each interleaving layer.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Interleaving</b> in a CNN means stacking different types of layers in a specific repeating pattern — typically Convolution → Activation (ReLU) → Pooling — and repeating this block several times before the final fully-connected layers.</p>
+
+<h3>2. Why interleaving is important</h3>
+<ul>
+  <li>Each layer plays a SPECIFIC role; combining them in this order produces a hierarchy of features.</li>
+  <li>Convolution alone is linear; ReLU adds non-linearity.</li>
+  <li>Pooling reduces size and gives translation invariance.</li>
+  <li>Repeating these allows progressively deeper, more abstract features.</li>
+  <li>Without interleaving, the network would be just a stack of linear filters and would not learn complex patterns.</li>
+</ul>
+
+<h3>3. Role of each interleaving layer</h3>
+
+<h4>(a) Convolution Layer</h4>
+<ul>
+  <li>Detects local patterns (edges, corners, textures) using learnable filters.</li>
+  <li>Preserves spatial structure.</li>
+  <li>Outputs a stack of feature maps.</li>
+</ul>
+
+<h4>(b) Activation Layer (ReLU)</h4>
+<ul>
+  <li>Adds non-linearity → enables the network to learn complex, non-linear functions.</li>
+  <li>Sparsifies activations (many become 0).</li>
+  <li>Prevents the model from being equivalent to a simple linear function.</li>
+</ul>
+
+<h4>(c) Pooling Layer</h4>
+<ul>
+  <li>Reduces the spatial size of feature maps.</li>
+  <li>Provides translation invariance.</li>
+  <li>Cuts down computation and parameter count.</li>
+  <li>Increases the receptive field of higher layers.</li>
+</ul>
+
+<h4>(d) (Optional) Normalization Layer (Batch Norm or LRN)</h4>
+<ul>
+  <li>Stabilizes training by normalizing layer outputs.</li>
+  <li>Allows higher learning rates.</li>
+</ul>
+
+<h4>(e) Fully Connected Layer (at the end)</h4>
+<ul>
+  <li>Combines all extracted features to make the final prediction.</li>
+</ul>
+
+<h3>4. Typical interleaving pattern</h3>
+<pre>
+[Conv → ReLU → Pool] × N  →  Flatten  →  [FC → ReLU] × M  →  Softmax → Output
+</pre>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Interleaving = alternating Conv → ReLU → Pool layers in a repeating block.</li>
+    <li>Each layer has a specific role; together they form a feature hierarchy.</li>
+    <li>Conv → detects features; ReLU → adds non-linearity; Pool → downsamples.</li>
+    <li>Without this interleaving, the network couldn't learn complex patterns.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q11">Q11 — Training a CNN and Need of Normalization</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'25 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'25, 6 marks)</b> List the main steps involved in training a CNN for image classification. Why normalization is important before training a CNN?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Main steps in training a CNN</h3>
+<ol>
+  <li><b>Collect and prepare data:</b> gather a labeled dataset of images (e.g., ImageNet, CIFAR-10).</li>
+  <li><b>Preprocess images:</b> resize to fixed dimensions, normalize pixel values, optionally apply data augmentation.</li>
+  <li><b>Define CNN architecture:</b> choose number of conv/pool/FC layers, filter sizes, activation, dropout.</li>
+  <li><b>Initialize weights:</b> random initialization (Xavier / He initialization works well).</li>
+  <li><b>Forward pass:</b> input image → convolution → ReLU → pooling → … → softmax output.</li>
+  <li><b>Compute loss:</b> compare predicted output with true label using e.g., cross-entropy loss.</li>
+  <li><b>Backward pass (backpropagation):</b> compute gradients of loss w.r.t. all weights.</li>
+  <li><b>Update weights</b> using an optimizer (SGD, Adam, RMSprop) with a chosen learning rate.</li>
+  <li><b>Repeat steps 5–8</b> for many epochs over the training data.</li>
+  <li><b>Validate</b> on a held-out validation set; tune hyperparameters.</li>
+  <li><b>Test</b> on the test set to measure final accuracy.</li>
+</ol>
+
+<h3>2. Why normalization is important before training a CNN</h3>
+<ul>
+  <li><b>Faster convergence:</b> with normalized inputs (values in [0,1] or zero-mean), gradient descent converges much faster.</li>
+  <li><b>Prevents very large activations:</b> raw pixel values (0–255) can cause numerical instability and exploding gradients.</li>
+  <li><b>Helps with weight initialization:</b> weight init schemes assume inputs are roughly zero-mean and unit-variance.</li>
+  <li><b>Equal scale across features:</b> all input channels contribute equally to learning, not just the brightest channel.</li>
+  <li><b>Reduces sensitivity to lighting:</b> different images have different brightness; normalization makes them comparable.</li>
+  <li><b>Compatible with activation functions:</b> sigmoid/tanh saturate for large values; ReLU works best with small positives.</li>
+</ul>
+
+<h3>3. Common normalization techniques</h3>
+<ul>
+  <li><b>Scaling to [0, 1]:</b> divide all pixel values by 255.</li>
+  <li><b>Mean subtraction:</b> subtract per-channel mean of the training set.</li>
+  <li><b>Standard score:</b> (x − mean) / std for each pixel.</li>
+  <li><b>Batch normalization</b> (inside the network) — normalizes activations layer by layer.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Training CNN: prepare data → preprocess → architecture → init weights → forward → loss → backprop → update → repeat.</li>
+    <li>Normalization is essential for faster, stable training.</li>
+    <li>Common: divide by 255, or (x − mean)/std.</li>
+    <li>Without normalization: slow training, unstable gradients, poor accuracy.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q12">Q12 — Output Size Calculation (numerical problem)</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'25 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'25, 6 marks)</b> Given an input of size 64 × 64, a kernel size of 5 × 5, stride = 2, and 'same' padding:
+       i) What will be the size of the output feature map?
+       ii) How does padding help retain the spatial size?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>(i) Output feature map size</h3>
+<p>For 'same' padding with stride > 1, the standard formula in most frameworks (TensorFlow, PyTorch) is:</p>
+
+<div class="formula-line">
+  Output size = ⌈ Input size / Stride ⌉
+</div>
+
+<p>Substituting: Input = 64, Stride = 2 → Output = ⌈ 64 / 2 ⌉ = <b>32</b>.</p>
+<p>So the output feature map is <b>32 × 32</b>.</p>
+
+<h3>Alternative general formula</h3>
+<div class="formula-line">
+  Output = ((Input − Filter + 2 · Padding) / Stride) + 1
+</div>
+<p>For 'same' padding with filter 5×5 and stride 2: padding is chosen as 2 on each side.</p>
+<p>Output = ((64 − 5 + 2·2) / 2) + 1 = (63/2) + 1 = 31.5 + 1 ≈ 32. ✓</p>
+
+<h3>(ii) How does padding help retain spatial size?</h3>
+<ul>
+  <li>Without padding, applying a 5×5 filter to a 64×64 input gives output size 60×60 → SHRINKS at every layer.</li>
+  <li>After many layers, the feature map would shrink to nothing.</li>
+  <li>By adding extra zeros around the border (padding = 2 for a 5×5 filter), the output stays at 64×64 (when stride = 1).</li>
+  <li>With stride > 1 + 'same' padding, the output is just Input/Stride — predictable and uniform.</li>
+  <li>Padding also gives edge pixels fair treatment — without padding, corner pixels are seen by the filter only once.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>For 'same' padding with stride S: Output = ⌈Input/S⌉.</li>
+    <li>General formula: Output = (Input − F + 2P)/S + 1.</li>
+    <li>For this question (64×64, 5×5, stride 2, same) → output = 32×32.</li>
+    <li>Padding helps: preserves size, gives edge pixels fair treatment.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>Pooling Layer (types/features)</td><td>✓ ×2</td><td>✓</td><td>✓</td><td>✓ ×2</td><td>—</td><td>6</td></tr>
+  <tr><td>ReLU Layer</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>CNN architecture</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>4</td></tr>
+  <tr><td>Padding and types</td><td>—</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>3</td></tr>
+  <tr><td>Convolution layer working</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>2</td></tr>
+  <tr><td>Stride convolution</td><td>—</td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>2</td></tr>
+  <tr><td>Dropout Layer</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>2</td></tr>
+  <tr><td>Local Response Normalization</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>2</td></tr>
+  <tr><td>Applications of CNN / Convolution</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>Interleaving between layers</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>1</td></tr>
+  <tr><td>Training CNN + normalization</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>1</td></tr>
+  <tr><td>Output size calculation</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>1</td></tr>
+</table>
+
+<h3>Must-remember formulas</h3>
+<div class="formula-line">
+  Output size = (Input − F + 2·Padding) / Stride + 1<br>
+  For 'same' padding with stride S:  Output = ⌈Input / S⌉<br>
+  ReLU: f(x) = max(0, x)<br>
+  Params per conv filter = F × F × InputDepth + 1 (bias)<br>
+  Common pooling: 2×2 window with stride 2 → halves spatial size
+</div>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>A CNN = (Convolution + ReLU + Pooling) repeated → Flatten → Fully-Connected → Softmax — each layer plays a specific role: Conv detects features, ReLU adds non-linearity, Pool downsamples.</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  DL Chapter 3 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open this file in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

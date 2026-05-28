@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HPC — Chapter 5: CUDA Architecture (Unit V)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details open>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="Chapter-5.html" class="current">Ch 5 — CUDA Architecture</a>
+    <a href="Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="../DL/Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="../DL/Chapter-4.html">Ch 4 — CNN Architectures</a>
+    <a href="../DL/Chapter-5.html">Ch 5 — RNN &amp; Sequence</a>
+    <a href="../DL/Chapter-6.html">Ch 6 — Auto-Encoders &amp; GAN</a>
+  </details>
+  <details>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="../NLP/Chapter-3.html">Ch 3 — Syntax Analysis</a>
+    <a href="../NLP/Chapter-4.html">Ch 4 — Semantic Analysis</a>
+    <a href="../NLP/Chapter-5.html">Ch 5 — Discourse / Pragmatics</a>
+    <a href="../NLP/Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="../BI/Chapter-3.html">Ch 3 — Data Warehousing</a>
+    <a href="../BI/Chapter-4.html">Ch 4 — Data Mining</a>
+    <a href="../BI/Chapter-5.html">Ch 5 — BI Tools &amp; OLAP</a>
+    <a href="../BI/Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>HPC — Chapter 5: CUDA Architecture (Unit V)</h1>
+<p class="meta">
+  Subject Code: 410250 &nbsp;|&nbsp; End-Sem: 02 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q5 or Q6).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — what is a GPU? Why CUDA?</a></li>
+    <li><a href="#q1">Q1 — Processing flow of CUDA-C program (asked 3 times)</a></li>
+    <li><a href="#q2">Q2 — CUDA Architecture in detail (asked 2 times)</a></li>
+    <li><a href="#q3">Q3 — What is CUDA + languages + applications (asked 2 times)</a></li>
+    <li><a href="#q4">Q4 — CUDA Memory Model + Thread Hierarchy (asked 2 times)</a></li>
+    <li><a href="#q5">Q5 — Terms in CUDA: device, host, device code, kernel (asked 2 times)</a></li>
+    <li><a href="#q6">Q6 — Block dim + Grid dim + Vector addition kernel (asked 1 time)</a></li>
+    <li><a href="#q7">Q7 — Kernel launch + arguments (asked 1 time)</a></li>
+    <li><a href="#q8">Q8 — CUDA C kernel-level execution example (asked 1 time)</a></li>
+    <li><a href="#q9">Q9 — Advantages and Limitations of CUDA (asked 1 time)</a></li>
+    <li><a href="#q10">Q10 — Applications of CUDA (asked 1 time)</a></li>
+    <li><a href="#q11">Q11 — Managing GPU Memory (asked 1 time)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+A normal CPU is like a few very smart, well-paid professors who can each handle complicated tasks one at a time. A GPU is like an army of cheap student volunteers — each one can only do simple work, but there are THOUSANDS of them, so they finish huge piles of simple jobs (like drawing pixels, multiplying matrices, training neural networks) very fast.
+</div>
+
+<h3>1. CPU vs GPU at a glance</h3>
+<table>
+  <tr><th>Aspect</th><th>CPU</th><th>GPU</th></tr>
+  <tr><td>Number of cores</td><td>Few (4–16), very powerful</td><td>Many (thousands), simpler</td></tr>
+  <tr><td>Designed for</td><td>Low latency on ONE task</td><td>High throughput on MANY tasks</td></tr>
+  <tr><td>Control logic</td><td>Complex (branch prediction etc.)</td><td>Simple</td></tr>
+  <tr><td>Cache</td><td>Large per core</td><td>Small per core, many caches</td></tr>
+  <tr><td>Best for</td><td>Sequential, branchy code</td><td>Data-parallel, repetitive code</td></tr>
+  <tr><td>Memory</td><td>Few GB to TB, slow access</td><td>Few to dozens of GB, very fast</td></tr>
+</table>
+
+<h3>2. Big difference: latency vs throughput</h3>
+<ul>
+  <li><b>Latency</b> = how fast ONE task completes. CPU wins here.</li>
+  <li><b>Throughput</b> = how many tasks complete per second total. GPU wins here.</li>
+  <li>Example: A CPU does one tax form in 1 minute. A GPU does 1000 tax forms in 5 minutes.
+    CPU is faster per form, but GPU finishes the whole pile faster.</li>
+</ul>
+
+<h3>3. What is CUDA?</h3>
+<div class="simple">CUDA = Compute Unified Device Architecture. It is NVIDIA's parallel computing framework — a way to write programs in a C-like language that run on NVIDIA GPUs.</div>
+
+<ul>
+  <li>Released by NVIDIA in 2006.</li>
+  <li>Only works on NVIDIA GPUs (AMD GPUs use OpenCL / ROCm instead).</li>
+  <li>Lets you write thousands of parallel threads as easily as writing a normal C function.</li>
+</ul>
+
+<hr>
+
+<h2 id="q1">Q1 — Processing Flow of a CUDA-C Program</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, May'24, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'25, 6 marks)</b> Describe processing flow of CUDA-C program with diagram.</p>
+    <p><b>(May'24, 6 marks)</b> Describe processing flow of cuda along with cuda c functions.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine a manager (CPU/host) outsourcing a heavy task to a factory (GPU/device). The manager: (1) prepares the raw material on the office desk, (2) calls a courier to copy it to the factory, (3) tells the factory workers what to make and how many copies, (4) waits while they work, (5) gets the finished products couriered back to the office. CUDA-C programs follow this exact flow.
+</div>
+
+<h3>1. Definition</h3>
+<p>The <b>processing flow of a CUDA-C program</b> is the sequence of steps a CUDA program performs to use the GPU: allocate memory on the GPU, copy input data to GPU, launch a kernel function that runs on many GPU threads in parallel, copy the result back to the CPU, and free the GPU memory.</p>
+
+<h3>2. The 5 standard steps in every CUDA-C program</h3>
+<ol>
+  <li><b>Allocate memory on the host (CPU) and initialise input data.</b></li>
+  <li><b>Allocate memory on the device (GPU)</b> using <code>cudaMalloc</code>.</li>
+  <li><b>Copy input data from host RAM to device RAM</b> using <code>cudaMemcpy(..., cudaMemcpyHostToDevice)</code>.</li>
+  <li><b>Launch the kernel</b> on the GPU: <code>myKernel&lt;&lt;&lt;gridDim, blockDim&gt;&gt;&gt;(args);</code><br>
+      Many threads run in parallel, each working on a small piece of data.</li>
+  <li><b>Copy result back from device to host</b> using <code>cudaMemcpy(..., cudaMemcpyDeviceToHost)</code>, then <b>free device memory</b> with <code>cudaFree</code>.</li>
+</ol>
+
+<h3>3. Diagram of CUDA-C program flow</h3>
+<pre>
+┌─────────────────────────────────────────────────────────────┐
+│                HOST (CPU side)                              │
+├─────────────────────────────────────────────────────────────┤
+│  1. malloc + initialise input on host                       │
+│                                                              │
+│  2. cudaMalloc → reserve memory on device                   │
+│         ↓                                                   │
+│  3. cudaMemcpy (H→D) → copy input to device                 │
+│         ↓                                                   │
+│  4. kernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(args) → launch GPU kernel    │
+│                                          ↓                  │
+│                              ┌──────────────────────┐       │
+│                              │   DEVICE (GPU side)  │       │
+│                              │  Many threads run    │       │
+│                              │  the kernel in       │       │
+│                              │  parallel            │       │
+│                              └──────────────────────┘       │
+│                                          ↓                  │
+│  5. cudaMemcpy (D→H) → copy result back                     │
+│         ↓                                                   │
+│  6. Free host + device memory (cudaFree)                    │
+└─────────────────────────────────────────────────────────────┘
+</pre>
+
+<h3>4. Common CUDA C runtime functions</h3>
+<table>
+  <tr><th>Function</th><th>Purpose</th></tr>
+  <tr><td><code>cudaMalloc(&amp;ptr, size)</code></td><td>Allocate memory on the device</td></tr>
+  <tr><td><code>cudaFree(ptr)</code></td><td>Free device memory</td></tr>
+  <tr><td><code>cudaMemcpy(dest, src, size, direction)</code></td><td>Copy data between host and device</td></tr>
+  <tr><td><code>cudaMemset(ptr, value, size)</code></td><td>Initialize device memory to a value</td></tr>
+  <tr><td><code>cudaDeviceSynchronize()</code></td><td>Block CPU until GPU finishes all queued work</td></tr>
+  <tr><td><code>cudaGetLastError()</code></td><td>Check for last CUDA error</td></tr>
+  <tr><td><code>cudaGetDeviceCount(&amp;count)</code></td><td>Get number of GPUs in the system</td></tr>
+</table>
+
+<h3>5. Example CUDA-C program (vector addition skeleton)</h3>
+<pre>
+#include &lt;cuda_runtime.h&gt;
+
+__global__ void vecAdd(float* A, float* B, float* C, int N) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &lt; N) C[i] = A[i] + B[i];
+}
+
+int main() {
+    int N = 1000;
+    float *h_A, *h_B, *h_C;             // host pointers
+    float *d_A, *d_B, *d_C;             // device pointers
+
+    // Step 1: allocate &amp; init host data
+    h_A = (float*)malloc(N*sizeof(float));
+    // ... fill h_A and h_B with data ...
+
+    // Step 2: allocate device memory
+    cudaMalloc(&amp;d_A, N*sizeof(float));
+    cudaMalloc(&amp;d_B, N*sizeof(float));
+    cudaMalloc(&amp;d_C, N*sizeof(float));
+
+    // Step 3: copy host → device
+    cudaMemcpy(d_A, h_A, N*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_B, h_B, N*sizeof(float), cudaMemcpyHostToDevice);
+
+    // Step 4: launch kernel
+    int threadsPerBlock = 256;
+    int blocks = (N + threadsPerBlock - 1) / threadsPerBlock;
+    vecAdd&lt;&lt;&lt;blocks, threadsPerBlock&gt;&gt;&gt;(d_A, d_B, d_C, N);
+
+    // Step 5: copy device → host
+    cudaMemcpy(h_C, d_C, N*sizeof(float), cudaMemcpyDeviceToHost);
+
+    // Step 6: cleanup
+    cudaFree(d_A); cudaFree(d_B); cudaFree(d_C);
+    free(h_A); free(h_B); free(h_C);
+    return 0;
+}
+</pre>
+
+<h3>6. Direction codes for cudaMemcpy</h3>
+<ul>
+  <li><code>cudaMemcpyHostToDevice</code> — copy from CPU memory to GPU memory</li>
+  <li><code>cudaMemcpyDeviceToHost</code> — copy from GPU back to CPU</li>
+  <li><code>cudaMemcpyDeviceToDevice</code> — copy within GPU memory</li>
+  <li><code>cudaMemcpyHostToHost</code> — copy within host (rarely used in CUDA code)</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>5-step flow: allocate host data → cudaMalloc → cudaMemcpy(H→D) → kernel launch → cudaMemcpy(D→H) → cudaFree.</li>
+    <li>Host = CPU side; Device = GPU side.</li>
+    <li>Key functions: cudaMalloc, cudaFree, cudaMemcpy, cudaDeviceSynchronize.</li>
+    <li>Kernel launch syntax: <code>kernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(args)</code>.</li>
+    <li>Always copy data back to host before printing/using on CPU.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — CUDA Architecture in Detail</h2>
+<span class="freq-tag">Asked 2 times</span>(May'24, May'25 — usually 8–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 8 marks)</b> Draw and explain CUDA architecture in details.</p>
+    <p><b>(May'25, 9 marks)</b> Explain CUDA architecture in details.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A GPU is like a big company building. The building has many DEPARTMENTS (called Streaming Multiprocessors or SMs). Each department has many EMPLOYEES (CUDA cores). Each department has its own small meeting room (shared memory) and small lockers (registers). The whole company shares one big warehouse (global memory). The company gets work orders from the CEO (CPU) over a road (PCIe bus).
+</div>
+
+<h3>1. Definition</h3>
+<p><b>CUDA architecture</b> is the hardware-and-software model used by NVIDIA GPUs to run thousands of parallel threads. It consists of multiple <b>Streaming Multiprocessors (SMs)</b>, each containing many <b>CUDA cores</b>, plus a memory hierarchy and a software stack (driver, runtime, compiler).</p>
+
+<h3>2. Major hardware components</h3>
+
+<h4>(a) Streaming Multiprocessor (SM)</h4>
+<ul>
+  <li>The basic processing unit of a GPU. A high-end GPU has dozens of SMs (e.g., 80+ in A100).</li>
+  <li>Each SM contains:
+    <ul>
+      <li>Many <b>CUDA cores</b> (Stream Processors) — execute arithmetic operations.</li>
+      <li><b>Warp scheduler</b> — schedules groups of 32 threads (called warps).</li>
+      <li><b>Special Function Units (SFUs)</b> — handle sin, cos, sqrt, log, etc.</li>
+      <li><b>Registers</b> — fastest memory, private per thread.</li>
+      <li><b>Shared memory</b> — small, fast, on-chip; shared by all threads in a block.</li>
+      <li><b>L1 cache</b> and instruction cache.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4>(b) Memory hierarchy</h4>
+<ul>
+  <li><b>Registers</b> (fastest, smallest, per-thread).</li>
+  <li><b>Shared memory</b> (very fast, on-chip, per-block).</li>
+  <li><b>Constant memory</b> (cached, read-only on device, set by host).</li>
+  <li><b>Texture memory</b> (cached, optimized for 2D spatial reads).</li>
+  <li><b>Global memory</b> (largest, slowest, off-chip; visible to all threads and host).</li>
+  <li><b>L2 cache</b> — shared across all SMs.</li>
+</ul>
+
+<h4>(c) Host-Device interconnect</h4>
+<ul>
+  <li>The CPU (host) talks to the GPU (device) over the <b>PCIe bus</b>.</li>
+  <li>Modern systems also support <b>NVLink</b> — faster GPU-to-GPU communication.</li>
+  <li>All data must be moved between host and device memory explicitly.</li>
+</ul>
+
+<h3>3. CUDA Architecture diagram (text version)</h3>
+<pre>
+                ┌───────────── GPU ─────────────┐
+                │  ┌────┐ ┌────┐ ┌────┐ ... ┌────┐
+                │  │ SM │ │ SM │ │ SM │     │ SM │
+                │  └─┬──┘ └─┬──┘ └─┬──┘     └─┬──┘
+                │    │      │      │          │
+                │  ┌─┴──────┴──────┴──────────┴───┐
+                │  │       L2 Cache              │
+                │  └────────────┬─────────────────┘
+                │               │
+                │  ┌────────────┴─────────────────┐
+                │  │       Global Memory (DRAM)  │
+                │  └────────────────────────────┘
+                └───────────────┬─────────────────
+                                │ PCIe / NVLink
+                ┌───────────────┴─────────────────┐
+                │            CPU (Host)            │
+                │   ┌─────────────────────────┐   │
+                │   │   Host RAM              │   │
+                │   └─────────────────────────┘   │
+                └─────────────────────────────────┘
+
+  Inside each SM:
+  ┌────────────────────────────────────────────┐
+  │  CUDA Cores  ████████████████              │
+  │  SFUs        ████                           │
+  │  Warp scheduler                             │
+  │  Registers + Shared Memory + L1 Cache       │
+  └────────────────────────────────────────────┘
+</pre>
+
+<h3>4. Software stack</h3>
+<ul>
+  <li><b>CUDA Driver</b> — low-level interface to GPU hardware.</li>
+  <li><b>CUDA Runtime API</b> — high-level functions like <code>cudaMalloc</code>, <code>cudaMemcpy</code>.</li>
+  <li><b>NVCC compiler</b> — compiles CUDA C/C++ source into machine code.</li>
+  <li><b>CUDA libraries</b> — cuBLAS (linear algebra), cuFFT (FFT), cuDNN (deep neural nets), Thrust (parallel STL).</li>
+</ul>
+
+<h3>5. Execution model</h3>
+<ul>
+  <li>The host launches a <b>kernel</b> → kernel runs on the device.</li>
+  <li>Each kernel launch creates a <b>grid</b> of <b>blocks</b>, each block contains many <b>threads</b>.</li>
+  <li>Threads are grouped into <b>warps</b> of 32; one warp executes the same instruction at the same time (SIMT model).</li>
+  <li>Blocks are assigned to SMs; an SM runs multiple blocks concurrently if resources allow.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>GPU = many SMs; each SM = many CUDA cores + shared memory + registers.</li>
+    <li>Memory hierarchy: registers → shared → constant → texture → global.</li>
+    <li>Host (CPU) and Device (GPU) connected via PCIe / NVLink.</li>
+    <li>Execution: kernel → grid → blocks → threads → warps (32 threads).</li>
+    <li>Software: NVCC compiler + CUDA Runtime API + libraries (cuBLAS, cuDNN).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — What is CUDA + Programming Languages + Applications</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, Nov'25 — usually 8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'25, 8 marks)</b> What is CUDA? Explain different programming languages support in CUDA. Discuss any three applications of CUDA.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is CUDA?</h3>
+<div class="simple">CUDA (Compute Unified Device Architecture) is NVIDIA's parallel computing platform and programming model that lets developers use NVIDIA GPUs for general-purpose computation (not just graphics).</div>
+
+<ul>
+  <li>Introduced by NVIDIA in 2006.</li>
+  <li>Provides a software stack to write programs that run thousands of threads in parallel on GPU cores.</li>
+  <li>Includes: a compiler (NVCC), runtime libraries, debugging tools, and high-level libraries (cuBLAS, cuFFT, cuDNN, Thrust).</li>
+  <li>Programs are typically written in C/C++ with special <code>__global__</code>, <code>__device__</code> qualifiers.</li>
+</ul>
+
+<h3>2. Programming languages supported by CUDA</h3>
+<ul>
+  <li><b>CUDA C/C++</b> — the original and most popular language. Compiled by NVCC.</li>
+  <li><b>CUDA Fortran</b> — provided by NVIDIA HPC SDK; popular in scientific computing.</li>
+  <li><b>CUDA Python</b> — via libraries like:
+    <ul>
+      <li><code>Numba</code> — JIT-compiles Python functions to CUDA kernels.</li>
+      <li><code>PyCUDA</code> — Python wrapper around CUDA driver API.</li>
+      <li><code>CuPy</code> — NumPy-like API that runs on GPU.</li>
+    </ul>
+  </li>
+  <li><b>Java</b> — via JCuda, Aparapi, JCublas.</li>
+  <li><b>.NET / C#</b> — via ManagedCUDA, CUDAfy.NET.</li>
+  <li><b>MATLAB</b> — Parallel Computing Toolbox supports CUDA arrays.</li>
+  <li><b>Julia</b> — via CUDA.jl.</li>
+  <li><b>R</b> — via gpuR and similar packages.</li>
+  <li>Higher-level frameworks: <b>OpenACC</b> (compiler-directive based), <b>OpenCL</b> (cross-vendor, conceptually similar).</li>
+</ul>
+
+<h3>3. Three (or more) important applications of CUDA</h3>
+
+<h4>(a) Deep Learning</h4>
+<ul>
+  <li>Training and inference of neural networks (CNNs, RNNs, transformers).</li>
+  <li>Frameworks: TensorFlow, PyTorch — they all use CUDA under the hood via cuDNN.</li>
+  <li>A GPU can train a CNN 10–100× faster than a CPU.</li>
+</ul>
+
+<h4>(b) Scientific Simulations</h4>
+<ul>
+  <li>Molecular dynamics simulations (drug discovery).</li>
+  <li>Weather and climate forecasting.</li>
+  <li>Computational fluid dynamics (CFD).</li>
+  <li>Astrophysics simulations (n-body, galaxy formation).</li>
+</ul>
+
+<h4>(c) Image and Video Processing</h4>
+<ul>
+  <li>Real-time filters, encoding/decoding (H.264, H.265).</li>
+  <li>Computer vision — object detection, face recognition.</li>
+  <li>Super-resolution and AI-based upscaling.</li>
+  <li>Medical imaging — CT/MRI reconstruction.</li>
+</ul>
+
+<h4>(d) Other major applications</h4>
+<ul>
+  <li>Cryptography and password recovery (brute-force attacks).</li>
+  <li>Cryptocurrency mining (SHA-256, Ethash).</li>
+  <li>Financial modelling — Monte Carlo simulations, option pricing.</li>
+  <li>Bioinformatics — DNA sequence alignment, protein folding (AlphaFold).</li>
+  <li>Ray tracing and 3D rendering for films and games.</li>
+  <li>Database query acceleration (RAPIDS, BlazingSQL).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>CUDA = NVIDIA's framework to run parallel programs on GPU (since 2006).</li>
+    <li>Languages: C/C++, Fortran, Python (Numba/PyCUDA/CuPy), Java, .NET, MATLAB, Julia, R.</li>
+    <li>Top 3 applications: Deep learning, scientific simulation, image/video processing.</li>
+    <li>Other major uses: cryptography, finance, bioinformatics, graphics.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — CUDA Memory Model + Thread Hierarchy</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, May'24 — usually 6–8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 8 marks)</b> Explain CUDA memory model. Discuss thread hierarchy.</p>
+    <p><b>(May'24, 6 marks)</b> Explain cuda memory model in brief.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Think of a CUDA program like a big school:
+<ul>
+  <li>The whole SCHOOL = a Grid (one kernel launch).</li>
+  <li>Each CLASSROOM = a Block (group of threads that can share a board and notes).</li>
+  <li>Each STUDENT = a Thread (does its own little piece of work).</li>
+  <li>Each student has a PRIVATE NOTEBOOK (registers).</li>
+  <li>Classmates share a CLASSROOM BLACKBOARD (shared memory).</li>
+  <li>The whole school shares a LIBRARY (global memory) and a REFERENCE BOOK (constant memory).</li>
+</ul>
+</div>
+
+<h3>Part A — Thread Hierarchy</h3>
+
+<h4>1. The three levels</h4>
+<ul>
+  <li><b>Grid</b> — the topmost unit; one kernel launch creates one grid.</li>
+  <li><b>Block</b> — a grid contains many blocks, arranged in 1-D, 2-D, or 3-D.</li>
+  <li><b>Thread</b> — a block contains many threads, also in 1-D / 2-D / 3-D.</li>
+</ul>
+
+<h4>2. Built-in variables inside the kernel</h4>
+<ul>
+  <li><code>threadIdx.x / .y / .z</code> — index of this thread inside its block.</li>
+  <li><code>blockIdx.x / .y / .z</code> — index of this block inside the grid.</li>
+  <li><code>blockDim.x / .y / .z</code> — number of threads per block.</li>
+  <li><code>gridDim.x / .y / .z</code> — number of blocks in the grid.</li>
+</ul>
+
+<h4>3. Global thread index (1-D)</h4>
+<div class="formula-line">
+  global_id = blockIdx.x * blockDim.x + threadIdx.x
+</div>
+
+<h4>4. Warps</h4>
+<ul>
+  <li>Threads inside a block are further grouped into <b>warps of 32 threads</b>.</li>
+  <li>All 32 threads in a warp execute the SAME instruction at the same time (SIMT — Single Instruction Multiple Threads).</li>
+  <li>If threads in a warp take different branches, performance drops (called <b>warp divergence</b>).</li>
+</ul>
+
+<h4>5. Diagram of thread hierarchy</h4>
+<pre>
+   ┌─────────────────────  Grid  ─────────────────────┐
+   │  Block(0,0)   Block(1,0)   Block(2,0)            │
+   │  Block(0,1)   Block(1,1)   Block(2,1)            │
+   │       ...        ...           ...                │
+   └──────┬────────────────────────────────────────────┘
+          │
+          ▼
+   ┌─────────  Block(i,j)  ─────────┐
+   │   Thread(0,0) Thread(1,0) ...  │
+   │   Thread(0,1) Thread(1,1) ...  │
+   │     ...        ...   ...        │
+   └────────────────────────────────┘
+        ▲
+        │
+   Each warp = 32 consecutive threads
+</pre>
+
+<hr>
+
+<h3>Part B — CUDA Memory Model</h3>
+
+<h4>6. Types of memory in CUDA</h4>
+<table>
+  <tr><th>Memory</th><th>Location</th><th>Scope</th><th>Speed</th><th>Lifetime</th></tr>
+  <tr><td>Registers</td><td>On-chip</td><td>One thread</td><td>Fastest</td><td>Thread</td></tr>
+  <tr><td>Local memory</td><td>Off-chip (in global)</td><td>One thread</td><td>Slow</td><td>Thread</td></tr>
+  <tr><td>Shared memory</td><td>On-chip</td><td>All threads in 1 block</td><td>Very fast</td><td>Block</td></tr>
+  <tr><td>Global memory</td><td>Off-chip DRAM</td><td>All threads, host</td><td>Slow</td><td>Application</td></tr>
+  <tr><td>Constant memory</td><td>Off-chip, cached</td><td>All threads (read-only on device)</td><td>Fast (cached)</td><td>Application</td></tr>
+  <tr><td>Texture memory</td><td>Off-chip, cached</td><td>All threads, 2D-optimized</td><td>Fast (cached)</td><td>Application</td></tr>
+</table>
+
+<h4>7. Rules to remember</h4>
+<ul>
+  <li>Threads in the same BLOCK can share data via <b>shared memory</b> and synchronize via <code>__syncthreads()</code>.</li>
+  <li>Threads in DIFFERENT blocks can only share data via slow <b>global memory</b>.</li>
+  <li>The smaller the memory, the faster the access AND the more limited the scope.</li>
+  <li>Registers and shared memory are precious — using too many limits how many blocks can run on each SM.</li>
+</ul>
+
+<h4>8. Diagram of CUDA memory hierarchy</h4>
+<pre>
+Per-thread:    [Registers]   [Local memory]
+                   ↓               ↓
+Per-block:     [Shared memory]
+                   ↓
+Per-grid:      [Global memory]  [Constant memory]  [Texture memory]
+                                    ↑
+                              Host RAM ← cudaMemcpy
+</pre>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Thread hierarchy: Grid → Block → Thread. Warp = 32 threads.</li>
+    <li>Built-in vars: threadIdx, blockIdx, blockDim, gridDim.</li>
+    <li>Global thread ID (1D): blockIdx.x · blockDim.x + threadIdx.x.</li>
+    <li>Memory types: registers (per thread), shared (per block), global (per app), constant, texture.</li>
+    <li>Use <code>__syncthreads()</code> to synchronize within a block.</li>
+    <li>Blocks cannot directly sync with each other inside a single kernel launch.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Terms in CUDA: Device, Host, Device Code, Kernel</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, Nov'25 — usually 4 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'25, 4 marks)</b> Explain the following terms in CUDA: device, host, device code, Kernel.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Host</h3>
+<ul>
+  <li>The <b>CPU</b> and its system RAM.</li>
+  <li>Runs the main C/C++ program.</li>
+  <li>Responsible for: allocating GPU memory, transferring data, launching kernels, collecting results.</li>
+  <li>"Host code" = code that runs on the CPU.</li>
+</ul>
+
+<h3>2. Device</h3>
+<ul>
+  <li>The <b>GPU</b> and its memory.</li>
+  <li>Acts as a co-processor to the host.</li>
+  <li>Executes parallel kernels launched by the host.</li>
+  <li>Cannot start work on its own — only does what host tells it.</li>
+</ul>
+
+<h3>3. Device Code</h3>
+<ul>
+  <li>The functions that run on the GPU.</li>
+  <li>Marked with one of these qualifiers:
+    <ul>
+      <li><code>__global__</code> — kernel; callable from host, runs on device.</li>
+      <li><code>__device__</code> — helper function; callable from device, runs on device.</li>
+      <li><code>__host__</code> — runs on host (default for normal C functions).</li>
+    </ul>
+  </li>
+  <li>Compiled by NVCC into GPU machine code (SASS / PTX).</li>
+</ul>
+
+<h3>4. Kernel</h3>
+<ul>
+  <li>A special function marked with <code>__global__</code>.</li>
+  <li>Called from the host, but RUNS on the device.</li>
+  <li>Always returns <code>void</code>.</li>
+  <li>Executed in parallel by many threads.</li>
+  <li>Launched using the triple-angle-bracket syntax:
+    <code>kernel&lt;&lt;&lt;gridDim, blockDim&gt;&gt;&gt;(args);</code></li>
+</ul>
+
+<h3>5. Summary table</h3>
+<table>
+  <tr><th>Term</th><th>Refers to</th><th>Runs on</th><th>Called by</th></tr>
+  <tr><td>Host</td><td>CPU + RAM</td><td>—</td><td>—</td></tr>
+  <tr><td>Device</td><td>GPU + GPU memory</td><td>—</td><td>—</td></tr>
+  <tr><td>Host code</td><td>Normal C/C++ code</td><td>Host (CPU)</td><td>Anywhere</td></tr>
+  <tr><td>Device code</td><td>Code with __device__ or __global__</td><td>Device (GPU)</td><td>Host or device</td></tr>
+  <tr><td>Kernel</td><td>Function with __global__</td><td>Device (GPU)</td><td>Host only</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Host = CPU side. Device = GPU side.</li>
+    <li>Device code runs on GPU; marked with __global__ or __device__.</li>
+    <li>Kernel = __global__ function, called from host, runs on device, returns void.</li>
+    <li>Kernel launch syntax: <code>kernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(args)</code>.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — Block Dimension, Grid Dimension, and Vector Addition Kernel</h2>
+<span class="freq-tag">Asked 1 time</span>(May'23 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> What is block dimension and grid dimension in CUDA? Write a CUDA kernel for addition of two vectors and explain how it will calculate addition using threads.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Block dimension and Grid dimension</h3>
+<ul>
+  <li><b>blockDim</b> — number of threads in one block, in each dimension (x, y, z). A block can be 1-D, 2-D, or 3-D.</li>
+  <li><b>gridDim</b> — number of blocks in the grid, in each dimension. A grid can be 1-D, 2-D, or 3-D.</li>
+  <li><b>blockIdx</b> — the index of THIS block within the grid.</li>
+  <li><b>threadIdx</b> — the index of THIS thread within its block.</li>
+  <li>Specified in the kernel launch:
+    <code>kernel&lt;&lt;&lt;gridDim, blockDim&gt;&gt;&gt;(args)</code>.</li>
+  <li>Total threads created = gridDim.x · blockDim.x (for 1-D launch).</li>
+</ul>
+
+<h3>2. Why split into blocks and threads?</h3>
+<ul>
+  <li>Blocks let the GPU schedule work across many SMs.</li>
+  <li>Threads inside a block can communicate via shared memory and sync with <code>__syncthreads()</code>.</li>
+  <li>Maximum threads per block is usually 1024.</li>
+</ul>
+
+<h3>3. CUDA kernel for vector addition</h3>
+<pre>
+__global__ void vectorAdd(float* A, float* B, float* C, int N) {
+    // compute global index of this thread
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    // bounds check — important when N is not a multiple of blockDim
+    if (i &lt; N) {
+        C[i] = A[i] + B[i];
+    }
+}
+</pre>
+
+<h3>4. How it calculates addition using threads (step-by-step)</h3>
+<ol>
+  <li>The host calls: <code>vectorAdd&lt;&lt;&lt;(N+255)/256, 256&gt;&gt;&gt;(d_A, d_B, d_C, N);</code></li>
+  <li>This creates a grid of (N+255)/256 blocks, each with 256 threads → total ≥ N threads.</li>
+  <li>Each thread computes its global index <code>i = blockIdx.x * 256 + threadIdx.x</code>.</li>
+  <li>Thread i reads <code>A[i]</code> and <code>B[i]</code> from global memory.</li>
+  <li>It adds them and writes the result to <code>C[i]</code>.</li>
+  <li>All threads do this IN PARALLEL — instead of N sequential additions, the GPU does them all almost at once.</li>
+</ol>
+
+<h3>5. Example trace (N = 1000, blockDim = 256)</h3>
+<ul>
+  <li>gridDim = ceil(1000/256) = 4 blocks.</li>
+  <li>Total threads = 4 × 256 = 1024 (24 extra threads beyond N).</li>
+  <li>Thread 0 in block 0: i = 0 → C[0] = A[0] + B[0].</li>
+  <li>Thread 5 in block 1: i = 1·256 + 5 = 261 → C[261] = A[261] + B[261].</li>
+  <li>Threads with i ≥ 1000 do nothing (caught by the <code>if (i &lt; N)</code> check).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>blockDim = threads per block; gridDim = blocks in grid.</li>
+    <li>Total threads = gridDim · blockDim.</li>
+    <li>Global thread index (1D) = blockIdx.x · blockDim.x + threadIdx.x.</li>
+    <li>Always include bounds check <code>if (i &lt; N)</code> when array size isn't a multiple of blockDim.</li>
+    <li>Each thread does one element of the addition — true parallel execution.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — Kernel and Kernel Launch Arguments</h2>
+<span class="freq-tag">Asked 1 time</span>(May'23 — 4 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 4 marks)</b> What is a Kernel in CUDA? What is kernel launch? Explain arguments that can be specified in a Kernel launch.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is a Kernel?</h3>
+<ul>
+  <li>A <b>kernel</b> is a special function declared with <code>__global__</code>.</li>
+  <li>It is called from host code but executes on the device (GPU).</li>
+  <li>It is run in parallel by many threads.</li>
+  <li>It always returns <code>void</code>.</li>
+  <li>Example:
+    <pre>__global__ void myKernel(float* data, int N) { ... }</pre>
+  </li>
+</ul>
+
+<h3>2. What is Kernel Launch?</h3>
+<ul>
+  <li>Kernel launch = the act of telling the GPU to start executing a kernel.</li>
+  <li>Done from host code using the triple-angle-bracket syntax:
+    <pre>myKernel&lt;&lt;&lt;gridDim, blockDim, sharedMem, stream&gt;&gt;&gt;(args);</pre>
+  </li>
+  <li>The launch returns IMMEDIATELY (it is asynchronous) — the CPU can do other work while the kernel runs.</li>
+</ul>
+
+<h3>3. Kernel launch arguments — the four inside &lt;&lt;&lt; &gt;&gt;&gt;</h3>
+<ol>
+  <li><b>gridDim (first argument, required)</b>
+    <ul>
+      <li>Number of blocks in the grid.</li>
+      <li>Can be a single integer (1-D grid) or <code>dim3</code> for 2-D / 3-D.</li>
+    </ul>
+  </li>
+  <li><b>blockDim (second argument, required)</b>
+    <ul>
+      <li>Number of threads per block.</li>
+      <li>Maximum usually 1024 threads per block.</li>
+    </ul>
+  </li>
+  <li><b>sharedMem (third argument, optional)</b>
+    <ul>
+      <li>Bytes of dynamically-allocated shared memory per block.</li>
+      <li>Used when shared memory size isn't known at compile time.</li>
+      <li>Default = 0.</li>
+    </ul>
+  </li>
+  <li><b>stream (fourth argument, optional)</b>
+    <ul>
+      <li>The CUDA stream in which the kernel runs.</li>
+      <li>Streams allow concurrent kernel execution.</li>
+      <li>Default = stream 0 (the default stream).</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>4. Examples of kernel launches</h3>
+<pre>
+// Simple 1-D launch
+myKernel&lt;&lt;&lt;100, 256&gt;&gt;&gt;(data, N);
+
+// 2-D grid and blocks (using dim3)
+dim3 grid(8, 8);
+dim3 block(16, 16);
+myKernel2D&lt;&lt;&lt;grid, block&gt;&gt;&gt;(image, W, H);
+
+// With dynamic shared memory (1024 bytes)
+myKernel&lt;&lt;&lt;100, 256, 1024&gt;&gt;&gt;(data, N);
+
+// With a non-default stream
+cudaStream_t s;
+cudaStreamCreate(&amp;s);
+myKernel&lt;&lt;&lt;100, 256, 0, s&gt;&gt;&gt;(data, N);
+</pre>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Kernel = <code>__global__</code> function, runs on GPU, called from host, returns void.</li>
+    <li>Kernel launch syntax: <code>kernel&lt;&lt;&lt;grid, block, sharedMem, stream&gt;&gt;&gt;(args)</code>.</li>
+    <li>4 launch arguments: gridDim, blockDim, sharedMem (opt), stream (opt).</li>
+    <li>Kernel launch is asynchronous — host doesn't wait.</li>
+    <li>Use <code>cudaDeviceSynchronize()</code> if host needs to wait for completion.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — CUDA C Program Execution at the Kernel Level</h2>
+<span class="freq-tag">Asked 1 time</span>(May'24 — 8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 8 marks)</b> Explain how the CUDA C program executes at the kernel level with example.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What "kernel-level execution" means</h3>
+<ul>
+  <li>When the host calls <code>kernel&lt;&lt;&lt;grid, block&gt;&gt;&gt;(args)</code>, the GPU spawns thousands of threads.</li>
+  <li>All threads run the SAME code (the kernel function), but each one works on a DIFFERENT piece of data based on its thread ID.</li>
+  <li>This is the <b>SIMT (Single Instruction Multiple Threads)</b> model.</li>
+</ul>
+
+<h3>2. Step-by-step execution flow</h3>
+<ol>
+  <li><b>Host launches kernel:</b> CUDA runtime sends the launch request to the GPU.</li>
+  <li><b>GPU's GigaThread Engine</b> distributes blocks to available Streaming Multiprocessors (SMs).</li>
+  <li>Each SM receives one or more blocks and divides each block into <b>warps</b> of 32 threads.</li>
+  <li>The <b>warp scheduler</b> selects ready warps and issues instructions.</li>
+  <li>All 32 threads in a warp execute the SAME instruction on different data.</li>
+  <li>Each thread computes its global ID (<code>blockIdx · blockDim + threadIdx</code>) and uses it to access its data.</li>
+  <li>Threads read/write global memory; threads in the same block can share data via shared memory.</li>
+  <li>Threads in the same block sync at <code>__syncthreads()</code> barriers.</li>
+  <li>When all threads in a block finish, the block exits; SM picks up the next block.</li>
+  <li>When the entire grid finishes, control returns to the host.</li>
+</ol>
+
+<h3>3. Example — vector addition (kernel-level trace)</h3>
+<pre>
+__global__ void vecAdd(float* A, float* B, float* C, int N) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i &lt; N) C[i] = A[i] + B[i];
+}
+
+// Host launch
+vecAdd&lt;&lt;&lt;4, 256&gt;&gt;&gt;(d_A, d_B, d_C, 1000);
+</pre>
+
+<p>Kernel-level execution:</p>
+<ul>
+  <li>4 blocks created: B0, B1, B2, B3, each with 256 threads.</li>
+  <li>Suppose GPU has 2 SMs. GigaThread sends B0 + B1 to SM0; B2 + B3 to SM1.</li>
+  <li>Each SM splits each block into 8 warps (256 ÷ 32 = 8).</li>
+  <li>Inside one warp (say warp 0 of block 0):
+    <ul>
+      <li>All 32 threads compute their global IDs (0, 1, 2, ..., 31).</li>
+      <li>All 32 threads read A[i] and B[i] from global memory (these can be coalesced into one transaction).</li>
+      <li>All 32 threads add and write to C[i].</li>
+    </ul>
+  </li>
+  <li>Once all 8 warps of a block finish, the block is done. SM picks the next block.</li>
+  <li>When all 4 blocks finish, the kernel ends and control returns to host.</li>
+</ul>
+
+<h3>4. Important kernel-level concepts</h3>
+<ul>
+  <li><b>SIMT:</b> all threads in a warp execute the same instruction in lockstep.</li>
+  <li><b>Warp divergence:</b> if threads in a warp take different branches, the warp executes both branches sequentially → slower.</li>
+  <li><b>Memory coalescing:</b> when 32 threads in a warp access 32 consecutive memory locations, the GPU combines them into one transaction → faster.</li>
+  <li><b>Latency hiding:</b> when one warp is waiting for memory, the SM schedules another warp to run — keeps GPU busy.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Kernel runs in parallel; each thread has a unique ID.</li>
+    <li>Blocks distributed to SMs; each SM runs warps of 32 threads.</li>
+    <li>SIMT model: same instruction, different data.</li>
+    <li>Warp divergence and memory access patterns greatly affect performance.</li>
+    <li>Host can wait for kernel via <code>cudaDeviceSynchronize()</code>.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q9">Q9 — Advantages and Limitations of CUDA</h2>
+<span class="freq-tag">Asked 1 time</span>(May'24 — 4 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 4 marks)</b> Write advantages and limitations of CUDA.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Advantages of CUDA</h3>
+<ul>
+  <li><b>Massive parallelism</b> — thousands of threads run simultaneously, ideal for data-parallel problems.</li>
+  <li><b>C-like syntax</b> — easy learning curve for programmers familiar with C/C++.</li>
+  <li><b>Rich library ecosystem</b> — cuBLAS, cuFFT, cuDNN, Thrust, RAPIDS provide tuned implementations.</li>
+  <li><b>Mature tools</b> — Nsight debugger, profiler, and IDE integrations.</li>
+  <li><b>High performance</b> — gives huge speedups for matrix operations, deep learning, image processing.</li>
+  <li><b>Wide adoption</b> — used by all major AI frameworks (PyTorch, TensorFlow).</li>
+  <li><b>Direct hardware access</b> — fine-grained control over memory, threads, streams.</li>
+  <li><b>Asynchronous execution</b> — overlap computation and data transfer using streams.</li>
+  <li><b>Backward compatibility</b> — programs written years ago still run on modern GPUs.</li>
+</ul>
+
+<h3>2. Limitations of CUDA</h3>
+<ul>
+  <li><b>Vendor-locked</b> — only runs on NVIDIA GPUs (AMD / Intel GPUs need OpenCL or SYCL).</li>
+  <li><b>PCIe transfer overhead</b> — copying data between host and device can dominate small jobs.</li>
+  <li><b>Bad for branchy / irregular code</b> — causes warp divergence; performance drops.</li>
+  <li><b>Limited GPU memory</b> compared to host RAM (e.g., a GPU has 16–80 GB vs server with TBs of RAM).</li>
+  <li><b>Learning curve</b> — must think in parallel, manage memory hierarchy, sync threads.</li>
+  <li><b>Debugging is harder</b> than sequential CPU code.</li>
+  <li><b>Power consumption</b> — high-end GPUs consume 300–700 W; expensive to cool and power.</li>
+  <li><b>Cost</b> — top GPUs are expensive (₹ lakhs per card).</li>
+  <li><b>No automatic parallelization</b> — programmer must manually identify parallelism.</li>
+</ul>
+
+<h3>3. Summary table</h3>
+<table>
+  <tr><th>Advantages</th><th>Limitations</th></tr>
+  <tr><td>Massive thread-level parallelism</td><td>NVIDIA-only (vendor lock-in)</td></tr>
+  <tr><td>C-like syntax, easy learning</td><td>PCIe transfer overhead</td></tr>
+  <tr><td>Rich libraries (cuDNN, cuBLAS, etc.)</td><td>Warp divergence hurts branchy code</td></tr>
+  <tr><td>Excellent performance for data-parallel work</td><td>Limited GPU memory</td></tr>
+  <tr><td>Mature debugging / profiling tools</td><td>Steep learning curve</td></tr>
+  <tr><td>Asynchronous streams</td><td>High power consumption &amp; cost</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Advantages: parallelism, libraries, performance, asynchronous streams, ecosystem.</li>
+    <li>Limitations: NVIDIA-only, PCIe overhead, warp divergence, limited memory, high cost.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q10">Q10 — Applications of CUDA</h2>
+<span class="freq-tag">Asked 1 time</span>(May'24 — 4 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 4 marks)</b> Write applications of cuda.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<ul>
+  <li><b>Deep Learning</b> — training and inference of CNNs, RNNs, transformers; powers PyTorch, TensorFlow.</li>
+  <li><b>Scientific Simulations</b> — molecular dynamics, weather forecasting, fluid dynamics, astrophysics.</li>
+  <li><b>Image &amp; Video Processing</b> — real-time filters, video encoding (NVENC), super-resolution.</li>
+  <li><b>Computer Vision</b> — object detection (YOLO), facial recognition, autonomous driving perception.</li>
+  <li><b>Medical Imaging</b> — CT/MRI reconstruction, real-time ultrasound processing.</li>
+  <li><b>Cryptocurrency Mining</b> — hashing algorithms like SHA-256, Ethash.</li>
+  <li><b>Cryptography</b> — brute-force password recovery, encryption acceleration.</li>
+  <li><b>Financial Modelling</b> — Monte Carlo simulations, derivative pricing, risk analysis.</li>
+  <li><b>Bioinformatics</b> — DNA sequence alignment, protein folding (AlphaFold).</li>
+  <li><b>Computer Graphics &amp; Ray Tracing</b> — real-time rendering for movies and games.</li>
+  <li><b>Database query acceleration</b> — RAPIDS cuDF, BlazingSQL.</li>
+  <li><b>Engineering simulations</b> — finite element analysis, structural simulations.</li>
+  <li><b>Big-data analytics</b> — accelerating Spark, Pandas workloads on GPU.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Top 3: deep learning, scientific simulation, image/video processing.</li>
+    <li>Other big uses: cryptography, finance, bioinformatics, graphics.</li>
+    <li>Whenever a problem is data-parallel + heavy compute, CUDA helps.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q11">Q11 — Managing GPU Memory</h2>
+<span class="freq-tag">Asked 1 time</span>(May'25 — 9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 9 marks)</b> Write a short note on: Managing GPU Memory.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Why GPU memory management matters</h3>
+<ul>
+  <li>GPU memory is SEPARATE from CPU memory.</li>
+  <li>All data the kernel uses must first be COPIED to GPU memory.</li>
+  <li>GPU memory is LIMITED (typically a few to dozens of GB).</li>
+  <li>Memory transfers over PCIe are SLOW — minimize them.</li>
+  <li>Poor memory management = poor performance, even with fast kernels.</li>
+</ul>
+
+<h3>2. Types of GPU memory and how to manage each</h3>
+
+<h4>Global memory</h4>
+<ul>
+  <li>Allocated using <code>cudaMalloc(&amp;ptr, size)</code>.</li>
+  <li>Freed using <code>cudaFree(ptr)</code>.</li>
+  <li>Largest but slowest.</li>
+  <li>Visible to all threads and the host.</li>
+</ul>
+
+<h4>Shared memory</h4>
+<ul>
+  <li>Declared inside kernel with <code>__shared__</code>:
+    <pre>__shared__ float buf[256];</pre>
+  </li>
+  <li>Very fast, small (~48–96 KB per SM).</li>
+  <li>Shared among threads of the SAME block.</li>
+  <li>Used for inter-thread data sharing and caching.</li>
+</ul>
+
+<h4>Constant memory</h4>
+<ul>
+  <li>Declared with <code>__constant__</code>:
+    <pre>__constant__ float coeff[64];</pre>
+  </li>
+  <li>Read-only on device, set by host using <code>cudaMemcpyToSymbol</code>.</li>
+  <li>Cached → fast access when all threads read the same value.</li>
+</ul>
+
+<h4>Texture memory</h4>
+<ul>
+  <li>Read-only, optimized for 2D spatial access patterns.</li>
+  <li>Useful for image processing where neighbouring threads access neighbouring pixels.</li>
+</ul>
+
+<h4>Registers and local memory</h4>
+<ul>
+  <li>Each thread has private registers (very fast, ~few KB).</li>
+  <li>If a thread uses too many variables, they overflow to "local memory" (which is actually slow off-chip global memory).</li>
+</ul>
+
+<h3>3. Memory management functions</h3>
+<table>
+  <tr><th>Function</th><th>Purpose</th></tr>
+  <tr><td><code>cudaMalloc</code></td><td>Allocate device memory</td></tr>
+  <tr><td><code>cudaFree</code></td><td>Free device memory</td></tr>
+  <tr><td><code>cudaMemcpy</code></td><td>Copy between host and device</td></tr>
+  <tr><td><code>cudaMemcpyAsync</code></td><td>Asynchronous copy (overlaps with kernel)</td></tr>
+  <tr><td><code>cudaMemset</code></td><td>Initialize device memory to a value</td></tr>
+  <tr><td><code>cudaMallocHost</code></td><td>Allocate pinned (page-locked) host memory for faster transfers</td></tr>
+  <tr><td><code>cudaMallocManaged</code></td><td>Allocate unified memory accessible from both host and device</td></tr>
+  <tr><td><code>cudaMemcpyToSymbol</code></td><td>Copy data into constant memory</td></tr>
+</table>
+
+<h3>4. Best practices for GPU memory management</h3>
+<ul>
+  <li><b>Minimize host-device transfers</b> — they are the slowest operation.</li>
+  <li><b>Reuse device memory</b> instead of repeatedly allocating and freeing.</li>
+  <li><b>Use pinned (page-locked) host memory</b> for faster transfers (<code>cudaMallocHost</code>).</li>
+  <li><b>Use unified memory</b> (<code>cudaMallocManaged</code>) for simpler programming, at slight performance cost.</li>
+  <li><b>Coalesce global memory accesses</b> — consecutive threads should access consecutive memory locations.</li>
+  <li><b>Use shared memory</b> as a software-managed cache for data reused within a block.</li>
+  <li><b>Use constant memory</b> for read-only data accessed by all threads (e.g., filter coefficients).</li>
+  <li><b>Free unused memory</b> promptly using <code>cudaFree</code>.</li>
+  <li><b>Use asynchronous copies</b> with streams to overlap data transfer and computation.</li>
+</ul>
+
+<h3>5. Common errors to avoid</h3>
+<ul>
+  <li>Accessing device memory from host directly (dereferencing a device pointer) → segfault.</li>
+  <li>Forgetting to <code>cudaFree</code> → memory leak.</li>
+  <li>Using too much shared memory → kernel fails to launch.</li>
+  <li>Writing to constant memory from device → compile error.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>GPU memory types: global, shared, constant, texture, registers, local.</li>
+    <li>Use cudaMalloc/cudaFree/cudaMemcpy for global memory.</li>
+    <li>Minimize host-device transfers; use pinned/unified memory if helpful.</li>
+    <li>Coalesce accesses, use shared memory as cache.</li>
+    <li>Reuse buffers; free what you don't need.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across past 4 papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>Processing flow of CUDA-C program</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>3</td></tr>
+  <tr><td>CUDA architecture in detail</td><td>—</td><td>✓</td><td>✓</td><td>—</td><td>2</td></tr>
+  <tr><td>What is CUDA + languages + applications</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>CUDA memory model + thread hierarchy</td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>2</td></tr>
+  <tr><td>Terms: device, host, device code, kernel</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>Block / grid dim + vector add kernel</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>1</td></tr>
+  <tr><td>Kernel launch + arguments</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>1</td></tr>
+  <tr><td>CUDA C kernel level execution</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>1</td></tr>
+  <tr><td>Advantages and limitations</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>1</td></tr>
+  <tr><td>Applications of CUDA</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>1</td></tr>
+  <tr><td>Managing GPU Memory</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>1</td></tr>
+</table>
+
+<h3>The 6 lines you must remember (write these and you cover 80%)</h3>
+<ol>
+  <li>GPU = many SMs; each SM = many CUDA cores + shared memory + registers.</li>
+  <li><code>__global__</code> = kernel (host calls, device runs). <code>__device__</code> = device helper. <code>__host__</code> = CPU function.</li>
+  <li>Thread hierarchy: Grid → Block → Thread. Warp = 32 threads = SIMT unit.</li>
+  <li>Global thread ID (1D): <code>blockIdx.x * blockDim.x + threadIdx.x</code>.</li>
+  <li>CUDA program flow: cudaMalloc → cudaMemcpy(H→D) → kernel&lt;&lt;&lt;grid,block&gt;&gt;&gt; → cudaMemcpy(D→H) → cudaFree.</li>
+  <li>Memory hierarchy: Registers (per thread) &gt; Shared (per block) &gt;&gt; Global (per app). Use <code>__syncthreads()</code> within a block.</li>
+</ol>
+
+<h3>One-liner for the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>CUDA = NVIDIA's framework to run thousands of GPU threads in parallel — manage memory carefully (host/device/shared/global) and structure threads as Grid → Block → Warp → Thread.</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  HPC Chapter 5 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open this file in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

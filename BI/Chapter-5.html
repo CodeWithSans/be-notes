@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BI — Chapter 5: Impact of Machine Learning in BI (Unit V)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="../DL/Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="../DL/Chapter-4.html">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="../DL/Chapter-5.html">Ch 5 — Deep Generative Models</a>
+    <a href="../DL/Chapter-6.html">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="../NLP/Chapter-3.html">Ch 3 — Language Modelling</a>
+    <a href="../NLP/Chapter-4.html">Ch 4 — Information Retrieval</a>
+    <a href="../NLP/Chapter-5.html">Ch 5 — NLP Tools &amp; Techniques</a>
+    <a href="../NLP/Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details open>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="Chapter-3.html">Ch 3 — Reporting Authoring</a>
+    <a href="Chapter-4.html">Ch 4 — Data Preparation</a>
+    <a href="Chapter-5.html" class="current">Ch 5 — ML in BI</a>
+    <a href="Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>BI — Chapter 5: Impact of Machine Learning in BI Process (Unit V)</h1>
+<p class="meta">
+  Subject Code: 410253(C) | End-Sem: 11 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q5 or Q6).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — ML in BI overview</a></li>
+    <li><a href="#q1">Q1 — Logistic Regression (asked 6 times)</a></li>
+    <li><a href="#q2">Q2 — Association Rule (Support, Confidence, Lift) (asked 4 times)</a></li>
+    <li><a href="#q3">Q3 — Classification vs Clustering (asked 4 times)</a></li>
+    <li><a href="#q4">Q4 — Apriori Algorithm (numerical) (asked 3+1 times)</a></li>
+    <li><a href="#q5">Q5 — Bayes Theorem (asked 2 times)</a></li>
+    <li><a href="#q6">Q6 — K-means Clustering (asked 2 times)</a></li>
+    <li><a href="#q7">Q7 — Hierarchical vs Partitioning Clustering (asked 2 times)</a></li>
+    <li><a href="#q8">Q8 — Decision Tree (asked 2 times)</a></li>
+    <li><a href="#q9">Q9 — Evaluation of Classification Models (asked 1 time)</a></li>
+    <li><a href="#q10">Q10 — Definitions: Frequent Itemset, Min Support, etc. (asked 2 times)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+Machine Learning brings PREDICTIVE POWER to BI. Without ML, BI tells you what HAPPENED (sales last month). With ML, BI tells you what WILL HAPPEN (churn next month) and what TO DO (best marketing campaign). This chapter covers the main ML techniques used in BI: classification, clustering, association rules.
+</div>
+
+<h3>The 3 main ML tasks in BI</h3>
+<ol>
+  <li><b>Classification</b> — predict a CATEGORY (e.g., "will this customer churn?"). Examples: Logistic Regression, Decision Tree, Naive Bayes.</li>
+  <li><b>Clustering</b> — group records into UNKNOWN clusters (e.g., customer segments). Examples: K-means, Hierarchical.</li>
+  <li><b>Association Rules</b> — find which items go TOGETHER (e.g., "people who buy bread also buy butter"). Example: Apriori.</li>
+</ol>
+
+<hr>
+
+<h2 id="q1">Q1 — Logistic Regression</h2>
+<span class="freq-tag">Asked 6 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 twice — usually 6–8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'25, 8 marks)</b> Explain logistic regression with example.</p>
+    <p><b>(Nov'23, 6 marks)</b> Write a short note on Logistic Regression.</p>
+    <p><b>(May'24, 6 marks)</b> What is logistic regression? Discuss the types of logistic regression.</p>
+    <p><b>(Nov'25, 6 marks)</b> What is logistic regression? Discuss the types of logistic regression.</p>
+    <p><b>(Nov'25, 6 marks)</b> Explain the logistic regression with example.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Linear regression draws a straight line through your data — useful when output is a number (price, temperature). But what if the output is a YES/NO question — "will the email be spam?"? Linear regression doesn't work because the answer must be a probability between 0 and 1. Logistic regression solves this by squashing the line through a "sigmoid" curve that gives a probability output.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Logistic Regression</b> is a supervised machine learning algorithm used for CLASSIFICATION problems. Despite its name, it predicts the PROBABILITY of a binary (or categorical) outcome, not a continuous value.</p>
+
+<h3>2. The Sigmoid Function</h3>
+<p>Logistic regression uses the sigmoid function to convert any real number into a probability in [0, 1]:</p>
+<div class="formula-line">
+  σ(z) = 1 / (1 + e<sup>−z</sup>)
+</div>
+<p>where z = β₀ + β₁·x₁ + β₂·x₂ + … + β<sub>n</sub>·x<sub>n</sub> (linear combination of features).</p>
+
+<h3>3. Sigmoid curve (text diagram)</h3>
+<pre>
+   σ(z)
+    1.0 |                    ___________
+        |                __—'
+    0.5 |─────────────—'
+        |          __—'
+    0.0 |____——'
+        |———————————|———————————→  z
+                    0
+
+  If σ(z) ≥ 0.5  → predict class 1
+  If σ(z) &lt; 0.5  → predict class 0
+</pre>
+
+<h3>4. Working — Steps</h3>
+<ol>
+  <li>Compute z = β₀ + β₁·x₁ + … + β<sub>n</sub>·x<sub>n</sub> for each input.</li>
+  <li>Apply sigmoid: p = σ(z) = 1 / (1 + e<sup>−z</sup>).</li>
+  <li>If p ≥ 0.5, predict class 1; else class 0.</li>
+  <li>Coefficients β are learned during training via maximum likelihood estimation (or gradient descent).</li>
+</ol>
+
+<h3>5. Cost function (Log Loss)</h3>
+<div class="formula-line">
+  J(β) = −(1/m) Σ [ yᵢ log(pᵢ) + (1 − yᵢ) log(1 − pᵢ) ]
+</div>
+<p>Minimized using gradient descent or similar optimization.</p>
+
+<h3>6. Types of Logistic Regression</h3>
+
+<h4>(a) Binary Logistic Regression</h4>
+<ul>
+  <li>Output has 2 categories (Yes/No, Spam/Not Spam, Pass/Fail).</li>
+  <li>Most common form.</li>
+  <li>Example: predict whether customer will buy a product.</li>
+</ul>
+
+<h4>(b) Multinomial Logistic Regression</h4>
+<ul>
+  <li>Output has more than 2 UNORDERED categories.</li>
+  <li>Example: predict customer's preferred phone brand (Apple, Samsung, OnePlus).</li>
+  <li>Uses softmax function instead of sigmoid.</li>
+</ul>
+
+<h4>(c) Ordinal Logistic Regression</h4>
+<ul>
+  <li>Output has more than 2 ORDERED categories.</li>
+  <li>Example: customer satisfaction rating (1-star, 2-star, …, 5-star).</li>
+</ul>
+
+<h3>7. Example — Predicting Loan Default</h3>
+<pre>
+Input features: Age, Income, Credit Score
+Target: Default (1 = Yes, 0 = No)
+
+Training data of 1000 customers used to learn coefficients:
+   β₀ = -5.2,  β_age = -0.04,  β_income = -0.0001,  β_credit = -0.02
+
+For new customer (age=30, income=₹50000, credit=700):
+   z = -5.2 + (-0.04 × 30) + (-0.0001 × 50000) + (-0.02 × 700)
+     = -5.2 − 1.2 − 5 − 14 = -25.4
+   p = σ(-25.4) ≈ 0.0000000... (very close to 0)
+   → predict: not likely to default
+</pre>
+
+<h3>8. Advantages</h3>
+<ul>
+  <li>Simple to implement and interpret.</li>
+  <li>Outputs probability, not just class.</li>
+  <li>Works well for linearly separable data.</li>
+  <li>Less prone to overfitting than complex models.</li>
+  <li>Fast training and prediction.</li>
+</ul>
+
+<h3>9. Disadvantages</h3>
+<ul>
+  <li>Assumes linear relationship between features and log-odds.</li>
+  <li>Sensitive to outliers.</li>
+  <li>Cannot solve non-linear problems without feature engineering.</li>
+  <li>Requires no multicollinearity among features.</li>
+  <li>Needs reasonable sample size.</li>
+</ul>
+
+<h3>10. Applications in BI</h3>
+<ul>
+  <li>Customer churn prediction.</li>
+  <li>Spam email detection.</li>
+  <li>Credit risk assessment / loan default prediction.</li>
+  <li>Medical diagnosis (disease yes/no).</li>
+  <li>Marketing campaign response prediction.</li>
+  <li>Fraud detection.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Logistic regression = classification, not regression.</li>
+    <li>Uses sigmoid: σ(z) = 1/(1+e<sup>−z</sup>) to output probability.</li>
+    <li>Threshold 0.5 → class prediction.</li>
+    <li>Types: Binary, Multinomial, Ordinal.</li>
+    <li>Cost: log loss (binary cross-entropy).</li>
+    <li>Applications: churn, spam, fraud, medical diagnosis.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — Association Rule (Support, Confidence, Lift)</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'25, Nov'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 5 marks)</b> What is association rule mining? Explain support, confidence, lift.</p>
+    <p><b>(Nov'23 &amp; Nov'25, 6 marks)</b> What are association rules? How to evaluate using Support and Confidence?</p>
+    <p><b>(May'25, 5 marks)</b> Explain Association rule and its types.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+"People who buy DIAPERS also buy BEER." This famous Walmart finding is the most-cited association rule. Stores use this to place items strategically. Association rule mining finds patterns like "if A is bought, B is also bought".
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Association Rule Mining</b> is a data mining technique that discovers interesting RELATIONSHIPS (associations) between variables in large datasets — typically transactional data.</p>
+<p>An association rule has the form: <b>X → Y</b>, meaning "if X occurs in a transaction, then Y is likely to occur too".</p>
+
+<h3>2. Three key metrics</h3>
+
+<h4>(a) Support</h4>
+<p>How OFTEN the itemset {X, Y} appears in the dataset.</p>
+<div class="formula-line">
+  Support(X → Y) = P(X ∩ Y) = (# transactions containing X and Y) / (total transactions)
+</div>
+<p>Example: if "bread + butter" appears in 100 of 1000 transactions, Support = 0.1 = 10%.</p>
+
+<h4>(b) Confidence</h4>
+<p>How OFTEN Y occurs in transactions that contain X.</p>
+<div class="formula-line">
+  Confidence(X → Y) = P(Y | X) = Support(X ∩ Y) / Support(X)
+</div>
+<p>Example: if 100 transactions have "bread + butter" and 200 have "bread", Confidence = 100/200 = 0.5 = 50%.</p>
+
+<h4>(c) Lift</h4>
+<p>How much MORE LIKELY Y is to occur when X is bought, vs Y's normal occurrence.</p>
+<div class="formula-line">
+  Lift(X → Y) = Confidence(X → Y) / Support(Y) = P(X ∩ Y) / (P(X) · P(Y))
+</div>
+<ul>
+  <li>Lift &gt; 1 → X and Y are positively correlated (good rule).</li>
+  <li>Lift = 1 → independent.</li>
+  <li>Lift &lt; 1 → negatively correlated (X actually reduces chance of Y).</li>
+</ul>
+
+<h3>3. Types of association rules</h3>
+<ul>
+  <li><b>Single-dimensional:</b> all items from same dimension (e.g., products).</li>
+  <li><b>Multi-dimensional:</b> items from different dimensions (e.g., age + product).</li>
+  <li><b>Quantitative:</b> involve numeric attributes (age range, price range).</li>
+  <li><b>Boolean:</b> presence or absence of items.</li>
+</ul>
+
+<h3>4. Example</h3>
+<pre>
+1000 supermarket transactions:
+   - 300 contain {bread}
+   - 200 contain {butter}
+   - 150 contain {bread, butter}
+
+Rule: {bread} → {butter}
+   Support = 150 / 1000 = 0.15 = 15%
+   Confidence = 150 / 300 = 0.5 = 50%
+   Lift = 0.5 / (200/1000) = 0.5 / 0.2 = 2.5
+
+Lift = 2.5 means: when bread is bought, the chance of butter being bought is 2.5×
+the random chance → strong positive association.
+</pre>
+
+<h3>5. Applications</h3>
+<ul>
+  <li><b>Market basket analysis</b> — supermarket product placement.</li>
+  <li><b>Recommendation systems</b> — "customers who bought X also bought Y" on Amazon.</li>
+  <li><b>Web usage mining</b> — pages visited together.</li>
+  <li><b>Healthcare</b> — symptom/disease relationships.</li>
+  <li><b>Fraud detection</b> — unusual co-occurrences.</li>
+  <li><b>Customer segmentation</b>.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Association rule: X → Y (if X bought, Y likely bought).</li>
+    <li>Support = how often X and Y appear together.</li>
+    <li>Confidence = probability of Y given X.</li>
+    <li>Lift = how much more likely Y is given X vs baseline.</li>
+    <li>Lift &gt; 1: positive, Lift = 1: independent, Lift &lt; 1: negative.</li>
+    <li>Used in market basket analysis, recommendations.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — Classification vs Clustering</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'24, May'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'25, 5 marks)</b> Difference between classification and clustering.</p>
+    <p><b>(Nov'23, 6 marks)</b> Difference between classification and clustering with applications.</p>
+    <p><b>(May'24, 6 marks)</b> How classification and clustering are different. Discuss with example.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A teacher with a LABELED textbook is doing CLASSIFICATION — she sorts new students based on existing groups (good, average, weak). A teacher looking at a NEW class with NO labels does CLUSTERING — she groups students based on similarity. Classification = supervised; Clustering = unsupervised.
+</div>
+
+<h3>1. Classification</h3>
+<ul>
+  <li><b>Type:</b> Supervised learning (uses LABELED training data).</li>
+  <li><b>Goal:</b> Predict the class label of new data points.</li>
+  <li><b>Output:</b> Discrete class labels (e.g., spam / not spam).</li>
+  <li><b>Examples of algorithms:</b> Logistic Regression, Decision Tree, Naive Bayes, SVM, Random Forest, k-NN.</li>
+  <li><b>Evaluation:</b> Accuracy, Precision, Recall, F1, Confusion Matrix.</li>
+</ul>
+
+<h3>2. Clustering</h3>
+<ul>
+  <li><b>Type:</b> Unsupervised learning (NO labels in training data).</li>
+  <li><b>Goal:</b> Group similar data points into clusters.</li>
+  <li><b>Output:</b> Cluster assignments (no predefined names).</li>
+  <li><b>Examples of algorithms:</b> K-means, Hierarchical clustering, DBSCAN, Gaussian Mixture Models.</li>
+  <li><b>Evaluation:</b> Silhouette score, Davies-Bouldin index, within-cluster variance.</li>
+</ul>
+
+<h3>3. Side-by-side comparison</h3>
+<table>
+  <tr><th>Aspect</th><th>Classification</th><th>Clustering</th></tr>
+  <tr><td>Learning type</td><td>Supervised</td><td>Unsupervised</td></tr>
+  <tr><td>Training data</td><td>Labeled (X + y)</td><td>Unlabeled (X only)</td></tr>
+  <tr><td>Output</td><td>Predicted class label</td><td>Cluster assignment</td></tr>
+  <tr><td>Goal</td><td>Predict known categories</td><td>Discover unknown groups</td></tr>
+  <tr><td>Examples</td><td>Spam detection, churn prediction</td><td>Customer segmentation, market segmentation</td></tr>
+  <tr><td>Algorithms</td><td>Logistic Reg, Decision Tree, SVM, k-NN</td><td>K-means, Hierarchical, DBSCAN</td></tr>
+  <tr><td>Evaluation</td><td>Accuracy, F1, ROC-AUC</td><td>Silhouette, DB index</td></tr>
+  <tr><td>Domain knowledge</td><td>Needed for labeling</td><td>Used to interpret clusters</td></tr>
+</table>
+
+<h3>4. Examples</h3>
+<table>
+  <tr><th>Classification Example</th><th>Clustering Example</th></tr>
+  <tr><td>Email: spam vs not spam</td><td>Group emails by topic (no labels)</td></tr>
+  <tr><td>Loan: default vs no default</td><td>Group customers by buying behavior</td></tr>
+  <tr><td>Disease: positive vs negative</td><td>Find disease subtypes from symptoms</td></tr>
+  <tr><td>Product review: positive / negative</td><td>Group similar reviews together</td></tr>
+</table>
+
+<h3>5. Applications in BI</h3>
+<ul>
+  <li><b>Classification:</b> credit scoring, fraud detection, churn prediction, marketing response prediction.</li>
+  <li><b>Clustering:</b> customer segmentation, product grouping, market segmentation, anomaly detection.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Classification = supervised, uses labels, predicts class.</li>
+    <li>Clustering = unsupervised, no labels, finds groups.</li>
+    <li>Classification: predict known classes (spam, churn).</li>
+    <li>Clustering: discover unknown groups (segments).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — Apriori Algorithm (Numerical Problem)</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'24, May'25 — usually 6–8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, Nov'23, May'25, 6-8 marks)</b> Find frequent itemsets and generate association rules using Apriori algorithm. min_support = 2, min_confidence = 60-70%.</p>
+    <p><b>(May'24, 6 marks)</b> What is the Apriori Algorithm? Discuss applications with example.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p>The <b>Apriori Algorithm</b> is a classic algorithm for mining FREQUENT ITEMSETS and generating ASSOCIATION RULES from transactional data. Proposed by Agrawal &amp; Srikant (1994). Named for the "a priori" principle.</p>
+
+<h3>2. The Apriori Principle</h3>
+<p>"If an itemset is FREQUENT, then ALL its SUBSETS must also be frequent. Conversely, if a subset is infrequent, the larger itemset cannot be frequent either."</p>
+<p>This allows aggressive pruning of candidates.</p>
+
+<h3>3. Steps of Apriori</h3>
+<ol>
+  <li>Find all frequent 1-itemsets (single items meeting min_support).</li>
+  <li>Use them to generate candidate 2-itemsets.</li>
+  <li>Scan database, count support, keep only frequent ones.</li>
+  <li>Use frequent k-itemsets to generate candidate (k+1)-itemsets.</li>
+  <li>Repeat until no more frequent itemsets can be generated.</li>
+  <li>Generate association rules from frequent itemsets and filter by min_confidence.</li>
+</ol>
+
+<h3>4. SOLVED EXAMPLE</h3>
+<p><b>Transactions:</b></p>
+<pre>
+T1: I1, I2, I5
+T2: I2, I4
+T3: I2, I3
+T4: I1, I2, I4
+T5: I1, I3
+T6: I2, I3
+T7: I1, I3
+T8: I1, I2, I3, I5
+T9: I1, I2, I3
+
+min_support = 2,  min_confidence = 60%
+</pre>
+
+<h4>Step 1: Count 1-itemsets and filter by min_support</h4>
+<pre>
+Item   Count
+I1     6     ✓ (≥ 2)
+I2     7     ✓
+I3     6     ✓
+I4     2     ✓
+I5     2     ✓
+
+All items meet min_support → L1 = {I1, I2, I3, I4, I5}
+</pre>
+
+<h4>Step 2: Generate and count 2-itemsets</h4>
+<pre>
+Itemset    Count
+{I1,I2}    4    ✓
+{I1,I3}    4    ✓
+{I1,I4}    1    ✗
+{I1,I5}    2    ✓
+{I2,I3}    4    ✓
+{I2,I4}    2    ✓
+{I2,I5}    2    ✓
+{I3,I4}    0    ✗
+{I3,I5}    1    ✗
+{I4,I5}    0    ✗
+
+L2 = {(I1,I2), (I1,I3), (I1,I5), (I2,I3), (I2,I4), (I2,I5)}
+</pre>
+
+<h4>Step 3: Generate and count 3-itemsets</h4>
+<p>Candidates generated from L2 (must have all subsets frequent):</p>
+<pre>
+Itemset       Count
+{I1,I2,I3}    2    ✓
+{I1,I2,I5}    2    ✓
+{I1,I3,I5}    1    ✗ (and {I3,I5} is not frequent → pruned)
+{I2,I3,I4}    0    ✗
+
+L3 = {(I1,I2,I3), (I1,I2,I5)}
+</pre>
+
+<h4>Step 4: Try 4-itemsets</h4>
+<p>{I1,I2,I3,I5} — its subset {I3,I5} is infrequent → pruned.</p>
+<p>L4 is empty. Stop.</p>
+
+<h4>Step 5: Generate strong association rules</h4>
+<p>For each frequent itemset, generate rules and check confidence.</p>
+<p>Take {I1,I2,I5} (support = 2):</p>
+<ul>
+  <li>{I1,I2} → {I5}: conf = 2/4 = 50% ✗ (below 60%)</li>
+  <li>{I1,I5} → {I2}: conf = 2/2 = 100% ✓</li>
+  <li>{I2,I5} → {I1}: conf = 2/2 = 100% ✓</li>
+  <li>{I1} → {I2,I5}: conf = 2/6 = 33% ✗</li>
+  <li>{I2} → {I1,I5}: conf = 2/7 = 29% ✗</li>
+  <li>{I5} → {I1,I2}: conf = 2/2 = 100% ✓</li>
+</ul>
+
+<p><b>Strong rules (confidence ≥ 60%):</b></p>
+<ul>
+  <li>{I1, I5} → {I2}  (confidence 100%)</li>
+  <li>{I2, I5} → {I1}  (confidence 100%)</li>
+  <li>{I5} → {I1, I2}  (confidence 100%)</li>
+</ul>
+
+<h3>5. Applications</h3>
+<ul>
+  <li>Market basket analysis (supermarket product placement).</li>
+  <li>Web log analysis (which pages visited together).</li>
+  <li>Recommendation systems (Amazon "Frequently bought together").</li>
+  <li>Healthcare (which medications taken together).</li>
+  <li>Fraud detection (unusual combinations).</li>
+</ul>
+
+<h3>6. Advantages and limitations</h3>
+<ul>
+  <li>+ Simple and easy to implement.</li>
+  <li>+ Effective use of apriori principle for pruning.</li>
+  <li>− Scans database multiple times (slow for large data).</li>
+  <li>− Generates huge candidates with low min_support.</li>
+  <li>− Improved variants: FP-Growth, ECLAT.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Apriori finds frequent itemsets bottom-up (L1 → L2 → L3 …).</li>
+    <li>Apriori principle: all subsets of frequent itemset are also frequent.</li>
+    <li>Steps: count → filter by min_support → generate next level → repeat.</li>
+    <li>Then generate rules and filter by min_confidence.</li>
+    <li>Applications: market basket, recommendations, web analysis.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Bayes Theorem</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, May'25 — usually 5 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'25, 5 marks)</b> Explain Bayes theorem in detail.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Statement</h3>
+<p><b>Bayes' Theorem</b> describes how to UPDATE the probability of a hypothesis based on new evidence:</p>
+<div class="formula-line">
+  P(A | B) = P(B | A) · P(A) / P(B)
+</div>
+
+<h3>2. Terms</h3>
+<ul>
+  <li><b>P(A | B):</b> POSTERIOR probability — probability of A given B.</li>
+  <li><b>P(B | A):</b> LIKELIHOOD — probability of B given A.</li>
+  <li><b>P(A):</b> PRIOR probability of A.</li>
+  <li><b>P(B):</b> Marginal probability of B (evidence).</li>
+</ul>
+
+<h3>3. Intuition</h3>
+<p>You start with a PRIOR belief about something. When new EVIDENCE arrives, you UPDATE your belief using Bayes' theorem to get the POSTERIOR.</p>
+
+<h3>4. Example</h3>
+<pre>
+A disease affects 1% of population. A test is 99% accurate (sensitivity)
+and has 5% false positive rate. Patient tests positive. What is the probability they
+have the disease?
+
+P(Disease) = 0.01
+P(Positive | Disease) = 0.99
+P(Positive | No Disease) = 0.05
+
+P(Positive) = P(+|D)·P(D) + P(+|¬D)·P(¬D)
+            = 0.99 × 0.01 + 0.05 × 0.99
+            = 0.0099 + 0.0495 = 0.0594
+
+P(Disease | Positive) = (0.99 × 0.01) / 0.0594 = 0.167 = 16.7%
+
+Surprising! Even with positive test, only 16.7% probability of disease.
+</pre>
+
+<h3>5. Applications</h3>
+<ul>
+  <li>Naive Bayes classification (spam, sentiment).</li>
+  <li>Medical diagnosis.</li>
+  <li>Fraud detection.</li>
+  <li>Document classification.</li>
+  <li>A/B testing.</li>
+  <li>Bayesian networks.</li>
+</ul>
+
+<h3>6. Naive Bayes Classifier</h3>
+<p>Apply Bayes' theorem with the "naive" assumption that features are INDEPENDENT given the class:</p>
+<div class="formula-line">
+  P(class | features) ∝ P(class) · Π P(feature_i | class)
+</div>
+<p>Used widely for text classification.</p>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Bayes' theorem: P(A | B) = P(B | A) · P(A) / P(B).</li>
+    <li>Updates beliefs based on evidence.</li>
+    <li>Posterior ∝ Likelihood × Prior.</li>
+    <li>Naive Bayes = Bayes' theorem with independence assumption.</li>
+    <li>Used in spam filtering, medical diagnosis, classification.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — K-means Clustering</h2>
+<span class="freq-tag">Asked 2 times</span>(Nov'23, May'24 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 6 marks)</b> Given group of visitors by age, find clusters for K=2.</p>
+    <p><b>(May'24, 6 marks)</b> What is K-mean clustering? Explain step-by-step working.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>K-means</b> is a popular unsupervised clustering algorithm that partitions n data points into k clusters, where each point belongs to the cluster with the NEAREST mean (centroid).</p>
+
+<h3>2. Algorithm steps</h3>
+<ol>
+  <li><b>Initialize:</b> randomly pick k points as initial centroids.</li>
+  <li><b>Assign:</b> each data point to the nearest centroid (using Euclidean distance).</li>
+  <li><b>Update:</b> recompute each centroid as the MEAN of its assigned points.</li>
+  <li><b>Repeat</b> steps 2–3 until centroids do not change (converged) OR max iterations reached.</li>
+</ol>
+
+<h3>3. SOLVED EXAMPLE (1-D data, K=2)</h3>
+<pre>
+Ages: 16, 16, 17, 20, 20, 21, 21, 22, 23, 29, 36, 41, 42, 43, 44, 45, 61, 62, 66
+
+Step 1 (initialize): pick 2 random centroids: say C1 = 16, C2 = 66.
+
+Step 2 (assign to nearest centroid):
+Cluster 1 (closer to 16): 16, 16, 17, 20, 20, 21, 21, 22, 23, 29
+Cluster 2 (closer to 66): 36, 41, 42, 43, 44, 45, 61, 62, 66
+
+Step 3 (update centroids):
+   New C1 = mean of cluster 1 = (16+16+17+20+20+21+21+22+23+29)/10 = 20.5
+   New C2 = mean of cluster 2 = (36+41+42+43+44+45+61+62+66)/9 = 48.9
+
+Step 4: re-assign each point to nearer of (20.5, 48.9).
+   Cluster 1: 16, 16, 17, 20, 20, 21, 21, 22, 23, 29
+   Cluster 2: 36, 41, 42, 43, 44, 45, 61, 62, 66
+   (Same as before → CONVERGED)
+
+Final clusters:
+   Cluster 1 (young visitors): 16, 16, 17, 20, 20, 21, 21, 22, 23, 29  (mean 20.5)
+   Cluster 2 (older visitors): 36, 41, 42, 43, 44, 45, 61, 62, 66       (mean 48.9)
+</pre>
+
+<h3>4. Advantages</h3>
+<ul>
+  <li>Simple and fast.</li>
+  <li>Easy to interpret.</li>
+  <li>Scales well to large datasets.</li>
+  <li>Works well with spherical clusters.</li>
+</ul>
+
+<h3>5. Limitations</h3>
+<ul>
+  <li>Must specify k in advance.</li>
+  <li>Sensitive to initial centroid choice (use k-means++ to fix).</li>
+  <li>Assumes spherical, equal-sized clusters.</li>
+  <li>Sensitive to outliers.</li>
+  <li>Only works with numerical data (need encoding for categorical).</li>
+</ul>
+
+<h3>6. Choosing K — Elbow Method</h3>
+<ul>
+  <li>Run k-means for k = 1, 2, …, 10.</li>
+  <li>For each k, compute Within-Cluster Sum of Squares (WCSS).</li>
+  <li>Plot WCSS vs k → look for the "elbow" where adding more clusters gives diminishing returns.</li>
+</ul>
+
+<h3>7. Applications</h3>
+<ul>
+  <li>Customer segmentation.</li>
+  <li>Image segmentation (color quantization).</li>
+  <li>Document clustering.</li>
+  <li>Anomaly detection.</li>
+  <li>Market basket grouping.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>K-means: partition n points into k clusters by nearest centroid.</li>
+    <li>4 steps: initialize → assign → update → repeat.</li>
+    <li>Pick k via elbow method.</li>
+    <li>Sensitive to initial centroids; use k-means++.</li>
+    <li>Applications: segmentation, image compression, anomaly detection.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — Hierarchical vs Partitioning Clustering</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, Nov'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'25, 5-6 marks)</b> What is the difference between hierarchical clustering and partitioning method?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Partitioning Clustering</h3>
+<ul>
+  <li>Divides data into K non-overlapping FLAT clusters.</li>
+  <li>Each data point belongs to exactly ONE cluster.</li>
+  <li>Iterative — improves cluster assignments through repeated iterations.</li>
+  <li>K must be specified in advance.</li>
+  <li><b>Examples:</b> K-means, K-medoids (PAM), CLARA.</li>
+</ul>
+
+<h3>2. Hierarchical Clustering</h3>
+<ul>
+  <li>Builds a TREE-LIKE hierarchy of clusters (called a dendrogram).</li>
+  <li>No need to specify K in advance.</li>
+  <li>Two types:
+    <ul>
+      <li><b>Agglomerative (bottom-up):</b> start with each point as own cluster; iteratively merge closest pairs.</li>
+      <li><b>Divisive (top-down):</b> start with all points in one cluster; iteratively split.</li>
+    </ul>
+  </li>
+  <li>To get K clusters, cut the dendrogram at desired level.</li>
+</ul>
+
+<h3>3. Comparison table</h3>
+<table>
+  <tr><th>Aspect</th><th>Partitioning</th><th>Hierarchical</th></tr>
+  <tr><td>Structure</td><td>Flat (single level)</td><td>Tree (dendrogram)</td></tr>
+  <tr><td>K specification</td><td>Required upfront</td><td>Not required (cut tree later)</td></tr>
+  <tr><td>Algorithm type</td><td>Iterative refinement</td><td>Merge or split iteratively</td></tr>
+  <tr><td>Examples</td><td>K-means, K-medoids</td><td>Agglomerative, Divisive</td></tr>
+  <tr><td>Result</td><td>Single set of clusters</td><td>Multiple levels of clusters</td></tr>
+  <tr><td>Reversibility</td><td>Iterative until convergence</td><td>Decisions are final (no merge undo)</td></tr>
+  <tr><td>Scalability</td><td>O(n) per iteration (fast)</td><td>O(n²) or O(n³) — slow for big data</td></tr>
+  <tr><td>Visualization</td><td>Scatter plot of clusters</td><td>Dendrogram</td></tr>
+  <tr><td>Best for</td><td>Large datasets, known K</td><td>Small datasets, exploratory</td></tr>
+</table>
+
+<h3>4. Linkage methods (Hierarchical)</h3>
+<ul>
+  <li><b>Single linkage:</b> minimum distance between two clusters.</li>
+  <li><b>Complete linkage:</b> maximum distance between two clusters.</li>
+  <li><b>Average linkage:</b> average distance.</li>
+  <li><b>Ward's method:</b> minimize within-cluster variance.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Partitioning: flat clusters, K fixed in advance (K-means, K-medoids).</li>
+    <li>Hierarchical: tree of clusters; agglomerative (bottom-up) or divisive (top-down).</li>
+    <li>Partitioning is faster; hierarchical gives more insight via dendrogram.</li>
+    <li>Hierarchical doesn't require K upfront.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — Decision Tree</h2>
+<span class="freq-tag">Asked 2 times</span>(May'24, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24 &amp; Nov'25, 6 marks)</b> What is a decision tree? Explain with a case study.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p>A <b>Decision Tree</b> is a supervised ML algorithm that models decisions as a TREE structure: each internal node = test on an attribute, each branch = outcome, each leaf = class label (or value).</p>
+
+<h3>2. Structure</h3>
+<pre>
+                  [ Age &lt; 30? ]
+                    /     \
+                  Yes      No
+                  /         \
+            [Income &gt; 50K?]   [Approve loan]
+              /        \
+            Yes         No
+            /            \
+       [Approve]      [Reject]
+</pre>
+
+<h3>3. How it works</h3>
+<ol>
+  <li>Start at root node.</li>
+  <li>At each node, apply the test on an attribute.</li>
+  <li>Follow the branch that matches the data point's value.</li>
+  <li>Reach a leaf → return the class label.</li>
+</ol>
+
+<h3>4. Building a decision tree</h3>
+<ol>
+  <li>For each attribute, calculate how well it SPLITS the data (purity measures: Entropy, Information Gain, Gini Index).</li>
+  <li>Choose the attribute with the best split.</li>
+  <li>Recursively build sub-trees for each branch.</li>
+  <li>Stop when leaves are pure or threshold reached.</li>
+</ol>
+
+<h3>5. Splitting criteria</h3>
+<ul>
+  <li><b>Entropy:</b> measure of impurity. H(S) = −Σ pᵢ · log₂(pᵢ).</li>
+  <li><b>Information Gain:</b> reduction in entropy after split.</li>
+  <li><b>Gini Index:</b> Σ pᵢ(1 − pᵢ); lower = purer.</li>
+  <li><b>Chi-square:</b> statistical significance of split.</li>
+</ul>
+
+<h3>6. Famous algorithms</h3>
+<ul>
+  <li><b>ID3</b> — uses Information Gain.</li>
+  <li><b>C4.5</b> — extension of ID3 with handling of continuous attributes.</li>
+  <li><b>CART</b> (Classification and Regression Trees) — uses Gini Index.</li>
+  <li><b>CHAID</b> — uses chi-square.</li>
+</ul>
+
+<h3>7. Case Study — Loan Approval</h3>
+<pre>
+Data of 1000 customers with attributes (Age, Income, Credit Score, Employment) and target (Approve / Reject).
+
+Decision tree learns:
+   Credit Score &gt; 700?
+      Yes → Income &gt; 50K?
+              Yes → APPROVE
+              No  → Employment stable?
+                       Yes → APPROVE
+                       No  → REJECT
+      No → REJECT
+
+A new customer's loan decision is taken by walking down the tree.
+</pre>
+
+<h3>8. Advantages</h3>
+<ul>
+  <li>Easy to understand and visualize.</li>
+  <li>Handles both numerical and categorical data.</li>
+  <li>Requires little data preparation.</li>
+  <li>Performs feature selection implicitly.</li>
+  <li>Can model non-linear relationships.</li>
+</ul>
+
+<h3>9. Disadvantages</h3>
+<ul>
+  <li>Prone to overfitting (deep trees).</li>
+  <li>Small changes in data can produce very different trees.</li>
+  <li>Biased toward attributes with many values.</li>
+  <li>Pruning needed to avoid overfitting.</li>
+</ul>
+
+<h3>10. Applications</h3>
+<ul>
+  <li>Loan approval, credit scoring.</li>
+  <li>Medical diagnosis.</li>
+  <li>Customer churn prediction.</li>
+  <li>Fraud detection.</li>
+  <li>Marketing target selection.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Decision tree = tree of attribute tests; leaves are class labels.</li>
+    <li>Build using Entropy / Information Gain / Gini Index.</li>
+    <li>Algorithms: ID3, C4.5, CART, CHAID.</li>
+    <li>Pros: interpretable, handles mixed data.</li>
+    <li>Cons: overfits, unstable.</li>
+    <li>Pruning controls overfitting.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q9">Q9 — Evaluation of Classification Models</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'23 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 6 marks)</b> State different formulae for Evaluation of classification models.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Confusion Matrix</h3>
+<pre>
+                  Predicted: Positive    Predicted: Negative
+   Actual: Positive    TP                       FN
+   Actual: Negative    FP                       TN
+</pre>
+<ul>
+  <li>TP = True Positive (correctly predicted positive).</li>
+  <li>TN = True Negative.</li>
+  <li>FP = False Positive (type I error).</li>
+  <li>FN = False Negative (type II error).</li>
+</ul>
+
+<h3>2. Key Metrics</h3>
+
+<table>
+  <tr><th>Metric</th><th>Formula</th><th>Meaning</th></tr>
+  <tr><td>Accuracy</td><td>(TP + TN) / (TP + TN + FP + FN)</td><td>% correct overall</td></tr>
+  <tr><td>Precision</td><td>TP / (TP + FP)</td><td>Of predicted positives, % truly positive</td></tr>
+  <tr><td>Recall (Sensitivity)</td><td>TP / (TP + FN)</td><td>Of actual positives, % caught</td></tr>
+  <tr><td>Specificity</td><td>TN / (TN + FP)</td><td>Of actual negatives, % caught</td></tr>
+  <tr><td>F1 Score</td><td>2 · P · R / (P + R)</td><td>Harmonic mean of precision and recall</td></tr>
+  <tr><td>FPR</td><td>FP / (FP + TN)</td><td>False positive rate</td></tr>
+  <tr><td>FNR</td><td>FN / (FN + TP)</td><td>False negative rate</td></tr>
+</table>
+
+<h3>3. ROC and AUC</h3>
+<ul>
+  <li><b>ROC Curve:</b> Plot of True Positive Rate vs False Positive Rate at different thresholds.</li>
+  <li><b>AUC (Area Under ROC Curve):</b> single number from 0 to 1 measuring overall performance. Higher is better.</li>
+</ul>
+
+<h3>4. When to use which</h3>
+<ul>
+  <li><b>Accuracy:</b> when classes are balanced.</li>
+  <li><b>Precision:</b> when false positives are costly (e.g., spam filtering).</li>
+  <li><b>Recall:</b> when false negatives are costly (e.g., disease detection).</li>
+  <li><b>F1:</b> when you need a balance and classes are imbalanced.</li>
+  <li><b>AUC:</b> for threshold-independent evaluation.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Confusion matrix: TP, FP, TN, FN.</li>
+    <li>Accuracy = (TP + TN) / Total.</li>
+    <li>Precision = TP / (TP + FP).</li>
+    <li>Recall = TP / (TP + FN).</li>
+    <li>F1 = 2 · P · R / (P + R).</li>
+    <li>AUC = area under ROC curve.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q10">Q10 — Definitions: Frequent Itemset, Min Support, etc.</h2>
+<span class="freq-tag">Asked 2 times</span>(May'24, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24 &amp; Nov'25, 6 marks)</b> Define: Frequent item set, Minimum Support Count, Hierarchical Clustering, Regression.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Frequent Itemset</h3>
+<p>An <b>itemset</b> = a collection of one or more items. A <b>frequent itemset</b> is one whose SUPPORT is greater than or equal to the user-defined minimum support threshold.</p>
+<p>Example: in supermarket transactions, {bread, butter} appearing in 30% of transactions is a frequent itemset if min_support = 20%.</p>
+
+<h3>2. Minimum Support Count</h3>
+<p>The <b>Minimum Support Count</b> = minimum NUMBER of transactions an itemset must appear in to be considered frequent. Specified by the user as a threshold.</p>
+<p>Example: if there are 1000 transactions and min_support is 5%, the minimum support count = 50.</p>
+
+<h3>3. Hierarchical Clustering</h3>
+<p>A clustering algorithm that builds a HIERARCHY of clusters represented as a tree (dendrogram). Two types:</p>
+<ul>
+  <li><b>Agglomerative (bottom-up):</b> start with each point as own cluster, iteratively merge.</li>
+  <li><b>Divisive (top-down):</b> start with one big cluster, iteratively split.</li>
+</ul>
+<p>No need to specify K in advance; cut the dendrogram at desired level.</p>
+
+<h3>4. Regression</h3>
+<p>A supervised learning technique that predicts a CONTINUOUS NUMERICAL output based on input features. Examples:</p>
+<ul>
+  <li><b>Linear Regression:</b> y = β₀ + β₁x₁ + … + β<sub>n</sub>x<sub>n</sub>.</li>
+  <li><b>Polynomial Regression:</b> includes powers of x.</li>
+  <li><b>Logistic Regression:</b> for classification (despite the name).</li>
+  <li><b>Ridge / Lasso Regression:</b> regularized versions.</li>
+</ul>
+<p>Used for: predicting house prices, sales forecasting, temperature prediction.</p>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Frequent itemset = itemset with support ≥ min_support.</li>
+    <li>Min support count = the threshold number of transactions.</li>
+    <li>Hierarchical clustering = tree of clusters (agglomerative or divisive).</li>
+    <li>Regression = predict continuous numeric output.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>Logistic Regression</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓ ×2</td><td>6</td></tr>
+  <tr><td>Association Rule (Support/Confidence)</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Classification vs Clustering</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>4</td></tr>
+  <tr><td>Apriori Algorithm (numerical)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>4</td></tr>
+  <tr><td>Bayes Theorem</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>2</td></tr>
+  <tr><td>K-means Clustering</td><td>—</td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>2</td></tr>
+  <tr><td>Hierarchical vs Partitioning</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>Decision Tree</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>Frequent itemset etc. (definitions)</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>2</td></tr>
+</table>
+
+<h3>Must-remember formulas</h3>
+<div class="formula-line">
+  Logistic regression: &nbsp;σ(z) = 1 / (1 + e<sup>−z</sup>)<br>
+  Support: &nbsp;count(X ∪ Y) / total transactions<br>
+  Confidence: &nbsp;count(X ∪ Y) / count(X)<br>
+  Lift: &nbsp;confidence(X→Y) / support(Y)<br>
+  Bayes: &nbsp;P(A|B) = P(B|A) · P(A) / P(B)<br>
+  Accuracy = (TP + TN) / total<br>
+  Precision = TP / (TP + FP)<br>
+  Recall = TP / (TP + FN)<br>
+  F1 = 2 · P · R / (P + R)
+</div>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>ML in BI = Classification (Logistic, Decision Tree, Bayes) + Clustering (K-means, Hierarchical) + Association Rules (Apriori with support/confidence/lift).</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  BI Chapter 5 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

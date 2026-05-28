@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NLP — Chapter 5: NLP Tools and Techniques (Unit V)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="../DL/Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="../DL/Chapter-4.html">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="../DL/Chapter-5.html">Ch 5 — Deep Generative Models</a>
+    <a href="../DL/Chapter-6.html">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details open>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="Chapter-3.html">Ch 3 — Language Modelling</a>
+    <a href="Chapter-4.html">Ch 4 — Information Retrieval</a>
+    <a href="Chapter-5.html" class="current">Ch 5 — NLP Tools &amp; Techniques</a>
+    <a href="Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="../BI/Chapter-3.html">Ch 3 — Data Warehousing</a>
+    <a href="../BI/Chapter-4.html">Ch 4 — Data Mining</a>
+    <a href="../BI/Chapter-5.html">Ch 5 — BI Tools &amp; OLAP</a>
+    <a href="../BI/Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>NLP — Chapter 5: NLP Tools and Techniques (Unit V)</h1>
+<p class="meta">
+  Subject Code: 410252(A) | End-Sem: 09 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q5 or Q6).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — Why NLP tools and resources?</a></li>
+    <li><a href="#q1">Q1 — Lesk &amp; Walker's algorithm for Word Sense Disambiguation (asked 5 times)</a></li>
+    <li><a href="#q2">Q2 — NLP Tools (NLTK, spaCy, TextBlob) (asked 5 times)</a></li>
+    <li><a href="#q3">Q3 — Lexical Knowledge Networks (WordNet, IndoWordNet, VerbNet, PropBank, Treebanks) (asked 5 times)</a></li>
+    <li><a href="#q4">Q4 — WordNet (asked 2 times)</a></li>
+    <li><a href="#q5">Q5 — Gensim library (asked 2 times)</a></li>
+    <li><a href="#q6">Q6 — NLTK Python tokenization code (asked 1 time)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+Building NLP from scratch (tokenization, POS tagging, parsing) is like writing your own car engine before driving. Most developers use READY-MADE NLP LIBRARIES (NLTK, spaCy) just like drivers use ready-made cars. They also use LEXICAL RESOURCES like WordNet (a giant dictionary of word meanings) the way a writer uses a thesaurus.
+</div>
+
+<h3>Two main categories in this chapter</h3>
+<ol>
+  <li><b>NLP Libraries / Tools</b> — software you import in your Python code (NLTK, spaCy, TextBlob, Gensim).</li>
+  <li><b>Lexical Knowledge Networks</b> — pre-built linguistic databases (WordNet, IndoWordNet, VerbNet, PropBank, Treebanks).</li>
+</ol>
+<p>Plus one important technique: <b>Word Sense Disambiguation (WSD)</b> using Lesk and Walker's algorithms.</p>
+
+<hr>
+
+<h2 id="q1">Q1 — Lesk Algorithm and Walker's Algorithm for Word Sense Disambiguation</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 — usually 8–10 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'23, 10 marks)</b> Describe in detail the Lesk algorithm and Walker's algorithm for word sense disambiguation.</p>
+    <p><b>(May'24, 9 marks)</b> Describe Walker's algorithm for WSD; differences from Lesk; scenarios where most effective.</p>
+    <p><b>(May'25, 8 marks)</b> Explain the Lesk Algorithm for WSD. How does it work; advantages and limitations.</p>
+    <p><b>(Nov'25, 9 marks)</b> Describe Walker's algorithm for WSD. Differences from Lesk.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+The word "bank" can mean a financial institution OR the side of a river. When you read "He sat on the bank watching fish jump", you instantly know it's the river bank — because of the surrounding words ("fish jump"). Word Sense Disambiguation (WSD) teaches a computer to make this decision.
+</div>
+
+<h3>1. Word Sense Disambiguation (WSD) — Definition</h3>
+<p><b>WSD</b> is the NLP task of automatically identifying which SENSE (meaning) of a word is being used in a given context, when the word has multiple possible meanings (polysemy).</p>
+
+<h3>2. Why WSD matters</h3>
+<ul>
+  <li>Improves machine translation accuracy.</li>
+  <li>Critical for information retrieval.</li>
+  <li>Helps in question answering.</li>
+  <li>Important for text summarization and sentiment analysis.</li>
+</ul>
+
+<h3>3. Lesk Algorithm</h3>
+
+<h4>Definition</h4>
+<p>The <b>Lesk Algorithm</b> (proposed by Michael Lesk, 1986) is a dictionary-based WSD method. It selects the sense whose dictionary definition (called the GLOSS) has the most word OVERLAP with the surrounding context of the ambiguous word.</p>
+
+<h4>Steps of Lesk Algorithm</h4>
+<ol>
+  <li>Take the ambiguous word w and its surrounding context (the words near it in the sentence).</li>
+  <li>Look up w in a dictionary (e.g., WordNet) → retrieve all its senses with their glosses.</li>
+  <li>For each sense, count how many words in the gloss also appear in the context.</li>
+  <li>Choose the sense with the HIGHEST overlap count.</li>
+</ol>
+
+<h4>Example</h4>
+<pre>
+Sentence: "He went to the bank to deposit money."
+
+Word to disambiguate: "bank"
+
+Sense 1: "a financial institution that accepts deposits and channels money"
+   Gloss words: {financial, institution, accepts, deposits, channels, money}
+   Context: {went, deposit, money}
+   Overlap: {deposits, money} → 2 words
+
+Sense 2: "sloping land especially beside a body of water"
+   Gloss words: {sloping, land, beside, body, water}
+   Context: {went, deposit, money}
+   Overlap: {} → 0 words
+
+→ Choose Sense 1 (financial institution).
+</pre>
+
+<h4>Advantages of Lesk</h4>
+<ul>
+  <li>Simple, fast, easy to implement.</li>
+  <li>Requires only a dictionary (e.g., WordNet); no training data needed.</li>
+  <li>Domain-independent.</li>
+</ul>
+
+<h4>Limitations of Lesk</h4>
+<ul>
+  <li>Dictionary glosses are SHORT — small overlaps mean low accuracy.</li>
+  <li>Sensitive to exact word matches (no synonym handling).</li>
+  <li>Best sense often missed if context words differ from gloss.</li>
+  <li>Variants: <b>Simplified Lesk, Extended Lesk</b> (uses related senses too) improve accuracy.</li>
+</ul>
+
+<hr>
+
+<h3>4. Walker's Algorithm</h3>
+
+<h4>Definition</h4>
+<p><b>Walker's Algorithm</b> (Walker &amp; Amsler 1986) is a knowledge-based WSD method that uses a thesaurus organized by SUBJECT CATEGORIES (semantic codes). It assigns each ambiguous word to the sense whose category appears most often in the context.</p>
+
+<h4>Idea</h4>
+<ul>
+  <li>Each word sense is associated with one or more subject categories (e.g., FINANCE, NATURE, SPORTS).</li>
+  <li>Look at all the words in the context → see which subject categories they belong to.</li>
+  <li>Choose the sense of the ambiguous word whose category is most frequent in the context.</li>
+</ul>
+
+<h4>Steps of Walker's Algorithm</h4>
+<ol>
+  <li>For each sense of the ambiguous word, list its subject categories from the thesaurus.</li>
+  <li>For each surrounding context word, find its possible subject categories.</li>
+  <li>Count how many context words "vote" for each subject category.</li>
+  <li>Pick the sense of the ambiguous word whose category received the most votes.</li>
+</ol>
+
+<h4>Example</h4>
+<pre>
+Word: "bank"
+Senses:
+  Sense 1 (financial) → category: FINANCE
+  Sense 2 (river side) → category: NATURE
+
+Context: "He went to the bank to deposit money."
+Categories of context words:
+   "deposit" → FINANCE
+   "money"   → FINANCE
+   "went"    → MOTION (generic)
+   "the"     → (function word, ignored)
+
+Votes: FINANCE = 2, NATURE = 0
+→ Choose Sense 1 (financial bank).
+</pre>
+
+<h4>Advantages</h4>
+<ul>
+  <li>Uses broader semantic information than Lesk.</li>
+  <li>Works even when exact words don't overlap (uses category, not surface words).</li>
+  <li>Can leverage existing thesauri (Roget's Thesaurus).</li>
+</ul>
+
+<h4>Limitations</h4>
+<ul>
+  <li>Depends on quality of subject-category mapping.</li>
+  <li>Some words have ambiguous categories.</li>
+  <li>Not all words have category tags in a thesaurus.</li>
+  <li>Less popular today than statistical or neural WSD.</li>
+</ul>
+
+<h3>5. Lesk vs Walker — Comparison</h3>
+<table>
+  <tr><th>Aspect</th><th>Lesk Algorithm</th><th>Walker's Algorithm</th></tr>
+  <tr><td>Resource used</td><td>Dictionary glosses (WordNet)</td><td>Thesaurus with subject categories</td></tr>
+  <tr><td>Comparison basis</td><td>Word overlap between gloss and context</td><td>Subject category match between sense and context</td></tr>
+  <tr><td>Granularity</td><td>Word-level matching</td><td>Semantic category-level voting</td></tr>
+  <tr><td>Synonym handling</td><td>Poor (exact match only)</td><td>Better (uses semantic categories)</td></tr>
+  <tr><td>Simplicity</td><td>Very simple</td><td>Slightly more complex</td></tr>
+  <tr><td>Best for</td><td>Short, informal text</td><td>Text where domain categories are clear</td></tr>
+</table>
+
+<h3>6. Other WSD approaches (briefly)</h3>
+<ul>
+  <li><b>Supervised:</b> train on sense-annotated corpora (SVM, neural).</li>
+  <li><b>Semi-supervised / Bootstrapping</b> (Yarowsky algorithm).</li>
+  <li><b>Unsupervised clustering</b> of contexts.</li>
+  <li><b>Neural WSD</b> using BERT embeddings.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>WSD = pick the right sense of a polysemous word using context.</li>
+    <li><b>Lesk:</b> compare dictionary GLOSS with surrounding context; choose max word overlap.</li>
+    <li><b>Walker's:</b> use SUBJECT CATEGORIES from thesaurus; choose category with most votes.</li>
+    <li>Lesk = word matching; Walker = category matching.</li>
+    <li>Modern systems use BERT-based WSD with much higher accuracy.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — NLP Tools (NLTK, spaCy, TextBlob, etc.)</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 — usually 7–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 7 marks)</b> List the tools available for the development of NLP applications. Write features of NLTK and TextBlob.</p>
+    <p><b>(Nov'23, 7 marks)</b> List tools; features of any 3 tools.</p>
+    <p><b>(May'24, 9 marks)</b> Compare and contrast NLTK, spaCy, and TextBlob. Their main features and use cases.</p>
+    <p><b>(May'25, 9 marks)</b> Explain how NLTK, spaCy, and Gensim handle tokenization and POS tagging.</p>
+    <p><b>(Nov'25, 9 marks)</b> List tools for NLP development. Features of NLTK and Gensim libraries.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Major NLP libraries / tools</h3>
+<ul>
+  <li><b>NLTK</b> (Natural Language Toolkit)</li>
+  <li><b>spaCy</b></li>
+  <li><b>TextBlob</b></li>
+  <li><b>Gensim</b></li>
+  <li><b>Stanford CoreNLP</b></li>
+  <li><b>Hugging Face Transformers</b></li>
+  <li><b>OpenNLP</b> (Java)</li>
+  <li><b>Pattern</b></li>
+  <li><b>Polyglot</b> (multilingual)</li>
+  <li><b>AllenNLP</b></li>
+  <li><b>Indic NLP Library</b> (for Indian languages)</li>
+</ul>
+
+<h3>2. NLTK (Natural Language Toolkit)</h3>
+<ul>
+  <li>Created in 2001 at the University of Pennsylvania.</li>
+  <li>One of the OLDEST and most popular Python NLP libraries.</li>
+  <li>Originally designed for teaching/research.</li>
+  <li><b>Features:</b>
+    <ul>
+      <li>Tokenization (word, sentence, regex-based, punctuation-based).</li>
+      <li>POS tagging.</li>
+      <li>Stemming (Porter, Lancaster) and Lemmatization (WordNet).</li>
+      <li>Parsing (CFG, chart parsers).</li>
+      <li>Built-in corpora (Brown, Reuters, etc.).</li>
+      <li>WordNet interface for word senses.</li>
+      <li>Classification (Naive Bayes, Decision Tree).</li>
+      <li>n-gram modeling.</li>
+      <li>Concordance and frequency analysis.</li>
+    </ul>
+  </li>
+  <li><b>Pros:</b> comprehensive, educational, free; large built-in corpora.</li>
+  <li><b>Cons:</b> slower than spaCy; less suitable for production.</li>
+</ul>
+
+<h3>3. spaCy</h3>
+<ul>
+  <li>Released in 2015. Modern, production-grade NLP library.</li>
+  <li>Written in Cython for speed.</li>
+  <li><b>Features:</b>
+    <ul>
+      <li>Fast tokenization, POS tagging, NER.</li>
+      <li>Dependency parsing.</li>
+      <li>Pre-trained models for many languages.</li>
+      <li>Word vectors and similarity.</li>
+      <li>Pipeline architecture (configurable).</li>
+      <li>Easy integration with deep learning frameworks.</li>
+    </ul>
+  </li>
+  <li><b>Pros:</b> very fast, accurate, production-ready, good documentation.</li>
+  <li><b>Cons:</b> fewer educational helpers than NLTK; harder to customize.</li>
+</ul>
+
+<h3>4. TextBlob</h3>
+<ul>
+  <li>Built on top of NLTK and Pattern.</li>
+  <li>Provides a SIMPLE, beginner-friendly API.</li>
+  <li><b>Features:</b>
+    <ul>
+      <li>Tokenization, POS tagging, noun-phrase extraction.</li>
+      <li>Sentiment analysis (polarity and subjectivity).</li>
+      <li>Translation (uses Google Translate API).</li>
+      <li>Spell correction.</li>
+      <li>Pluralize/singularize words.</li>
+      <li>Tokenizing and N-grams.</li>
+    </ul>
+  </li>
+  <li><b>Pros:</b> very easy to use; good for quick prototypes.</li>
+  <li><b>Cons:</b> less powerful for advanced tasks; depends on external APIs for translation.</li>
+</ul>
+
+<h3>5. Gensim</h3>
+<ul>
+  <li>Specialized library for topic modeling and document similarity.</li>
+  <li><b>Features:</b>
+    <ul>
+      <li>Word embeddings (word2vec, doc2vec, FastText).</li>
+      <li>Topic modeling: LSI, LDA, HDP, NMF.</li>
+      <li>TF-IDF model.</li>
+      <li>Document similarity using cosine, Jaccard.</li>
+      <li>Streaming corpus support (works on huge data without loading all in memory).</li>
+      <li>Pre-trained Word2Vec models.</li>
+    </ul>
+  </li>
+  <li><b>Pros:</b> excellent for topic modeling and embeddings; memory-efficient.</li>
+  <li><b>Cons:</b> doesn't do general-purpose NLP (no parsing, NER).</li>
+</ul>
+
+<h3>6. How NLTK / spaCy / Gensim handle Tokenization + POS Tagging</h3>
+<table>
+  <tr><th>Library</th><th>Tokenization</th><th>POS Tagging</th></tr>
+  <tr><td>NLTK</td><td>Multiple tokenizers (Treebank, Whitespace, Punkt, RegexpTokenizer). Manual configuration possible.</td><td>Default: averaged perceptron tagger. Many pre-trained taggers available.</td></tr>
+  <tr><td>spaCy</td><td>Built-in fast tokenizer; rule-based with language-specific exceptions. Tokens are objects with rich attributes.</td><td>Built into pipeline; based on statistical (CNN) models. Very fast.</td></tr>
+  <tr><td>Gensim</td><td>Basic preprocessing utilities (simple_preprocess). Less focus on tokenization.</td><td>Not a core feature — Gensim focuses on embeddings/topics, not POS.</td></tr>
+</table>
+
+<h3>7. Comparison Table — NLTK vs spaCy vs TextBlob</h3>
+<table>
+  <tr><th>Feature</th><th>NLTK</th><th>spaCy</th><th>TextBlob</th></tr>
+  <tr><td>Speed</td><td>Slow</td><td>Very fast</td><td>Medium</td></tr>
+  <tr><td>Ease of use</td><td>Moderate</td><td>Moderate</td><td>Very easy</td></tr>
+  <tr><td>Production use</td><td>Less ideal</td><td>Industry standard</td><td>Prototyping</td></tr>
+  <tr><td>NER</td><td>Yes (basic)</td><td>Yes (best)</td><td>No (limited)</td></tr>
+  <tr><td>Sentiment</td><td>Manual</td><td>Through plugins</td><td>Built-in</td></tr>
+  <tr><td>Tokenization</td><td>Multiple options</td><td>Fast rule-based</td><td>Simple</td></tr>
+  <tr><td>Best use case</td><td>Education, research</td><td>Production apps</td><td>Quick prototypes</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>NLP libraries: NLTK, spaCy, TextBlob, Gensim, Stanford CoreNLP, Hugging Face.</li>
+    <li>NLTK = comprehensive, educational, slower.</li>
+    <li>spaCy = fast, production-ready, modern.</li>
+    <li>TextBlob = beginner-friendly wrapper over NLTK/Pattern.</li>
+    <li>Gensim = specialized for embeddings and topic modeling.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — Lexical Knowledge Networks (WordNet, IndoWordNet, VerbNet, PropBank, Treebanks)</h2>
+<span class="freq-tag">Asked 5 times</span>(Nov'23, May'24, May'25, Nov'25 — usually 8–10 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 10 marks)</b> Explain the following lexical knowledge networks: WordNet, IndoWordNet, VerbNet, PropBank, Treebanks.</p>
+    <p><b>(May'24, 8 marks)</b> Compare IndoWordNet with traditional WordNet. Differences and advantages for Indian languages.</p>
+    <p><b>(May'24, 8 marks)</b> Significance of PropBank and VerbNet; how they extract semantic information.</p>
+    <p><b>(May'25, 9 marks)</b> Role of Treebanks and Universal Dependency Treebanks in NLP research.</p>
+    <p><b>(Nov'25, 9 marks)</b> Compare IndoWordNet with WordNet for Indian languages.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. WordNet</h3>
+<ul>
+  <li>Developed at Princeton University by George A. Miller (1985).</li>
+  <li>A large lexical database of English words.</li>
+  <li>Words are organized into <b>synsets</b> (sets of synonymous words).</li>
+  <li>Synsets are linked by semantic relations:
+    <ul>
+      <li><b>Synonymy:</b> car ≈ automobile.</li>
+      <li><b>Hypernymy/Hyponymy:</b> "is-a" relations (dog is-a mammal).</li>
+      <li><b>Meronymy/Holonymy:</b> "part-of" (wheel is part of car).</li>
+      <li><b>Antonymy:</b> hot ↔ cold.</li>
+    </ul>
+  </li>
+  <li>Contains nouns, verbs, adjectives, adverbs.</li>
+  <li>Used in WSD, IR, machine translation.</li>
+</ul>
+
+<h3>2. IndoWordNet</h3>
+<ul>
+  <li>Developed by IIT Bombay (Centre for Indian Language Technology).</li>
+  <li>WordNet for INDIAN LANGUAGES (Hindi, Marathi, Bengali, Tamil, Telugu, Punjabi, etc.).</li>
+  <li>Connects synsets across multiple Indian languages.</li>
+  <li>Linked to English WordNet for cross-lingual applications.</li>
+</ul>
+
+<h3>3. WordNet vs IndoWordNet — comparison</h3>
+<table>
+  <tr><th>Aspect</th><th>WordNet</th><th>IndoWordNet</th></tr>
+  <tr><td>Language</td><td>English</td><td>Multiple Indian languages</td></tr>
+  <tr><td>Coverage</td><td>~150,000 words</td><td>Varies per language</td></tr>
+  <tr><td>Use case</td><td>English NLP</td><td>Indian language NLP, multilingual</td></tr>
+  <tr><td>Built by</td><td>Princeton (Miller)</td><td>IIT Bombay (Dr. Pushpak Bhattacharyya)</td></tr>
+  <tr><td>Cross-lingual links</td><td>Indirectly via mappings</td><td>Built-in across Indian languages</td></tr>
+  <tr><td>Morphology</td><td>Simple English morphology</td><td>Rich morphology of Indian languages</td></tr>
+</table>
+
+<h4>Advantages of IndoWordNet</h4>
+<ul>
+  <li>Enables NLP for low-resource Indian languages.</li>
+  <li>Supports cross-lingual NLP (Hindi → Marathi).</li>
+  <li>Handles complex morphology of Indian languages.</li>
+  <li>Aids in machine translation between Indian languages.</li>
+  <li>Useful for Indian language WSD and IR.</li>
+</ul>
+
+<h3>4. VerbNet</h3>
+<ul>
+  <li>A lexical resource for English VERBS, organized by Levin classes.</li>
+  <li>Each verb class has:
+    <ul>
+      <li>Syntactic frames (how verb is used grammatically).</li>
+      <li>Semantic predicates (meaning components).</li>
+      <li>Member verbs (verbs sharing similar behavior).</li>
+    </ul>
+  </li>
+  <li>Example: the verb "give" has frames like "Subject gives Object to Recipient".</li>
+  <li>Used for semantic role labeling, parsing.</li>
+</ul>
+
+<h3>5. PropBank (Proposition Bank)</h3>
+<ul>
+  <li>A corpus of texts annotated with verbal propositions and their arguments.</li>
+  <li>Each verb has labeled arguments (Arg0 = agent, Arg1 = patient, Arg2 = instrument, …).</li>
+  <li>Used for <b>Semantic Role Labeling (SRL)</b>.</li>
+  <li>Example: "John broke the window with a hammer."
+    <ul>
+      <li>Arg0 (agent) = John</li>
+      <li>Arg1 (patient) = the window</li>
+      <li>Arg2 (instrument) = a hammer</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>6. Treebanks</h3>
+<ul>
+  <li>A corpus of sentences annotated with their SYNTACTIC STRUCTURE (parse trees).</li>
+  <li>Most famous: <b>Penn Treebank</b> (~3 million words of English).</li>
+  <li>Other examples: Chinese Treebank, Hindi Treebank.</li>
+  <li>Used to train parsers (statistical and neural).</li>
+  <li>Two types:
+    <ul>
+      <li><b>Constituency Treebank</b> (phrase structure trees).</li>
+      <li><b>Dependency Treebank</b> (word-to-word dependency relations).</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>7. Universal Dependencies (UD) Treebanks</h3>
+<ul>
+  <li>A cross-lingual framework for annotating grammar.</li>
+  <li>Uses a single, consistent set of dependency relations across 100+ languages.</li>
+  <li>Allows ONE parser architecture to work on many languages.</li>
+  <li>Crucial for multilingual NLP research.</li>
+  <li>Indian languages like Hindi, Tamil, Urdu have UD treebanks.</li>
+</ul>
+
+<h3>8. Role of Treebanks in NLP</h3>
+<ul>
+  <li>Training and benchmarking dependency / constituency parsers.</li>
+  <li>POS tagger evaluation.</li>
+  <li>Linguistic research on grammar.</li>
+  <li>Building cross-lingual NLP models (via UD).</li>
+  <li>Used for machine translation and grammar checking.</li>
+</ul>
+
+<h3>9. Comparison of all resources</h3>
+<table>
+  <tr><th>Resource</th><th>What it contains</th><th>Used for</th></tr>
+  <tr><td>WordNet</td><td>Synsets + semantic relations</td><td>WSD, IR, MT</td></tr>
+  <tr><td>IndoWordNet</td><td>Synsets in Indian languages</td><td>Indian language NLP</td></tr>
+  <tr><td>VerbNet</td><td>Verb classes + frames</td><td>Semantic parsing, role labeling</td></tr>
+  <tr><td>PropBank</td><td>Annotated verb arguments</td><td>Semantic Role Labeling</td></tr>
+  <tr><td>Treebank</td><td>Annotated parse trees</td><td>Parser training, grammar analysis</td></tr>
+  <tr><td>UD Treebank</td><td>Multi-lingual dependency annotations</td><td>Cross-lingual NLP</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>WordNet = English synsets + semantic relations.</li>
+    <li>IndoWordNet = WordNet for Indian languages, by IIT Bombay.</li>
+    <li>VerbNet = English verb classes with syntactic and semantic info.</li>
+    <li>PropBank = annotated verb arguments (Arg0, Arg1, …) for SRL.</li>
+    <li>Treebanks = corpora with parse-tree annotations; UD = cross-lingual.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — WordNet (detailed)</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, May'25 — usually 8–10 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 10 marks)</b> Write a note on WordNet.</p>
+    <p><b>(May'25, 8 marks)</b> Explain WordNet as a lexical knowledge network. How can it be used in NLP, and what are its limitations?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>WordNet</b> is a large lexical database of English where nouns, verbs, adjectives, and adverbs are grouped into sets of cognitive synonyms (synsets), each expressing a distinct concept. Synsets are interlinked by semantic and lexical relations.</p>
+
+<h3>2. Key concepts</h3>
+<ul>
+  <li><b>Synset:</b> a set of synonymous words (e.g., {car, automobile, motorcar}).</li>
+  <li><b>Gloss:</b> a short definition of the synset.</li>
+  <li><b>Examples:</b> usage examples for the synset.</li>
+  <li><b>Lexical relations:</b> between words (synonymy, antonymy).</li>
+  <li><b>Semantic relations:</b> between synsets (hypernymy, meronymy).</li>
+</ul>
+
+<h3>3. Semantic relations in WordNet</h3>
+<ul>
+  <li><b>Synonymy:</b> words with similar meaning (car / automobile).</li>
+  <li><b>Antonymy:</b> opposites (hot / cold).</li>
+  <li><b>Hypernymy:</b> more general ("vehicle" is hypernym of "car").</li>
+  <li><b>Hyponymy:</b> more specific ("car" is hyponym of "vehicle").</li>
+  <li><b>Meronymy:</b> "part-of" (wheel is part of car).</li>
+  <li><b>Holonymy:</b> "whole" relation (car is whole of wheel).</li>
+  <li><b>Troponymy:</b> for verbs (to whisper is a way of speaking).</li>
+  <li><b>Entailment:</b> verb A implies verb B (snore entails sleep).</li>
+</ul>
+
+<h3>4. Structure (text diagram)</h3>
+<pre>
+                    Entity (root)
+                       │
+                  ─────┴─────
+                  │           │
+                Object      Abstraction
+                  │
+              Vehicle ←── Hypernym of "Car"
+                  │
+                  Car ──── (synonym: automobile)
+                  │            │
+                  │         meronyms: wheel, engine
+                  │
+                  ↓ (hyponyms)
+                Sedan, SUV, Hatchback, ...
+</pre>
+
+<h3>5. How WordNet is used in NLP</h3>
+<ul>
+  <li><b>Word Sense Disambiguation</b> — Lesk algorithm uses WordNet glosses.</li>
+  <li><b>Information Retrieval</b> — query expansion using synonyms.</li>
+  <li><b>Machine Translation</b> — finding semantic equivalents.</li>
+  <li><b>Text Summarization</b> — identifying related concepts.</li>
+  <li><b>Sentiment Analysis</b> — SentiWordNet adds polarity scores.</li>
+  <li><b>Question Answering</b> — finding hypernyms / hyponyms of query terms.</li>
+  <li><b>Semantic similarity</b> measures based on WordNet path distance.</li>
+</ul>
+
+<h3>6. Limitations of WordNet</h3>
+<ul>
+  <li>English-only (other languages need WordNets like IndoWordNet, EuroWordNet).</li>
+  <li>Limited coverage of new / rare words.</li>
+  <li>No frequency information (all senses treated equally).</li>
+  <li>No context-dependent senses (BERT handles this better).</li>
+  <li>Sparse coverage of multi-word expressions.</li>
+  <li>No proper nouns (people, places, organizations) — needs other resources.</li>
+  <li>Manually built, expensive to maintain.</li>
+  <li>Verb-relations less detailed than noun-relations.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>WordNet = English lexical database; words grouped into synsets.</li>
+    <li>Relations: synonymy, antonymy, hypernymy/hyponymy, meronymy/holonymy, troponymy, entailment.</li>
+    <li>Uses: WSD, IR, MT, summarization, sentiment analysis, QA.</li>
+    <li>Limitations: English-only, no frequency info, no proper nouns.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Gensim Library</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, Nov'25 — usually 7–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 7 marks)</b> Which types of tasks are performed by the Gensim library? Give an example.</p>
+    <p><b>(Nov'25, 9 marks)</b> Tasks performed by Gensim with an example.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is Gensim?</h3>
+<p><b>Gensim</b> (Generate Similar) is an open-source Python library for <b>topic modeling, document indexing, and similarity retrieval</b>. It is specialized in working with large text corpora using streaming algorithms (no need to load all data in memory).</p>
+
+<h3>2. Main tasks performed by Gensim</h3>
+<ul>
+  <li><b>Topic modeling:</b> LDA, LSI/LSA, HDP, NMF.</li>
+  <li><b>Word embeddings:</b> Word2Vec, FastText, Doc2Vec.</li>
+  <li><b>TF-IDF model.</b></li>
+  <li><b>Document similarity</b> using cosine, Jaccard.</li>
+  <li><b>Corpus streaming</b> — processes huge corpora in chunks (memory-efficient).</li>
+  <li><b>Phrase detection</b> (n-gram models).</li>
+  <li><b>Random projections</b> (dimension reduction).</li>
+  <li><b>Loading and saving pre-trained models.</b></li>
+</ul>
+
+<h3>3. Example code (Word2Vec)</h3>
+<pre>
+from gensim.models import Word2Vec
+
+sentences = [
+    ["I", "love", "NLP"],
+    ["NLP", "is", "fun"],
+    ["I", "study", "machine", "learning"]
+]
+
+# Train Word2Vec model
+model = Word2Vec(sentences, vector_size=100, window=5, min_count=1, workers=4)
+
+# Get vector for a word
+print(model.wv["NLP"])
+
+# Find most similar words to "NLP"
+print(model.wv.most_similar("NLP"))
+</pre>
+
+<h3>4. Example for LDA topic modeling</h3>
+<pre>
+from gensim import corpora
+from gensim.models import LdaModel
+
+texts = [
+    ["bank", "money", "loan", "interest"],
+    ["river", "water", "bank", "flow"],
+    ["company", "profit", "market", "share"]
+]
+
+dictionary = corpora.Dictionary(texts)
+corpus = [dictionary.doc2bow(text) for text in texts]
+
+lda = LdaModel(corpus=corpus, id2word=dictionary, num_topics=2, passes=10)
+
+# Print top words for each topic
+for idx, topic in lda.print_topics(-1):
+    print(f"Topic {idx}: {topic}")
+</pre>
+
+<h3>5. Advantages of Gensim</h3>
+<ul>
+  <li>Memory-efficient (streaming algorithms).</li>
+  <li>Easy to use.</li>
+  <li>Fast (Cython under the hood for some models).</li>
+  <li>Excellent for embeddings and topic modeling.</li>
+  <li>Pre-trained models available.</li>
+</ul>
+
+<h3>6. Limitations</h3>
+<ul>
+  <li>NOT a general-purpose NLP library (no NER, parsing).</li>
+  <li>Less suitable for syntactic / morphological tasks.</li>
+  <li>API can change between versions.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Gensim = library for topic modeling, embeddings, similarity.</li>
+    <li>Main features: LDA, LSI, Word2Vec, Doc2Vec, FastText, TF-IDF.</li>
+    <li>Memory-efficient streaming.</li>
+    <li>Not for general NLP (no NER, parsing) — use NLTK / spaCy for that.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — NLTK Python Tokenization Code</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'23 — 7 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 7 marks)</b> Write Python code using NLTK to split text into tokens using whitespace, punctuation-based and default tokenization methods.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>Python Code</h3>
+<pre>
+import nltk
+from nltk.tokenize import (
+    word_tokenize,           # default tokenizer
+    WhitespaceTokenizer,     # splits only on whitespace
+    WordPunctTokenizer       # punctuation-based
+)
+
+# Download required NLTK data (only first time)
+nltk.download('punkt')
+
+text = "Hello, World! Welcome to NLP. Let's learn tokenization."
+
+# 1. DEFAULT tokenization (uses Treebank tokenizer under the hood)
+default_tokens = word_tokenize(text)
+print("Default tokens:", default_tokens)
+# Output: ['Hello', ',', 'World', '!', 'Welcome', 'to', 'NLP', '.', 'Let', "'s", 'learn', 'tokenization', '.']
+
+# 2. WHITESPACE tokenization
+whitespace_tokenizer = WhitespaceTokenizer()
+ws_tokens = whitespace_tokenizer.tokenize(text)
+print("Whitespace tokens:", ws_tokens)
+# Output: ['Hello,', 'World!', 'Welcome', 'to', 'NLP.', "Let's", 'learn', 'tokenization.']
+
+# 3. PUNCTUATION-BASED tokenization
+punct_tokenizer = WordPunctTokenizer()
+punct_tokens = punct_tokenizer.tokenize(text)
+print("Punctuation-based tokens:", punct_tokens)
+# Output: ['Hello', ',', 'World', '!', 'Welcome', 'to', 'NLP', '.', 'Let', "'", 's', 'learn', 'tokenization', '.']
+</pre>
+
+<h3>Explanation of differences</h3>
+<table>
+  <tr><th>Method</th><th>How it splits</th><th>"Let's"</th></tr>
+  <tr><td>Default (Treebank)</td><td>Smart rules; separates punctuation</td><td>['Let', "'s"]</td></tr>
+  <tr><td>Whitespace</td><td>Only on spaces/tabs/newlines</td><td>["Let's"]</td></tr>
+  <tr><td>Punctuation-based</td><td>Splits on every non-alphanumeric</td><td>['Let', "'", 's']</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>NLTK provides multiple tokenizers — choose based on need.</li>
+    <li>Default = word_tokenize() (Treebank).</li>
+    <li>Whitespace = splits only on spaces.</li>
+    <li>Punctuation-based = WordPunctTokenizer; splits on every punctuation.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>Lesk &amp; Walker's algorithm (WSD)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>NLP Tools (NLTK, spaCy, TextBlob)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>Lexical Knowledge Networks</td><td>—</td><td>✓</td><td>✓ ×2</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>WordNet</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>2</td></tr>
+  <tr><td>Gensim library</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>NLTK Python code</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>1</td></tr>
+</table>
+
+<h3>Quick reference table</h3>
+<table>
+  <tr><th>Tool / Resource</th><th>What it is</th><th>Used for</th></tr>
+  <tr><td>NLTK</td><td>Python library</td><td>Education, research, general NLP</td></tr>
+  <tr><td>spaCy</td><td>Python library</td><td>Production, fast NLP</td></tr>
+  <tr><td>TextBlob</td><td>Python library</td><td>Quick prototypes, sentiment</td></tr>
+  <tr><td>Gensim</td><td>Python library</td><td>Topic modeling, embeddings</td></tr>
+  <tr><td>WordNet</td><td>Lexical database</td><td>WSD, synonyms, IR</td></tr>
+  <tr><td>IndoWordNet</td><td>WordNet for Indian languages</td><td>Indian NLP, multilingual</td></tr>
+  <tr><td>VerbNet</td><td>Verb classes</td><td>Semantic parsing</td></tr>
+  <tr><td>PropBank</td><td>Annotated arguments</td><td>Semantic Role Labeling</td></tr>
+  <tr><td>Treebanks</td><td>Parsed sentences</td><td>Parser training, grammar</td></tr>
+  <tr><td>UD Treebanks</td><td>Multi-lingual dependencies</td><td>Cross-lingual NLP</td></tr>
+</table>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>Use Python libraries (NLTK, spaCy, TextBlob, Gensim) to process text; use lexical resources (WordNet, IndoWordNet, VerbNet, PropBank, Treebanks) to add linguistic knowledge; use Lesk/Walker's algorithms for word sense disambiguation.</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  NLP Chapter 5 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

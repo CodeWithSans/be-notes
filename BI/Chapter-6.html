@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BI — Chapter 6: BI Applications (Unit VI)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="../DL/Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="../DL/Chapter-4.html">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="../DL/Chapter-5.html">Ch 5 — Deep Generative Models</a>
+    <a href="../DL/Chapter-6.html">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="../NLP/Chapter-3.html">Ch 3 — Language Modelling</a>
+    <a href="../NLP/Chapter-4.html">Ch 4 — Information Retrieval</a>
+    <a href="../NLP/Chapter-5.html">Ch 5 — NLP Tools &amp; Techniques</a>
+    <a href="../NLP/Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details open>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="Chapter-3.html">Ch 3 — Reporting Authoring</a>
+    <a href="Chapter-4.html">Ch 4 — Data Preparation</a>
+    <a href="Chapter-5.html">Ch 5 — ML in BI</a>
+    <a href="Chapter-6.html" class="current">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>BI — Chapter 6: BI Applications (Unit VI)</h1>
+<p class="meta">
+  Subject Code: 410253(C) | End-Sem: 11 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q7 or Q8).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — overview of BI in industries</a></li>
+    <li><a href="#q1">Q1 — BI Applications in CRM (asked 6 times)</a></li>
+    <li><a href="#q2">Q2 — BI Tools / Analytical Tools (asked 6 times)</a></li>
+    <li><a href="#q3">Q3 — BI in Logistics &amp; Production (asked 4 times)</a></li>
+    <li><a href="#q4">Q4 — ERP and BI (asked 4 times)</a></li>
+    <li><a href="#q5">Q5 — BI in Finance and Marketing (asked 3 times)</a></li>
+    <li><a href="#q6">Q6 — BI in Telecommunications and Banking (asked 2 times)</a></li>
+    <li><a href="#q7">Q7 — Role of Analytics / Data Analytics in BI (asked 4 times)</a></li>
+    <li><a href="#q8">Q8 — WEKA, KNIME, RapidMiner, BI in HR (asked 2 times)</a></li>
+    <li><a href="#q9">Q9 — Implementing BI in an organization (asked 1 time)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+This unit is about WHERE BI is actually used in industry. Every modern business — banks, hospitals, shops, airlines, telecom companies — uses BI to make smarter decisions. The chapter covers HOW BI helps in CRM, marketing, finance, logistics, banking, telecommunications, HR. Plus the specific TOOLS used (WEKA, KNIME, RapidMiner, R).
+</div>
+
+<h3>Key industries using BI</h3>
+<ul>
+  <li><b>Customer Relationship Management (CRM)</b> — understand and retain customers.</li>
+  <li><b>Marketing</b> — campaign analysis, customer segmentation.</li>
+  <li><b>Finance</b> — risk analysis, fraud detection.</li>
+  <li><b>Banking</b> — credit scoring, customer 360°.</li>
+  <li><b>Telecommunications</b> — churn prediction, network optimization.</li>
+  <li><b>Logistics &amp; Production</b> — supply-chain optimization, demand forecasting.</li>
+  <li><b>HR</b> — employee retention, talent management.</li>
+  <li><b>Sales</b> — pipeline analysis, sales forecasting.</li>
+</ul>
+
+<hr>
+
+<h2 id="q1">Q1 — BI Applications in CRM (Customer Relationship Management)</h2>
+<span class="freq-tag">Asked 6 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 ×2 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'25, 6 marks)</b> Explain BI application in CRM.</p>
+    <p><b>(Nov'23, 5 marks)</b> Write a note on BI Applications in CRM.</p>
+    <p><b>(May'24, 6 marks)</b> Justify BI is useful for Customer Relationship Management.</p>
+    <p><b>(Nov'25, 6 marks)</b> Write a note on BI Applications in CRM.</p>
+    <p><b>(Nov'25, 6 marks)</b> Justify how BI is useful for CRM.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A loyal customer is far more valuable than chasing new ones. To keep customers happy, you need to UNDERSTAND them — what they buy, when they call, what they complain about. BI in CRM turns customer data into actionable insights so businesses can serve customers better and reduce churn.
+</div>
+
+<h3>1. What is CRM?</h3>
+<p><b>CRM (Customer Relationship Management)</b> is the strategy and software used by companies to manage interactions with current and potential customers, with the goal of improving relationships, retention, and sales.</p>
+
+<h3>2. How BI helps CRM</h3>
+
+<h4>(a) Customer Segmentation</h4>
+<ul>
+  <li>Group customers based on behavior, demographics, value.</li>
+  <li>Examples: high-value, frequent buyers, dormant customers.</li>
+  <li>Allows targeted marketing and personalized service.</li>
+</ul>
+
+<h4>(b) Churn Prediction</h4>
+<ul>
+  <li>Predict which customers are likely to LEAVE.</li>
+  <li>Apply ML models (logistic regression, decision trees).</li>
+  <li>Take action (offers, calls) BEFORE they leave.</li>
+</ul>
+
+<h4>(c) Customer Lifetime Value (CLV) Analysis</h4>
+<ul>
+  <li>Calculate the expected total revenue from a customer over their lifetime.</li>
+  <li>Helps prioritize high-value customers.</li>
+  <li>Guides retention spending.</li>
+</ul>
+
+<h4>(d) Cross-selling &amp; Up-selling</h4>
+<ul>
+  <li>Use association rules (Apriori) to recommend products.</li>
+  <li>"Customers who bought X also bought Y."</li>
+  <li>Increases revenue per customer.</li>
+</ul>
+
+<h4>(e) Sentiment Analysis</h4>
+<ul>
+  <li>Analyze customer feedback, social media, reviews.</li>
+  <li>Identify dissatisfaction early.</li>
+  <li>Improve products and services.</li>
+</ul>
+
+<h4>(f) Personalized Marketing</h4>
+<ul>
+  <li>Send the right message to the right customer at the right time.</li>
+  <li>Improves conversion rates.</li>
+  <li>Reduces marketing spend.</li>
+</ul>
+
+<h4>(g) Customer 360° View</h4>
+<ul>
+  <li>Combine data from sales, support, marketing, web visits.</li>
+  <li>Single unified dashboard for each customer.</li>
+  <li>Better service experience.</li>
+</ul>
+
+<h4>(h) Call Center Analytics</h4>
+<ul>
+  <li>Analyze call records, complaint patterns.</li>
+  <li>Identify training needs for agents.</li>
+  <li>Improve customer satisfaction (CSAT) scores.</li>
+</ul>
+
+<h4>(i) Loyalty Program Optimization</h4>
+<ul>
+  <li>Design loyalty programs based on data.</li>
+  <li>Track effectiveness of rewards.</li>
+  <li>Maximize ROI on incentives.</li>
+</ul>
+
+<h4>(j) Lead Scoring</h4>
+<ul>
+  <li>Rate sales leads based on conversion probability.</li>
+  <li>Sales team focuses on hot leads.</li>
+  <li>Higher conversion rate.</li>
+</ul>
+
+<h3>3. Benefits of BI in CRM</h3>
+<ul>
+  <li>Higher customer retention.</li>
+  <li>Increased customer satisfaction.</li>
+  <li>More effective marketing.</li>
+  <li>Better customer experience.</li>
+  <li>Higher revenue per customer.</li>
+  <li>Reduced costs of acquisition.</li>
+  <li>Data-driven decision making.</li>
+</ul>
+
+<h3>4. Real-world examples</h3>
+<ul>
+  <li><b>Amazon:</b> recommendations based on purchase history.</li>
+  <li><b>Netflix:</b> personalized content suggestions.</li>
+  <li><b>Banks:</b> personalized loan offers based on transaction history.</li>
+  <li><b>Telecom:</b> churn prediction and retention offers.</li>
+  <li><b>Airlines:</b> loyalty program tier management.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>BI in CRM = use customer data for better service and retention.</li>
+    <li>Major applications: segmentation, churn prediction, CLV analysis, cross-selling, sentiment analysis, customer 360°.</li>
+    <li>Benefits: retention, satisfaction, marketing ROI, revenue.</li>
+    <li>Examples: Amazon recommendations, Netflix suggestions, telecom churn programs.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — BI Tools and Analytical Tools</h2>
+<span class="freq-tag">Asked 6 times</span>(May'23 ×2, Nov'23, May'24, May'25, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Explain roles of Analytical tools in BI.</p>
+    <p><b>(May'23 &amp; Nov'25, 6 marks)</b> Define BI. List and explain any 3 tools for BI.</p>
+    <p><b>(Nov'23, 6 marks)</b> State and explain different Tools for BI.</p>
+    <p><b>(May'24, 6 marks)</b> Write short note on WEKA, Rapid Miner.</p>
+    <p><b>(May'25, 6 marks)</b> Explain Roles of Analytical tools in BI.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition of Business Intelligence</h3>
+<p><b>Business Intelligence (BI)</b> is the set of strategies, tools, and technologies used by organizations to collect, integrate, analyze, and present business data — turning raw data into actionable insights that support decision-making.</p>
+
+<h3>2. Role of Analytical Tools in BI</h3>
+<ul>
+  <li><b>Data integration</b> — connect to multiple sources (databases, files, APIs).</li>
+  <li><b>Data preparation</b> — clean, transform, reduce.</li>
+  <li><b>Visualization</b> — turn numbers into charts and dashboards.</li>
+  <li><b>Statistical analysis</b> — descriptive and inferential statistics.</li>
+  <li><b>Predictive modelling</b> — apply ML algorithms.</li>
+  <li><b>Reporting</b> — generate scheduled / ad-hoc reports.</li>
+  <li><b>Collaboration</b> — share insights across teams.</li>
+  <li><b>Real-time analytics</b> — monitor KPIs as they change.</li>
+</ul>
+
+<h3>3. Major BI Tools (with features)</h3>
+
+<h4>(a) WEKA (Waikato Environment for Knowledge Analysis)</h4>
+<ul>
+  <li>Open-source ML tool developed at University of Waikato, NZ.</li>
+  <li>Java-based with GUI (Explorer, Experimenter, KnowledgeFlow, CLI).</li>
+  <li>Features:
+    <ul>
+      <li>Data preprocessing (cleaning, filtering, transformation).</li>
+      <li>Classification (Decision Tree, Naive Bayes, SVM).</li>
+      <li>Clustering (K-means, hierarchical).</li>
+      <li>Association rule mining (Apriori).</li>
+      <li>Visualization tools.</li>
+    </ul>
+  </li>
+  <li>Best for: academic learning, small-to-medium datasets.</li>
+</ul>
+
+<h4>(b) KNIME (Konstanz Information Miner)</h4>
+<ul>
+  <li>Open-source data analytics platform with visual workflow editor.</li>
+  <li>Features:
+    <ul>
+      <li>Drag-and-drop interface — no coding required.</li>
+      <li>Integration with R, Python, Java.</li>
+      <li>Wide range of data preprocessing, ML, and visualization nodes.</li>
+      <li>Big data integration (Hadoop, Spark).</li>
+      <li>Deep learning support.</li>
+    </ul>
+  </li>
+  <li>Best for: business analysts who prefer visual workflows.</li>
+</ul>
+
+<h4>(c) RapidMiner</h4>
+<ul>
+  <li>Commercial data science platform (community edition available).</li>
+  <li>Features:
+    <ul>
+      <li>Visual workflow design (similar to KNIME).</li>
+      <li>1500+ built-in operators for data prep, ML, deployment.</li>
+      <li>AutoML — automated model building.</li>
+      <li>Integration with Hadoop, Spark, cloud platforms.</li>
+      <li>Strong text and image analytics.</li>
+    </ul>
+  </li>
+  <li>Best for: enterprise data science teams.</li>
+</ul>
+
+<h4>(d) R (Programming Language)</h4>
+<ul>
+  <li>Free, open-source statistical programming language.</li>
+  <li>Features:
+    <ul>
+      <li>Rich library of statistical and ML packages (ggplot2, dplyr, caret).</li>
+      <li>Excellent visualization (ggplot2).</li>
+      <li>Strong community and CRAN repository.</li>
+      <li>Used in academia and research.</li>
+    </ul>
+  </li>
+  <li>Best for: statisticians, researchers.</li>
+</ul>
+
+<h4>(e) Python (with libraries)</h4>
+<ul>
+  <li>General-purpose programming language for data science.</li>
+  <li>Key libraries: Pandas, NumPy, scikit-learn, Matplotlib, Seaborn, TensorFlow.</li>
+  <li>Wider use than R for production ML.</li>
+</ul>
+
+<h4>(f) Tableau</h4>
+<ul>
+  <li>Industry-leading visualization tool.</li>
+  <li>Drag-and-drop dashboard creation.</li>
+  <li>Connects to many data sources.</li>
+  <li>Used by Fortune 500 companies.</li>
+</ul>
+
+<h4>(g) Power BI (Microsoft)</h4>
+<ul>
+  <li>Microsoft's BI tool — strong integration with Excel and Office 365.</li>
+  <li>Easy report creation and sharing.</li>
+  <li>Reasonably priced for enterprises.</li>
+</ul>
+
+<h4>(h) QlikView / Qlik Sense</h4>
+<ul>
+  <li>Associative analytics engine.</li>
+  <li>In-memory data processing.</li>
+  <li>Self-service BI.</li>
+</ul>
+
+<h3>4. Comparison of WEKA, KNIME, RapidMiner</h3>
+<table>
+  <tr><th>Tool</th><th>Type</th><th>Strength</th><th>Best for</th></tr>
+  <tr><td>WEKA</td><td>Open-source, Java GUI</td><td>Comprehensive ML algorithms</td><td>Education, research</td></tr>
+  <tr><td>KNIME</td><td>Open-source, visual</td><td>Workflow-based, integrates R/Python</td><td>Business analysts</td></tr>
+  <tr><td>RapidMiner</td><td>Commercial, visual</td><td>Enterprise features, AutoML</td><td>Enterprise data science</td></tr>
+  <tr><td>R</td><td>Programming language</td><td>Statistical analysis, visualization</td><td>Statisticians</td></tr>
+  <tr><td>Python</td><td>Programming language</td><td>General ML + production</td><td>Production data science</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>BI = collect, integrate, analyze, visualize data for decisions.</li>
+    <li>Analytical tools handle: data prep, modeling, visualization, reporting.</li>
+    <li>Major tools: WEKA, KNIME, RapidMiner, R, Python, Tableau, Power BI.</li>
+    <li>WEKA = Java ML; KNIME = visual workflow; RapidMiner = enterprise; R = statistics.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — BI Applications in Logistics and Production</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'24, May'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'25, 6 marks)</b> Explain BI application in Logistics and production.</p>
+    <p><b>(Nov'23, 5 marks)</b> Write a note on: BI Applications in Logistics.</p>
+    <p><b>(May'24, 5 marks)</b> Discuss the use of BI Applications in Logistics and Production.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is Logistics &amp; Production?</h3>
+<ul>
+  <li><b>Logistics</b> = the management of moving goods from suppliers to customers (warehousing, transportation, inventory).</li>
+  <li><b>Production</b> = the process of manufacturing goods.</li>
+</ul>
+
+<h3>2. BI Applications in Logistics</h3>
+
+<h4>(a) Supply Chain Optimization</h4>
+<ul>
+  <li>Analyze the entire chain from supplier to customer.</li>
+  <li>Identify bottlenecks, delays, inefficiencies.</li>
+  <li>Optimize routes and shipping schedules.</li>
+</ul>
+
+<h4>(b) Demand Forecasting</h4>
+<ul>
+  <li>Predict future demand using historical data.</li>
+  <li>Helps avoid stock-outs and over-stocking.</li>
+  <li>Time series models (ARIMA, Prophet).</li>
+</ul>
+
+<h4>(c) Route Optimization</h4>
+<ul>
+  <li>Determine optimal delivery routes using GIS data.</li>
+  <li>Reduces fuel cost and delivery time.</li>
+  <li>Used by FedEx, UPS, Amazon.</li>
+</ul>
+
+<h4>(d) Inventory Management</h4>
+<ul>
+  <li>Track stock levels in real time.</li>
+  <li>Set reorder points based on demand patterns.</li>
+  <li>Reduce holding costs.</li>
+</ul>
+
+<h4>(e) Warehouse Management</h4>
+<ul>
+  <li>Optimize warehouse layout based on item popularity.</li>
+  <li>Predict picking patterns.</li>
+  <li>Improve storage efficiency.</li>
+</ul>
+
+<h4>(f) Fleet Management</h4>
+<ul>
+  <li>Track vehicle performance, fuel consumption.</li>
+  <li>Schedule preventive maintenance.</li>
+  <li>Driver performance analytics.</li>
+</ul>
+
+<h4>(g) Risk Management</h4>
+<ul>
+  <li>Identify potential disruptions (weather, strikes, demand spikes).</li>
+  <li>Plan contingency strategies.</li>
+</ul>
+
+<h3>3. BI Applications in Production</h3>
+
+<h4>(a) Quality Control</h4>
+<ul>
+  <li>Statistical Process Control (SPC) charts.</li>
+  <li>Defect rate monitoring.</li>
+  <li>Root cause analysis.</li>
+</ul>
+
+<h4>(b) Production Planning</h4>
+<ul>
+  <li>Forecast demand to plan production schedules.</li>
+  <li>Capacity planning.</li>
+  <li>Just-In-Time inventory.</li>
+</ul>
+
+<h4>(c) Predictive Maintenance</h4>
+<ul>
+  <li>Use sensor data to predict machine failures.</li>
+  <li>Schedule maintenance before breakdown.</li>
+  <li>Reduce downtime.</li>
+</ul>
+
+<h4>(d) Cost Optimization</h4>
+<ul>
+  <li>Identify high-cost production steps.</li>
+  <li>Reduce waste and energy use.</li>
+  <li>Improve profitability.</li>
+</ul>
+
+<h4>(e) Process Improvement</h4>
+<ul>
+  <li>Use Six Sigma + data analytics to improve processes.</li>
+  <li>Reduce cycle time.</li>
+  <li>Improve productivity.</li>
+</ul>
+
+<h3>4. Benefits</h3>
+<ul>
+  <li>Lower operational costs.</li>
+  <li>Faster delivery times.</li>
+  <li>Higher customer satisfaction.</li>
+  <li>Reduced waste.</li>
+  <li>Better resource utilization.</li>
+  <li>Improved competitive advantage.</li>
+</ul>
+
+<h3>5. Real-world examples</h3>
+<ul>
+  <li><b>Walmart:</b> uses BI for inventory tracking across 11,000+ stores.</li>
+  <li><b>Amazon:</b> uses ML for warehouse robotics and route optimization.</li>
+  <li><b>Toyota:</b> Just-In-Time production driven by BI analytics.</li>
+  <li><b>Maersk:</b> shipping route optimization with predictive analytics.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>BI in Logistics: supply chain, demand forecasting, route optimization, inventory.</li>
+    <li>BI in Production: quality control, planning, predictive maintenance, cost optimization.</li>
+    <li>Benefits: lower costs, faster delivery, less waste.</li>
+    <li>Examples: Walmart, Amazon, Toyota, Maersk.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — ERP and BI</h2>
+<span class="freq-tag">Asked 4 times</span>(Nov'23, May'24, May'25, Nov'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 6 marks)</b> Similarities &amp; differences in ERP and Business Intelligence.</p>
+    <p><b>(May'24 &amp; Nov'25, 5 marks)</b> What are the advantages of BI in ERP.</p>
+    <p><b>(May'25, 6 marks)</b> Explain role of BI in ERP.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definitions</h3>
+<ul>
+  <li><b>ERP (Enterprise Resource Planning)</b> = integrated software suite that manages business processes — finance, HR, sales, manufacturing, inventory — in one system.</li>
+  <li><b>BI (Business Intelligence)</b> = tools and techniques to analyze data and provide insights for decision-making.</li>
+</ul>
+
+<h3>2. Similarities between ERP and BI</h3>
+<ul>
+  <li>Both handle large amounts of business data.</li>
+  <li>Both aim to improve organizational efficiency.</li>
+  <li>Both integrate with multiple departments.</li>
+  <li>Both support decision-making.</li>
+  <li>Both require careful implementation and training.</li>
+</ul>
+
+<h3>3. Differences between ERP and BI</h3>
+<table>
+  <tr><th>Aspect</th><th>ERP</th><th>BI</th></tr>
+  <tr><td>Purpose</td><td>Manage daily operations</td><td>Analyze data and inform decisions</td></tr>
+  <tr><td>Data type</td><td>Transactional (OLTP)</td><td>Analytical (OLAP)</td></tr>
+  <tr><td>Focus</td><td>Process automation</td><td>Insight generation</td></tr>
+  <tr><td>Users</td><td>Operational staff</td><td>Managers, analysts, executives</td></tr>
+  <tr><td>Time horizon</td><td>Real-time / day-to-day</td><td>Historical &amp; predictive</td></tr>
+  <tr><td>Output</td><td>Records, transactions</td><td>Reports, dashboards, insights</td></tr>
+  <tr><td>Examples</td><td>SAP, Oracle EBS, Microsoft Dynamics</td><td>Tableau, Power BI, QlikView</td></tr>
+</table>
+
+<h3>4. Role of BI in ERP</h3>
+<ul>
+  <li>BI extracts data FROM ERP systems for analysis.</li>
+  <li>BI turns ERP's transactional data into actionable insights.</li>
+  <li>BI provides reporting and visualization on top of ERP.</li>
+  <li>BI enables KPIs and dashboards from ERP data.</li>
+  <li>Modern ERPs (SAP S/4HANA, Oracle Cloud) include built-in BI tools.</li>
+</ul>
+
+<h3>5. Advantages of BI in ERP</h3>
+<ol>
+  <li><b>Better decision-making</b> with real-time insights from operations.</li>
+  <li><b>Holistic view</b> across all departments.</li>
+  <li><b>Faster reporting</b> — automate routine reports.</li>
+  <li><b>Identify bottlenecks</b> in business processes.</li>
+  <li><b>Cost reduction</b> by optimizing resource use.</li>
+  <li><b>Improved forecasting</b> for sales, demand, finance.</li>
+  <li><b>Compliance reporting</b> for regulators.</li>
+  <li><b>Performance monitoring</b> with KPIs.</li>
+  <li><b>Customer-centric insights</b> from CRM integration.</li>
+  <li><b>Competitive advantage</b> through data-driven strategy.</li>
+</ol>
+
+<h3>6. Implementation example</h3>
+<ul>
+  <li>A manufacturing company uses SAP ERP for production and finance.</li>
+  <li>BI tool (e.g., Power BI) connects to SAP database.</li>
+  <li>Dashboards show: monthly production, top-selling products, raw material costs, customer profitability.</li>
+  <li>Decision-makers act on these insights.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>ERP = operational system (managing transactions).</li>
+    <li>BI = analytical system (deriving insights).</li>
+    <li>Similarities: handle data, improve efficiency, integrate departments.</li>
+    <li>Differences: ERP is OLTP / real-time / records; BI is OLAP / historical / insights.</li>
+    <li>BI extracts and analyzes data from ERP, enabling decision-making.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — BI in Finance and Marketing</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, May'25, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, May'25, Nov'25, 6 marks)</b> Explain Role of BI in finance and marketing.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. BI in Finance</h3>
+
+<h4>(a) Financial Reporting</h4>
+<ul>
+  <li>Automated generation of income statements, balance sheets.</li>
+  <li>Real-time financial dashboards.</li>
+</ul>
+
+<h4>(b) Budgeting and Forecasting</h4>
+<ul>
+  <li>Predict cash flow, revenue, expenses.</li>
+  <li>Compare actual vs budget.</li>
+</ul>
+
+<h4>(c) Risk Management</h4>
+<ul>
+  <li>Identify credit risk, market risk, operational risk.</li>
+  <li>Use Value-at-Risk (VaR) and Monte Carlo simulations.</li>
+</ul>
+
+<h4>(d) Fraud Detection</h4>
+<ul>
+  <li>Detect unusual transactions using ML.</li>
+  <li>Reduce financial losses.</li>
+</ul>
+
+<h4>(e) Investment Analysis</h4>
+<ul>
+  <li>Analyze stock performance, ROI, portfolio diversification.</li>
+  <li>Algorithmic trading uses real-time BI.</li>
+</ul>
+
+<h4>(f) Compliance and Audit</h4>
+<ul>
+  <li>Monitor regulatory compliance.</li>
+  <li>Automated audit trail.</li>
+</ul>
+
+<h4>(g) Profitability Analysis</h4>
+<ul>
+  <li>Identify high-margin products and customer segments.</li>
+  <li>Optimize pricing.</li>
+</ul>
+
+<h3>2. BI in Marketing</h3>
+
+<h4>(a) Customer Segmentation</h4>
+<ul>
+  <li>Cluster customers by behavior, demographics.</li>
+  <li>Target marketing campaigns.</li>
+</ul>
+
+<h4>(b) Campaign Analysis</h4>
+<ul>
+  <li>Measure ROI of each marketing campaign.</li>
+  <li>Identify which channels work best.</li>
+</ul>
+
+<h4>(c) Market Basket Analysis</h4>
+<ul>
+  <li>Use association rules to recommend products.</li>
+  <li>Increase average order value.</li>
+</ul>
+
+<h4>(d) Sentiment Analysis</h4>
+<ul>
+  <li>Monitor brand reputation on social media.</li>
+  <li>Respond to customer feedback in real time.</li>
+</ul>
+
+<h4>(e) Marketing Mix Optimization</h4>
+<ul>
+  <li>Optimize spend across channels (TV, digital, print).</li>
+  <li>Maximize ROI.</li>
+</ul>
+
+<h4>(f) Price Optimization</h4>
+<ul>
+  <li>Determine optimal pricing using demand elasticity.</li>
+  <li>Dynamic pricing for airlines, hotels, e-commerce.</li>
+</ul>
+
+<h4>(g) Customer Journey Analytics</h4>
+<ul>
+  <li>Track customers from awareness to purchase.</li>
+  <li>Identify drop-off points in funnel.</li>
+</ul>
+
+<h4>(h) A/B Testing</h4>
+<ul>
+  <li>Test different versions of campaigns / web pages.</li>
+  <li>Choose statistically better one.</li>
+</ul>
+
+<h3>3. Benefits of BI in Finance and Marketing</h3>
+<ul>
+  <li>Data-driven decisions instead of gut feel.</li>
+  <li>Reduced fraud and risk.</li>
+  <li>Improved marketing ROI.</li>
+  <li>Better customer targeting.</li>
+  <li>Faster financial close cycles.</li>
+  <li>Higher profitability.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>BI in Finance: reporting, forecasting, risk management, fraud detection, investment.</li>
+    <li>BI in Marketing: segmentation, campaign analysis, market basket, sentiment, A/B testing.</li>
+    <li>Benefits: data-driven decisions, fraud reduction, marketing ROI.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — BI in Telecommunications and Banking</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, May'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'25, 6 marks)</b> Explain applications of BI in telecommunication and banking.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. BI in Telecommunications</h3>
+
+<h4>(a) Churn Prediction</h4>
+<ul>
+  <li>Identify customers likely to switch providers.</li>
+  <li>Telecom industry has very high churn rates.</li>
+  <li>ML models flag at-risk customers for retention offers.</li>
+</ul>
+
+<h4>(b) Network Optimization</h4>
+<ul>
+  <li>Analyze network traffic patterns.</li>
+  <li>Predict where to upgrade infrastructure.</li>
+  <li>Optimize coverage and capacity.</li>
+</ul>
+
+<h4>(c) Customer Segmentation</h4>
+<ul>
+  <li>Group subscribers by usage (heavy data, voice-only, business).</li>
+  <li>Design personalized plans and pricing.</li>
+</ul>
+
+<h4>(d) Call Detail Record (CDR) Analysis</h4>
+<ul>
+  <li>Analyze billions of call/data records.</li>
+  <li>Detect usage patterns, fraud.</li>
+</ul>
+
+<h4>(e) Fraud Detection</h4>
+<ul>
+  <li>Identify SIM cloning, subscription fraud.</li>
+  <li>Real-time alerts for suspicious activity.</li>
+</ul>
+
+<h4>(f) Plan Recommendation</h4>
+<ul>
+  <li>Recommend best plan for each customer.</li>
+  <li>Improve customer satisfaction.</li>
+</ul>
+
+<h4>(g) Predictive Maintenance</h4>
+<ul>
+  <li>Detect tower / equipment failure early.</li>
+  <li>Reduce service disruptions.</li>
+</ul>
+
+<h3>2. BI in Banking</h3>
+
+<h4>(a) Credit Scoring</h4>
+<ul>
+  <li>Determine creditworthiness of loan applicants.</li>
+  <li>ML models (Logistic Regression, XGBoost).</li>
+</ul>
+
+<h4>(b) Fraud Detection</h4>
+<ul>
+  <li>Detect unusual credit card transactions.</li>
+  <li>Real-time alerts and blocking.</li>
+</ul>
+
+<h4>(c) Anti-Money Laundering (AML)</h4>
+<ul>
+  <li>Identify suspicious patterns of transactions.</li>
+  <li>Compliance with regulations.</li>
+</ul>
+
+<h4>(d) Customer 360° View</h4>
+<ul>
+  <li>Combine accounts, loans, cards, investments data.</li>
+  <li>Personalized offers and service.</li>
+</ul>
+
+<h4>(e) Risk Management</h4>
+<ul>
+  <li>Credit risk, market risk, operational risk.</li>
+  <li>Basel III compliance.</li>
+</ul>
+
+<h4>(f) Branch Performance Analysis</h4>
+<ul>
+  <li>Compare performance across branches.</li>
+  <li>Identify under-performing branches.</li>
+</ul>
+
+<h4>(g) Cross-selling and Up-selling</h4>
+<ul>
+  <li>Offer loans to depositors, cards to savings customers.</li>
+  <li>Increase wallet share.</li>
+</ul>
+
+<h4>(h) Customer Lifetime Value</h4>
+<ul>
+  <li>Identify high-value customers for premium service.</li>
+</ul>
+
+<h3>3. Benefits</h3>
+<ul>
+  <li>Reduced fraud losses.</li>
+  <li>Lower churn.</li>
+  <li>Better customer service.</li>
+  <li>Improved compliance.</li>
+  <li>Higher profitability.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>BI in Telecom: churn, network optimization, segmentation, CDR analysis, fraud, plan recommendations.</li>
+    <li>BI in Banking: credit scoring, fraud, AML, customer 360°, risk management, cross-selling.</li>
+    <li>Benefits: less fraud, lower churn, better service, compliance.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — Role of Analytics / Data Analytics in Business</h2>
+<span class="freq-tag">Asked 4 times</span>(Nov'23 ×2, May'24, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23 &amp; Nov'25, 6 marks)</b> State the role of Data Analytics in any business with example.</p>
+    <p><b>(May'24, 6 marks)</b> What is the role of Analytics in BI?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is Data Analytics?</h3>
+<p><b>Data Analytics</b> is the process of examining datasets to draw conclusions about the information they contain. It combines statistics, computer science, and business knowledge.</p>
+
+<h3>2. Four levels of Analytics</h3>
+
+<h4>(a) Descriptive Analytics — "What happened?"</h4>
+<ul>
+  <li>Summarizes past data.</li>
+  <li>Reports, dashboards, KPIs.</li>
+  <li>Example: monthly sales report.</li>
+</ul>
+
+<h4>(b) Diagnostic Analytics — "Why did it happen?"</h4>
+<ul>
+  <li>Investigates causes of events.</li>
+  <li>Drill-down, correlation analysis.</li>
+  <li>Example: why did sales drop last month?</li>
+</ul>
+
+<h4>(c) Predictive Analytics — "What will happen?"</h4>
+<ul>
+  <li>Uses ML to forecast future outcomes.</li>
+  <li>Example: predict next quarter's sales.</li>
+</ul>
+
+<h4>(d) Prescriptive Analytics — "What should we do?"</h4>
+<ul>
+  <li>Recommends actions based on predictions.</li>
+  <li>Optimization, simulation, decision support.</li>
+  <li>Example: optimal pricing strategy for next campaign.</li>
+</ul>
+
+<h3>3. Role of Analytics in Business</h3>
+<ul>
+  <li><b>Data-driven decision making</b> instead of intuition.</li>
+  <li><b>Identify trends and patterns</b> (customer behavior, market shifts).</li>
+  <li><b>Forecast demand</b> for inventory and capacity planning.</li>
+  <li><b>Improve operational efficiency</b> by identifying bottlenecks.</li>
+  <li><b>Customer insights</b> for marketing and CRM.</li>
+  <li><b>Risk management</b> — fraud, credit, market risks.</li>
+  <li><b>Competitive advantage</b> via faster insights.</li>
+  <li><b>Cost reduction</b> through process optimization.</li>
+  <li><b>Revenue growth</b> via better targeting and recommendations.</li>
+  <li><b>Innovation</b> by discovering new product opportunities.</li>
+</ul>
+
+<h3>4. Real-world examples</h3>
+<ul>
+  <li><b>Netflix:</b> recommends content using viewing history → 80% of watched content is recommended.</li>
+  <li><b>Amazon:</b> dynamic pricing changes multiple times per day based on demand data.</li>
+  <li><b>Uber:</b> predicts demand to set surge pricing.</li>
+  <li><b>Zomato/Swiggy:</b> predicts delivery time using traffic and order data.</li>
+  <li><b>Banks:</b> credit scoring done in seconds using analytics.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>4 levels of analytics: Descriptive (what?), Diagnostic (why?), Predictive (will?), Prescriptive (should?).</li>
+    <li>Roles: decision making, trends, forecasting, customer insights, risk, efficiency.</li>
+    <li>Examples: Netflix, Amazon, Uber, banks.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — WEKA, KNIME, RapidMiner, BI in HR</h2>
+<span class="freq-tag">Asked 2 times</span>(May'24)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 6 marks)</b> Write short note on WEKA, Rapid Miner.</p>
+    <p><b>(May'24, 6 marks)</b> Write short note on KNIME, BI and HR management.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. WEKA (recap)</h3>
+<ul>
+  <li>Open-source Java-based ML tool.</li>
+  <li>Developed at University of Waikato.</li>
+  <li>Features: data preprocessing, classification, clustering, association rules, visualization.</li>
+  <li>4 interfaces: Explorer (main GUI), Experimenter (compare algorithms), KnowledgeFlow (visual pipelines), CLI.</li>
+  <li>Best for: academic use and small/medium datasets.</li>
+</ul>
+
+<h3>2. RapidMiner (recap)</h3>
+<ul>
+  <li>Commercial data science platform (free Community Edition).</li>
+  <li>Visual workflow design with 1500+ built-in operators.</li>
+  <li>AutoML capabilities.</li>
+  <li>Integrates with Hadoop, Spark, cloud platforms.</li>
+  <li>Best for: enterprise data science.</li>
+</ul>
+
+<h3>3. KNIME (recap)</h3>
+<ul>
+  <li>Open-source data analytics with visual workflow editor.</li>
+  <li>Drag-and-drop nodes for preprocessing, ML, visualization.</li>
+  <li>Integrates with R, Python, Java.</li>
+  <li>Big data support (Hadoop, Spark).</li>
+  <li>Best for: visual analysts.</li>
+</ul>
+
+<h3>4. BI in HR Management</h3>
+
+<h4>(a) Talent Acquisition</h4>
+<ul>
+  <li>Analyze resumes to find best fits.</li>
+  <li>Predict candidate success.</li>
+  <li>Reduce time-to-hire.</li>
+</ul>
+
+<h4>(b) Employee Retention</h4>
+<ul>
+  <li>Predict which employees are likely to leave.</li>
+  <li>Identify factors (salary, manager, workload).</li>
+  <li>Take proactive retention actions.</li>
+</ul>
+
+<h4>(c) Performance Management</h4>
+<ul>
+  <li>Track individual and team performance.</li>
+  <li>Identify top performers for promotions.</li>
+  <li>Identify underperformers for training.</li>
+</ul>
+
+<h4>(d) Workforce Planning</h4>
+<ul>
+  <li>Predict future hiring needs.</li>
+  <li>Plan succession for key roles.</li>
+  <li>Balance demand and capacity.</li>
+</ul>
+
+<h4>(e) Employee Engagement</h4>
+<ul>
+  <li>Analyze surveys, sentiment.</li>
+  <li>Identify drivers of engagement.</li>
+  <li>Improve work environment.</li>
+</ul>
+
+<h4>(f) Training and Development</h4>
+<ul>
+  <li>Identify skill gaps.</li>
+  <li>Personalize training recommendations.</li>
+  <li>Measure training effectiveness.</li>
+</ul>
+
+<h4>(g) Compensation Analysis</h4>
+<ul>
+  <li>Benchmark salaries against industry.</li>
+  <li>Ensure pay equity.</li>
+  <li>Optimize total rewards.</li>
+</ul>
+
+<h4>(h) Diversity and Inclusion</h4>
+<ul>
+  <li>Track diversity metrics.</li>
+  <li>Identify gaps and improve hiring/promotion practices.</li>
+</ul>
+
+<h3>5. Benefits of BI in HR</h3>
+<ul>
+  <li>Better hiring decisions.</li>
+  <li>Reduced employee turnover.</li>
+  <li>Improved engagement and productivity.</li>
+  <li>Strategic workforce planning.</li>
+  <li>Cost optimization.</li>
+  <li>Compliance with labor laws.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>WEKA = Java open-source ML.</li>
+    <li>RapidMiner = commercial visual workflow platform.</li>
+    <li>KNIME = open-source visual workflow platform.</li>
+    <li>BI in HR: talent acquisition, retention, performance, workforce planning, engagement.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q9">Q9 — Implementing BI Findings in an Organization</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'23 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 6 marks)</b> Comment "How might you implement business intelligence findings within an organization?"</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Steps to implement BI findings</h3>
+<ol>
+  <li><b>Define clear business objectives.</b> What problem do we want BI to solve?</li>
+  <li><b>Identify stakeholders.</b> Who needs the insights? Executives, managers, frontline staff?</li>
+  <li><b>Assess data quality.</b> Clean and consolidate data sources.</li>
+  <li><b>Choose appropriate BI tools.</b> Power BI, Tableau, etc.</li>
+  <li><b>Build a data warehouse.</b> Centralized analytical store.</li>
+  <li><b>Develop dashboards and reports.</b> Tailored to user roles.</li>
+  <li><b>Train users.</b> Ensure adoption.</li>
+  <li><b>Roll out incrementally.</b> Start with one department, expand.</li>
+  <li><b>Measure ROI.</b> Track impact (cost savings, revenue growth).</li>
+  <li><b>Iterate and improve.</b> Continuous feedback and refinement.</li>
+</ol>
+
+<h3>2. Challenges in BI implementation</h3>
+<ul>
+  <li><b>Data quality issues</b> — dirty / missing data.</li>
+  <li><b>Resistance to change</b> — employees prefer old methods.</li>
+  <li><b>Lack of skills</b> — need trained analysts.</li>
+  <li><b>Cost</b> — BI tools and infrastructure.</li>
+  <li><b>Data silos</b> — data scattered across departments.</li>
+  <li><b>Security and privacy</b> — protecting sensitive data.</li>
+  <li><b>Choosing wrong KPIs.</b></li>
+  <li><b>Unrealistic expectations.</b></li>
+</ul>
+
+<h3>3. Success factors</h3>
+<ul>
+  <li>Strong executive sponsorship.</li>
+  <li>Clear business goals and KPIs.</li>
+  <li>High-quality data foundation.</li>
+  <li>User-friendly dashboards.</li>
+  <li>Continuous training and support.</li>
+  <li>Iterative development (start small, scale).</li>
+  <li>Cultural shift toward data-driven decisions.</li>
+</ul>
+
+<h3>4. Example implementation</h3>
+<ul>
+  <li>A retail chain implements BI to reduce stock-outs.</li>
+  <li>Stage 1: connect POS systems to data warehouse.</li>
+  <li>Stage 2: build inventory dashboards for store managers.</li>
+  <li>Stage 3: predictive model for reorder forecasting.</li>
+  <li>Stage 4: train staff on dashboards.</li>
+  <li>Result: stock-outs reduced by 30%, sales up 5%.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>10 implementation steps: objectives → stakeholders → data quality → tools → warehouse → dashboards → training → rollout → ROI → iterate.</li>
+    <li>Challenges: data quality, resistance, skills, cost, silos.</li>
+    <li>Success needs: sponsorship, clear KPIs, training, iterative approach.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>BI in CRM</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓ ×2</td><td>6</td></tr>
+  <tr><td>BI Tools / Analytical tools</td><td>✓ ×2</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>6</td></tr>
+  <tr><td>BI in Logistics &amp; Production</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>4</td></tr>
+  <tr><td>ERP and BI</td><td>—</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>BI in Finance and Marketing</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>3</td></tr>
+  <tr><td>Role of Data Analytics</td><td>—</td><td>✓ ×2</td><td>✓</td><td>—</td><td>✓</td><td>4</td></tr>
+  <tr><td>BI in Telecom &amp; Banking</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>2</td></tr>
+  <tr><td>WEKA / KNIME / RapidMiner / BI in HR</td><td>—</td><td>—</td><td>✓ ×2</td><td>—</td><td>—</td><td>2</td></tr>
+  <tr><td>Implementing BI findings</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>1</td></tr>
+</table>
+
+<h3>Top "3 things to mention" for each topic</h3>
+<ul>
+  <li><b>BI in CRM:</b> segmentation, churn prediction, customer 360° view.</li>
+  <li><b>BI Tools:</b> WEKA (Java ML), KNIME (visual workflow), RapidMiner (enterprise).</li>
+  <li><b>BI in Logistics:</b> supply chain optimization, demand forecasting, route optimization.</li>
+  <li><b>BI in Production:</b> quality control, predictive maintenance, production planning.</li>
+  <li><b>ERP and BI:</b> ERP is operational; BI is analytical; BI extracts insights from ERP data.</li>
+  <li><b>BI in Finance:</b> reporting, fraud detection, risk management.</li>
+  <li><b>BI in Marketing:</b> segmentation, campaign analysis, sentiment analysis.</li>
+  <li><b>BI in Telecom:</b> churn prediction, network optimization, fraud detection.</li>
+  <li><b>BI in Banking:</b> credit scoring, fraud detection, AML compliance.</li>
+  <li><b>BI in HR:</b> talent acquisition, retention prediction, workforce planning.</li>
+</ul>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>BI applications cut across every industry: CRM (retention), Logistics (supply chain), Finance (risk &amp; fraud), Marketing (campaigns), Banking (credit), Telecom (churn), HR (talent). Tools: WEKA, KNIME, RapidMiner, R, Power BI, Tableau.</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  BI Chapter 6 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

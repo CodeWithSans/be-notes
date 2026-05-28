@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HPC — Chapter 6: HPC Applications (Unit VI)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details open>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="Chapter-6.html" class="current">Ch 6 — HPC Applications</a>
+  </details>
+  <details>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="../DL/Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="../DL/Chapter-4.html">Ch 4 — CNN Architectures</a>
+    <a href="../DL/Chapter-5.html">Ch 5 — RNN &amp; Sequence</a>
+    <a href="../DL/Chapter-6.html">Ch 6 — Auto-Encoders &amp; GAN</a>
+  </details>
+  <details>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="../NLP/Chapter-3.html">Ch 3 — Syntax Analysis</a>
+    <a href="../NLP/Chapter-4.html">Ch 4 — Semantic Analysis</a>
+    <a href="../NLP/Chapter-5.html">Ch 5 — Discourse / Pragmatics</a>
+    <a href="../NLP/Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="../BI/Chapter-3.html">Ch 3 — Data Warehousing</a>
+    <a href="../BI/Chapter-4.html">Ch 4 — Data Mining</a>
+    <a href="../BI/Chapter-5.html">Ch 5 — BI Tools &amp; OLAP</a>
+    <a href="../BI/Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>HPC — Chapter 6: High Performance Computing Applications (Unit VI)</h1>
+<p class="meta">
+  Subject Code: 410250 &nbsp;|&nbsp; End-Sem: 02 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q7 or Q8). Highest question-count of any HPC unit.
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — why we parallelize search, sort and apps</a></li>
+    <li><a href="#q1">Q1 — Parallel DFS (asked 4 times)</a></li>
+    <li><a href="#q2">Q2 — Parallel BFS (asked 4 times)</a></li>
+    <li><a href="#q3">Q3 — Parallel Merge Sort (asked 3 times)</a></li>
+    <li><a href="#q4">Q4 — GPU Applications (asked 3 times)</a></li>
+    <li><a href="#q5">Q5 — Issues in Sorting on Parallel Computers (asked 3 times)</a></li>
+    <li><a href="#q6">Q6 — Odd-Even Transposition Bubble Sort (asked 3 times)</a></li>
+    <li><a href="#q7">Q7 — Kubernetes (asked 3 times)</a></li>
+    <li><a href="#q8">Q8 — Communication Strategies in Parallel BFS (asked 2 times)</a></li>
+    <li><a href="#q9">Q9 — Dijkstra's Algorithm in Parallel (asked 1 time)</a></li>
+    <li><a href="#q10">Q10 — Distributed Computing for Document Classification (asked 1 time)</a></li>
+    <li><a href="#q11">Q11 — CRCW PRAM formulation (asked 1 time)</a></li>
+    <li><a href="#q12">Q12 — Compare-Exchange &amp; Compare-Split (asked 1 time)</a></li>
+    <li><a href="#q13">Q13 — Quicksort: Recursive decomposition + Shared vs Message-passing (asked 2 times)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<p>This unit is about <b>real-world applications</b> of parallel computing — how classic algorithms (search, sort) are made parallel, and how distributed-computing frameworks like Kubernetes and GPU-based deep learning run massive workloads. It is the highest-scoring unit by question count in past papers.</p>
+
+<h3>Scope of Parallel Computing — where do we use it?</h3>
+<ul>
+  <li><b>Scientific computing</b> — weather, climate, molecular dynamics, astrophysics.</li>
+  <li><b>AI / ML</b> — training huge neural networks, running inference at scale.</li>
+  <li><b>Big-data analytics</b> — log analysis, search indexing, recommendation systems.</li>
+  <li><b>Computer graphics / vision</b> — ray-tracing, real-time rendering, autonomous driving.</li>
+  <li><b>Cryptography</b> — password cracking, blockchain mining.</li>
+  <li><b>Engineering simulations</b> — finite element analysis, computational fluid dynamics.</li>
+  <li><b>Medical imaging</b> — CT/MRI reconstruction, genome sequencing.</li>
+  <li><b>Real-time systems</b> — autonomous driving, robotics, IoT data processing.</li>
+</ul>
+
+<h3>Why parallel computing is essential today</h3>
+<ul>
+  <li>Single-CPU clock speed has plateaued (~3–4 GHz due to heat limits).</li>
+  <li>Data sizes are exploding (TB → PB → EB scale).</li>
+  <li>Modern hardware = multi-core CPUs, GPUs, clusters — must be exploited.</li>
+</ul>
+
+<hr>
+
+<h2 id="q1">Q1 — Parallel Depth-First Search (DFS)</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, May'24, May'25, Nov'25 — usually 4–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Explain Parallel Depth First Search algorithm in detail.</p>
+    <p><b>(May'24, 6 marks)</b> Explain Parallel Depth First Search algorithm in detail.</p>
+    <p><b>(May'25, 9 marks)</b> Modify DFS for parallel execution and analyze its complexity.</p>
+    <p><b>(Nov'25, 4 marks)</b> Explain Parallel Depth First Search algorithm in detail.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine searching for a missing person in a huge forest. ONE search party (sequential DFS) walks deep along one trail, hits a dead end, backtracks, tries another trail. Slow! Many search parties (parallel DFS) split up — each party takes a different sub-area. When one party finishes its area, it asks another (still-busy) party to share some of its remaining unsearched trails. They keep working until everyone is simultaneously idle (= search complete).
+</div>
+
+<h3>1. Sequential DFS recap</h3>
+<ul>
+  <li>Use a stack; start from a root node.</li>
+  <li>Explore deeply along one branch until a dead end.</li>
+  <li>Backtrack and try the next branch.</li>
+  <li>Complexity: O(V + E) where V = vertices, E = edges.</li>
+</ul>
+
+<h3>2. Why parallelize DFS?</h3>
+<ul>
+  <li>State-space search (puzzles, satisfiability, game-tree search) has HUGE trees — billions of nodes.</li>
+  <li>Different processors can explore DIFFERENT subtrees simultaneously.</li>
+  <li>Speedup can be near-linear if the work is well-balanced.</li>
+</ul>
+
+<h3>3. The challenge: search tree shape is unknown</h3>
+<ul>
+  <li>We cannot statically divide the tree — some subtrees are huge, others tiny.</li>
+  <li>Static splitting → some processors finish quickly and sit idle, others struggle with huge subtrees.</li>
+  <li>Solution: <b>dynamic load balancing</b>.</li>
+</ul>
+
+<h3>4. Parallel DFS algorithm with dynamic load balancing</h3>
+<ol>
+  <li>Initially, processor 0 starts with the root node on its stack; all other processors are idle.</li>
+  <li>When a processor's stack becomes empty, it sends a "work request" to another (busy) processor (called the "donor").</li>
+  <li>The donor splits its remaining stack into two halves and sends one half to the requester.</li>
+  <li>Both processors continue DFS on their own portions.</li>
+  <li>The search ends when all processors are simultaneously idle (need a termination-detection algorithm).</li>
+</ol>
+
+<h3>5. Work-splitting strategies</h3>
+<ul>
+  <li><b>Stack splitting:</b> donor splits its stack in half (top or alternate entries).</li>
+  <li><b>Half-split with cutoff:</b> send only entries above a certain depth threshold (they have bigger subtrees).</li>
+  <li><b>Recursive halving:</b> repeatedly split the stack as more idle processors request work.</li>
+</ul>
+
+<h3>6. Strategies for selecting a "donor" processor</h3>
+<ul>
+  <li><b>Random polling</b> — requester picks a random processor and asks.</li>
+  <li><b>Asynchronous round-robin</b> — each requester maintains a pointer; asks next processor in order.</li>
+  <li><b>Global round-robin</b> — a central counter decides the next donor.</li>
+</ul>
+
+<h3>7. Termination detection (the tricky part)</h3>
+<ul>
+  <li>How do we know all processors are <b>really</b> idle and no new work is in transit?</li>
+  <li><b>Dijkstra's token termination algorithm:</b> a token circulates among processors. If it returns "white" after a full round with no new work generated, the search terminates.</li>
+  <li>Other methods: spanning-tree-based detection, four-counter algorithm.</li>
+</ul>
+
+<h3>8. Complexity</h3>
+<ul>
+  <li>Sequential DFS: O(V + E).</li>
+  <li>Parallel DFS with p processors: ideally O((V + E)/p), but actual depends on load balancing efficiency.</li>
+  <li>Communication overhead grows with number of work-stealing requests.</li>
+  <li>Best speedup when search tree is huge and reasonably balanced.</li>
+</ul>
+
+<h3>9. Applications of Parallel DFS</h3>
+<ul>
+  <li>AI search problems (puzzles like 8-puzzle, n-queens, Sudoku).</li>
+  <li>SAT solvers (satisfiability problems).</li>
+  <li>Game-tree search (chess, Go).</li>
+  <li>Graph traversal in distributed systems.</li>
+  <li>Topological sort in parallel.</li>
+  <li>Pathfinding in robotics.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Sequential DFS = O(V + E); Parallel DFS ≈ O((V + E)/p) with good load balancing.</li>
+    <li>Use dynamic load balancing — static splitting fails because tree is unknown.</li>
+    <li>Work-stealing: idle processor requests work from a busy "donor".</li>
+    <li>Donor splits its stack (stack splitting / half-split with cutoff).</li>
+    <li>Termination detection via Dijkstra's token algorithm.</li>
+    <li>Used in AI search, SAT solvers, game-tree search, graph algorithms.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — Parallel Breadth-First Search (BFS)</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, May'24, May'25, Nov'25 — usually 4–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 4 marks)</b> Explain parallel BFS algorithm in brief.</p>
+    <p><b>(May'24, 6 marks)</b> Explain BFS for parallel execution &amp; analyze its complexity.</p>
+    <p><b>(May'25, 4 marks)</b> Write a short note on Parallel BFS.</p>
+    <p><b>(Nov'25, 6 marks)</b> Explain communication strategies for parallel BFS.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine emergency workers searching a flooded building floor-by-floor. They first check the entrance (level 0), then all rooms reachable in 1 step (level 1), then all reachable in 2 steps (level 2), and so on. Parallel BFS lets MANY teams check different rooms of the SAME LEVEL at the same time, then everyone synchronizes before moving to the next level.
+</div>
+
+<h3>1. Sequential BFS recap</h3>
+<ul>
+  <li>Use a queue; start from a source node.</li>
+  <li>Visit all nodes at distance 1 first, then distance 2, etc. (level-order traversal).</li>
+  <li>Complexity: O(V + E).</li>
+</ul>
+
+<h3>2. Parallel idea — Level-Synchronous BFS</h3>
+<ul>
+  <li>All processors work TOGETHER on ONE level (frontier) at a time.</li>
+  <li>At level k, the frontier = set of nodes just discovered.</li>
+  <li>The frontier is divided among processors — each processor explores its share of nodes.</li>
+  <li>Their unvisited neighbours form the NEXT frontier.</li>
+  <li>A barrier synchronization ensures all processors finish level k before moving to level k+1.</li>
+</ul>
+
+<h3>3. Algorithm sketch</h3>
+<pre>
+Frontier F = {source}
+level = 0
+while F is not empty:
+    parallel for each v in F:
+        for each neighbour u of v:
+            if u not visited:
+                mark u visited
+                add u to NewFrontier
+                dist[u] = level + 1
+    barrier_sync_all_processors()
+    F = NewFrontier
+    NewFrontier = empty
+    level = level + 1
+</pre>
+
+<h3>4. Complexity</h3>
+<ul>
+  <li>Sequential BFS: O(V + E).</li>
+  <li>Parallel BFS: O((V + E)/p + diameter · log p), approximately.</li>
+  <li>The <code>diameter · log p</code> term comes from synchronization between levels.</li>
+  <li>Best speedup on graphs with small diameter (well-connected).</li>
+</ul>
+
+<h3>5. Challenges in parallel BFS</h3>
+<ul>
+  <li><b>Load imbalance</b> — some processors may get bigger sub-frontiers than others.</li>
+  <li><b>Duplicate work</b> — two processors may discover the same node and try to add it.</li>
+  <li><b>Synchronization cost</b> — barrier after every level can be expensive.</li>
+  <li><b>Communication overhead</b> — newly-discovered nodes must be sent to the right processor.</li>
+</ul>
+
+<h3>6. Applications</h3>
+<ul>
+  <li>Shortest-path finding in unweighted graphs.</li>
+  <li>Social network analysis (degrees of separation).</li>
+  <li>Web crawling.</li>
+  <li>Network broadcasting.</li>
+  <li>Topological analysis of road / electrical networks.</li>
+  <li>Iterative deepening in AI search.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Sequential BFS = O(V + E); Parallel BFS ≈ O((V + E)/p + diameter · log p).</li>
+    <li>Level-synchronous: all processors work on one frontier, then barrier-sync before next level.</li>
+    <li>Challenges: load imbalance, duplicate detection, synchronization, communication.</li>
+    <li>Best on small-diameter (well-connected) graphs.</li>
+    <li>Used in shortest paths, social networks, web crawling.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — Parallel Merge Sort</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, May'24, Nov'25 — usually 4–8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 8 marks)</b> Write short notes on: i) Parallel Merge sort  ii) GPU applications.</p>
+    <p><b>(May'24, 8 marks)</b> Compare an algorithm for sequential and parallel Merge sort. Analyze the complexity for the same.</p>
+    <p><b>(Nov'25, 8 marks)</b> Write short notes on: i) Parallel Merge Sort  ii) GPU Applications.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine sorting 1000 exam papers by roll number. ONE teacher (sequential merge sort) divides the pile in half, sorts each half, then merges them — slow. p TEACHERS (parallel merge sort) each take 1000/p papers, sort their own pile independently, then pair up and merge their sorted piles, then those pairs pair up, until all 1000 are merged into one sorted pile.
+</div>
+
+<h3>1. Sequential Merge Sort recap</h3>
+<ul>
+  <li>Divide-and-conquer algorithm.</li>
+  <li>Split array into two halves, recursively sort each half, then merge them.</li>
+  <li>Complexity: O(n log n).</li>
+  <li>Stable and not in-place.</li>
+</ul>
+
+<h3>2. Parallel Merge Sort — the idea</h3>
+<ol>
+  <li><b>Divide:</b> distribute the unsorted array among p processors. Each gets n/p elements.</li>
+  <li><b>Local sort:</b> each processor sorts its own n/p elements using sequential merge sort. Time = O((n/p) log(n/p)).</li>
+  <li><b>Pairwise merge:</b> in log p rounds, pairs of processors merge their sorted runs. Active processors halve each round.</li>
+  <li><b>Final result:</b> after log p rounds, one processor holds the fully sorted array.</li>
+</ol>
+
+<h3>3. Algorithm pseudo-code</h3>
+<pre>
+Algorithm PARALLEL_MERGE_SORT (A, p):
+   // distribute A in chunks of n/p to each processor
+   each processor i locally sorts its chunk → produces sorted run R[i]
+
+   active_set = {0, 1, ..., p-1}
+   for round = 1 to log p:
+       for each pair (i, j) in active_set:
+           processor i merges R[i] and R[j] into new R[i]
+           processor j becomes inactive
+       active_set = active_set \ inactive
+   end
+   // Now R[0] contains the fully sorted array
+</pre>
+
+<h3>4. Complexity analysis</h3>
+<ul>
+  <li><b>Local sort:</b> O((n/p) log(n/p)).</li>
+  <li><b>Merge rounds:</b> log p rounds; each round merges sorted runs of growing size.</li>
+  <li>Round r: each merge takes O(2^(r-1) · n/p) time.</li>
+  <li>Total merge time = O((n/p) · log p).</li>
+  <li><b>Total parallel time:</b> T<sub>p</sub> = O((n/p) log n).</li>
+  <li><b>Speedup:</b> ≈ p (when n ≫ p).</li>
+  <li>Cost = p · T<sub>p</sub> = O(n log n) — same as sequential, so cost-optimal.</li>
+</ul>
+
+<h3>5. Comparison: Sequential vs Parallel Merge Sort</h3>
+<table>
+  <tr><th>Aspect</th><th>Sequential</th><th>Parallel</th></tr>
+  <tr><td>Processors used</td><td>1</td><td>p</td></tr>
+  <tr><td>Local sort</td><td>n log n</td><td>(n/p) log (n/p)</td></tr>
+  <tr><td>Merge phase</td><td>log n levels, sequential</td><td>log p levels, parallel pairs</td></tr>
+  <tr><td>Total time</td><td>O(n log n)</td><td>O((n/p) log n)</td></tr>
+  <tr><td>Speedup</td><td>—</td><td>Up to O(p)</td></tr>
+  <tr><td>Communication</td><td>None</td><td>O(n) per merge round</td></tr>
+  <tr><td>Memory</td><td>O(n)</td><td>O(n) total, O(n/p) per processor</td></tr>
+</table>
+
+<h3>6. Variants</h3>
+<ul>
+  <li><b>Bitonic merge sort</b> — uses a fixed network of comparators; ideal for hardware.</li>
+  <li><b>Sample sort</b> — sample pivot elements first to ensure balanced partitions.</li>
+  <li><b>Parallel multi-way merge</b> — instead of pairing, merge multiple runs at once.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Sequential: O(n log n); Parallel: O((n/p) log n).</li>
+    <li>3 phases: distribute → local sort → pairwise merge (log p rounds).</li>
+    <li>Cost-optimal: total cost = O(n log n) = sequential cost.</li>
+    <li>Speedup ≈ p when n ≫ p.</li>
+    <li>Stable, requires O(n) extra space.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — GPU Applications</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, May'24, Nov'25 — usually 4–8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'25, 8 marks)</b> Write short notes on: ii) GPU applications.</p>
+    <p><b>(May'24, 4 marks)</b> Write short note on GPU Applications.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<p>GPUs are no longer used only for graphics — they are now general-purpose accelerators for any task that can be broken into thousands of similar small computations. This is called <b>GPGPU (General-Purpose computing on GPU)</b>.</p>
+
+<h3>1. Major application areas</h3>
+
+<h4>(a) Deep Learning</h4>
+<ul>
+  <li>Training and inference of neural networks (CNNs, RNNs, Transformers).</li>
+  <li>Frameworks: TensorFlow, PyTorch — built on CUDA / cuDNN.</li>
+  <li>Models like GPT, BERT, ResNet are trained on GPU clusters.</li>
+  <li>10–100× faster than CPU training.</li>
+</ul>
+
+<h4>(b) Scientific Simulations</h4>
+<ul>
+  <li>Molecular dynamics, drug discovery.</li>
+  <li>Climate and weather forecasting.</li>
+  <li>Computational fluid dynamics (CFD).</li>
+  <li>Astrophysical simulations (n-body, galaxy formation).</li>
+</ul>
+
+<h4>(c) Image and Video Processing</h4>
+<ul>
+  <li>Real-time filters, color correction.</li>
+  <li>Video encoding/decoding (H.264, H.265, AV1).</li>
+  <li>Super-resolution and AI upscaling.</li>
+  <li>Medical imaging — CT/MRI reconstruction.</li>
+</ul>
+
+<h4>(d) Computer Vision</h4>
+<ul>
+  <li>Object detection (YOLO, SSD).</li>
+  <li>Face recognition, license-plate recognition.</li>
+  <li>Autonomous driving perception (lane detection, obstacle detection).</li>
+</ul>
+
+<h4>(e) Cryptography and Mining</h4>
+<ul>
+  <li>Password cracking (brute-force, dictionary).</li>
+  <li>Hashing (SHA-256 for Bitcoin, Ethash for Ethereum).</li>
+  <li>Encryption acceleration.</li>
+</ul>
+
+<h4>(f) Financial Modelling</h4>
+<ul>
+  <li>Monte Carlo simulations for option pricing.</li>
+  <li>Risk analysis (value-at-risk computations).</li>
+  <li>High-frequency trading algorithms.</li>
+</ul>
+
+<h4>(g) Bioinformatics</h4>
+<ul>
+  <li>DNA sequence alignment (BLAST on GPU).</li>
+  <li>Protein folding simulations (AlphaFold).</li>
+  <li>Genomic data analysis.</li>
+</ul>
+
+<h4>(h) Ray-Tracing and 3D Rendering</h4>
+<ul>
+  <li>Real-time rendering in games (NVIDIA RTX, hardware ray-tracing).</li>
+  <li>Offline rendering for movies (Pixar, Disney).</li>
+  <li>Virtual reality (VR) and augmented reality (AR).</li>
+</ul>
+
+<h4>(i) Database query acceleration</h4>
+<ul>
+  <li>GPU-accelerated SQL (BlazingSQL, RAPIDS cuDF).</li>
+  <li>Real-time analytics on huge datasets.</li>
+</ul>
+
+<h4>(j) Engineering simulations</h4>
+<ul>
+  <li>Finite Element Analysis (FEA) for structural mechanics.</li>
+  <li>Crash simulations for automotive design.</li>
+  <li>Electromagnetic field simulation.</li>
+</ul>
+
+<h3>2. Why GPUs win in these applications</h3>
+<ul>
+  <li>Thousands of CUDA cores → ideal for data-parallel workloads.</li>
+  <li>Very high memory bandwidth (GDDR6 / HBM2).</li>
+  <li>Mature software stack (CUDA, cuDNN, cuBLAS, TensorRT).</li>
+  <li>Hardware specifically designed for SIMD/SIMT execution.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Top 3: Deep learning, scientific simulation, image/video processing.</li>
+    <li>Other big uses: cryptography, finance, bioinformatics, computer vision, rendering.</li>
+    <li>GPUs win because of massive parallelism, high bandwidth, mature libraries.</li>
+    <li>Whenever a problem is data-parallel + compute-heavy, GPU is the right answer.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Issues in Sorting on Parallel Computers</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, May'24, Nov'25 — usually 6–8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'25, 6 marks)</b> What are the issues in sorting on parallel computers? Explain with appropriate example.</p>
+    <p><b>(May'24, 8 marks)</b> What are the issues in sorting on parallel computers, explain with example?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<p>Sorting in serial is well-understood: pick an algorithm (quicksort, mergesort, etc.) and run it. In parallel, several extra challenges arise that don't exist in the serial case.</p>
+
+<h3>1. Where do input elements live? Where should sorted output live?</h3>
+<ul>
+  <li>In serial sorting, data sits in one CPU's memory.</li>
+  <li>In parallel sorting, data is DISTRIBUTED across many processors' memories.</li>
+  <li>Decisions to make:
+    <ul>
+      <li>Are inputs already distributed, or held centrally?</li>
+      <li>Should sorted output be on ONE processor, or distributed across all in sorted-order ranges?</li>
+    </ul>
+  </li>
+  <li>Two common output schemes:
+    <ul>
+      <li><b>Sorted in order on processors:</b> P0 holds smallest values, P_{p-1} holds largest.</li>
+      <li><b>Locally sorted</b> on each processor, no global order between processors.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>2. How do we compare elements on different processors?</h3>
+<ul>
+  <li>Comparing two elements on the same processor is fast.</li>
+  <li>Comparing across processors requires communication — far slower.</li>
+  <li>Two primitive operations are used: <b>compare-exchange</b> and <b>compare-split</b> (see Q12).</li>
+</ul>
+
+<h3>3. Load balancing</h3>
+<ul>
+  <li>Some algorithms (like quicksort) split data based on a pivot — bad pivot choice can give very uneven partitions.</li>
+  <li>Some processors get a tiny share and finish early; others struggle with huge shares.</li>
+  <li>Mitigations: pivot sampling, median-of-medians, sample sort.</li>
+</ul>
+
+<h3>4. Communication cost can dominate computation</h3>
+<ul>
+  <li>Sorting is comparison-bound serially (O(n log n) work).</li>
+  <li>In parallel, EVERY comparison across processors involves communication.</li>
+  <li>For small n or slow networks, communication time exceeds computation time → no speedup.</li>
+</ul>
+
+<h3>5. Stability</h3>
+<ul>
+  <li>A sort is <b>stable</b> if it preserves the relative order of equal elements.</li>
+  <li>Preserving stability is harder when data is distributed (have to track original indices).</li>
+</ul>
+
+<h3>6. Number of processors vs input size</h3>
+<ul>
+  <li>If p = n (one element per processor): can use compare-exchange-based algorithms (odd-even, bitonic).</li>
+  <li>If p &lt; n (multiple elements per processor): use compare-split, hybrid algorithms.</li>
+  <li>If p &gt; n: extra processors sit idle.</li>
+</ul>
+
+<h3>7. Choosing the right algorithm depends on:</h3>
+<ul>
+  <li>Network topology (mesh, hypercube, ring).</li>
+  <li>Distributed vs shared memory.</li>
+  <li>Available primitives (sort networks, MPI collectives).</li>
+  <li>Data size n vs processor count p.</li>
+</ul>
+
+<h3>8. Example — bubble sort on parallel computers</h3>
+<ul>
+  <li>Sequential bubble sort is O(n²) and inherently serial (depends on previous comparisons).</li>
+  <li>The parallel adaptation is "odd-even transposition sort" — alternates odd-pair and even-pair compare-exchanges.</li>
+  <li>With n processors, it runs in n steps — speedup of n (excellent if n processors are available).</li>
+  <li>With p &lt; n, we use compare-split versions and the algorithm runs in O((n/p) log² (n/p)) time.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Issues: data distribution, comparison across processors, load balancing, communication cost.</li>
+    <li>Stability is harder to maintain in parallel.</li>
+    <li>Algorithm choice depends on n vs p, topology, and memory model.</li>
+    <li>Primitives: compare-exchange (p = n), compare-split (p &lt; n).</li>
+    <li>Communication cost often dominates computation for sorting.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — Odd-Even Transposition Bubble Sort</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, May'25, Nov'25 — usually 4–8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 8 marks)</b> Explain odd-even transportation in bubble sort using parallel formulation. Give one stepwise example solution using odd-even transportation.</p>
+    <p><b>(May'25, 6 marks)</b> Explain odd-even transportation in bubble sort using suitable example.</p>
+    <p><b>(Nov'25, 4 marks)</b> Explain odd-even transportation on bubble sort using parallel formulation.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Sequential bubble sort compares each adjacent pair one at a time — slow. Odd-even transposition compares ALL odd-positioned pairs at the SAME TIME, then ALL even-positioned pairs at the SAME TIME. This way, n processors finish sorting in n phases instead of n² steps.
+</div>
+
+<h3>1. Why we need odd-even transposition</h3>
+<ul>
+  <li>Sequential bubble sort is O(n²) and inherently serial (each comparison depends on the previous).</li>
+  <li>Odd-even transposition is the PARALLEL adaptation that breaks this dependency.</li>
+  <li>Uses n processors, runs in n phases, total O(n) parallel time.</li>
+</ul>
+
+<h3>2. The two alternating phases</h3>
+<ul>
+  <li><b>Odd phase:</b> compare pairs at positions (1,2), (3,4), (5,6), …
+      All these pairs compare-exchange SIMULTANEOUSLY (no overlap).</li>
+  <li><b>Even phase:</b> compare pairs at positions (0,1), (2,3), (4,5), …
+      Again, all simultaneously.</li>
+  <li>Alternate odd, even, odd, even, … for n total phases.</li>
+</ul>
+
+<h3>3. Why it works (theoretical guarantee)</h3>
+<ul>
+  <li>Theorem: after n alternating phases of odd-even transposition on n elements, the array is sorted.</li>
+  <li>n/2 odd phases + n/2 even phases = n total phases.</li>
+</ul>
+
+<h3>4. Stepwise example (n = 4 elements: [4, 2, 3, 1])</h3>
+<pre>
+Initial:  [4, 2, 3, 1]
+          P0 P1 P2 P3
+
+Phase 1 (Odd pairs: P0-P1, P2-P3):
+   Compare(4, 2) → swap.  Compare(3, 1) → swap.
+   →  [2, 4, 1, 3]
+
+Phase 2 (Even pairs: P1-P2):
+   Compare(4, 1) → swap.
+   →  [2, 1, 4, 3]
+
+Phase 3 (Odd pairs: P0-P1, P2-P3):
+   Compare(2, 1) → swap.  Compare(4, 3) → swap.
+   →  [1, 2, 3, 4]
+
+Phase 4 (Even pairs: P1-P2):
+   Compare(2, 3) → no swap.
+   →  [1, 2, 3, 4]    ✓ Sorted
+</pre>
+
+<h3>5. Algorithm (compare-exchange version, one element per processor)</h3>
+<pre>
+Algorithm ODD_EVEN_TRANSPOSITION (my_id, my_value, n):
+   for step = 1 to n:
+       if step is odd:
+           if my_id is odd and my_id &lt; n - 1:
+               compare-exchange with neighbour (my_id + 1)
+       else:   // even step
+           if my_id is even and my_id &lt; n - 1:
+               compare-exchange with neighbour (my_id + 1)
+   end for
+</pre>
+
+<h3>6. Compare-split version (when p &lt; n, multiple elements per processor)</h3>
+<ul>
+  <li>Each processor first locally sorts its n/p elements using e.g. quicksort.</li>
+  <li>Then odd/even-phase compare-SPLIT operations between adjacent processors:
+    <ul>
+      <li>Each sends its n/p sorted elements to neighbour.</li>
+      <li>Both merge → 2 · n/p sorted; lower-numbered keeps smaller half, higher keeps larger half.</li>
+    </ul>
+  </li>
+  <li>After p phases, the entire distributed array is sorted.</li>
+</ul>
+
+<h3>7. Complexity</h3>
+<ul>
+  <li><b>With p = n (1 element per processor):</b> T<sub>p</sub> = O(n).
+      Sequential bubble: O(n²). Speedup ≈ n.</li>
+  <li><b>With p &lt; n (compare-split):</b>
+      Local sort: O((n/p) log(n/p)). p phases of compare-split, each O(n/p).
+      Total: O((n/p) log(n/p) + n).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Parallel version of bubble sort.</li>
+    <li>Alternates ODD-pair and EVEN-pair compare-exchanges in phases.</li>
+    <li>n phases total → O(n) time with n processors.</li>
+    <li>n/2 odd phases + n/2 even phases = n phases.</li>
+    <li>Compare-split version for p &lt; n: local sort + p phases of merge-split.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — Kubernetes</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, May'24, Nov'25 — usually 4 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 4 marks)</b> What is Kubernetes? Explain its features and applications.</p>
+    <p><b>(May'24, 4 marks)</b> Write short note on Kubernetes.</p>
+    <p><b>(Nov'25, 4 marks)</b> What is Kubernetes? Explain its features and applications.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine you run 100 restaurants in different cities. You need to make sure each restaurant has the right number of cooks, that crashed cooks are replaced automatically, that customers are routed to whichever restaurant is closest, and that updates to the menu are rolled out smoothly. <b>Kubernetes</b> is the "manager" that does all this for containerized software applications — automatically.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Kubernetes (K8s)</b> is an open-source container orchestration platform for automating deployment, scaling, and management of containerized applications across clusters of machines. Originally developed by Google, now maintained by the Cloud Native Computing Foundation (CNCF).</p>
+
+<h3>2. Key terminology</h3>
+<ul>
+  <li><b>Container</b> — a lightweight package containing an application + its dependencies (usually built with Docker).</li>
+  <li><b>Pod</b> — the smallest deployable unit in Kubernetes; contains one or more containers sharing storage and network.</li>
+  <li><b>Node</b> — a worker machine (VM or physical) where pods run.</li>
+  <li><b>Cluster</b> — a set of nodes managed together.</li>
+  <li><b>Master / Control Plane</b> — schedules pods, runs the API server and controllers.</li>
+  <li><b>Service</b> — a stable network endpoint exposing a set of pods.</li>
+  <li><b>Deployment</b> — declarative description of how many pods of a given type should run.</li>
+  <li><b>Namespace</b> — virtual partition of a cluster for isolating different applications or teams.</li>
+</ul>
+
+<h3>3. Architecture diagram (text)</h3>
+<pre>
+                ┌────────── Kubernetes Cluster ──────────┐
+                │                                          │
+                │    ┌────── Control Plane (master) ────┐ │
+                │    │  API Server, Scheduler,           │ │
+                │    │  Controller Manager, etcd         │ │
+                │    └─────────────┬─────────────────────┘ │
+                │                  │                       │
+                │   ┌────── Worker Nodes ───────────────┐ │
+                │   │  ┌─────┐  ┌─────┐  ┌─────┐         │ │
+                │   │  │Node1│  │Node2│  │Node3│   ...   │ │
+                │   │  │┌───┐│  │┌───┐│  │┌───┐│         │ │
+                │   │  ││Pod││  ││Pod││  ││Pod││         │ │
+                │   │  │└───┘│  │└───┘│  │└───┘│         │ │
+                │   │  └─────┘  └─────┘  └─────┘         │ │
+                │   └──────────────────────────────────────┘ │
+                └────────────────────────────────────────────┘
+</pre>
+
+<h3>4. Main features of Kubernetes (memorize 6–9 of these)</h3>
+<ol>
+  <li><b>Automatic scaling</b> — Horizontal Pod Autoscaler adds/removes pods based on CPU/memory usage.</li>
+  <li><b>Self-healing</b> — automatically restarts crashed containers, replaces unhealthy pods, reschedules on failed nodes.</li>
+  <li><b>Load balancing</b> — distributes incoming traffic across pod replicas.</li>
+  <li><b>Service discovery</b> — pods can find each other via DNS or environment variables.</li>
+  <li><b>Rolling updates and rollbacks</b> — deploy new versions of an app without downtime; roll back if something goes wrong.</li>
+  <li><b>Storage orchestration</b> — auto-mount persistent volumes (cloud disks, NFS, iSCSI).</li>
+  <li><b>Secret and configuration management</b> — secure handling of API keys, passwords, env config.</li>
+  <li><b>Declarative configuration</b> — describe desired state in YAML files; K8s makes the actual state match.</li>
+  <li><b>Multi-cloud / on-prem portability</b> — runs on AWS, Azure, GCP, on-prem data centers.</li>
+  <li><b>Batch execution</b> — runs one-time jobs and scheduled CronJobs.</li>
+  <li><b>IPv4/IPv6 dual stack</b>, network policies for security.</li>
+</ol>
+
+<h3>5. Applications of Kubernetes</h3>
+<ul>
+  <li><b>Microservices deployment</b> — each microservice in its own pod; communicate via Services.</li>
+  <li><b>Machine learning pipelines</b> — Kubeflow for distributed model training and serving.</li>
+  <li><b>Big-data processing</b> — Spark on Kubernetes, distributed analytics.</li>
+  <li><b>CI/CD pipelines</b> — Jenkins X, Argo CD use K8s for continuous deployment.</li>
+  <li><b>Web application hosting at scale</b> — companies like Netflix, Spotify, Airbnb use K8s.</li>
+  <li><b>Edge computing</b> — lightweight K3s variant for IoT and edge devices.</li>
+  <li><b>Hybrid cloud deployments</b> — same app runs across on-prem and multiple clouds.</li>
+  <li><b>Serverless platforms</b> — Knative, OpenFaaS run on top of K8s.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>K8s = open-source container orchestration platform (by Google, now CNCF).</li>
+    <li>Smallest unit = Pod; runs on Nodes; managed by Control Plane.</li>
+    <li>3 features always to mention: <b>auto-scaling, self-healing, rolling updates</b>.</li>
+    <li>Other features: load balancing, service discovery, storage orchestration, declarative config.</li>
+    <li>Applications: microservices, ML pipelines (Kubeflow), CI/CD, big-data (Spark on K8s).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — Communication Strategies in Parallel BFS</h2>
+<span class="freq-tag">Asked 2 times</span>(May'25, Nov'25 — usually 5–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 9 marks)</b> Write a note on:
+       i) Random Communication Strategy  ii) Ring Communication Strategy  iii) Blackboard Communication Strategy.</p>
+    <p><b>(Nov'25, 6 marks)</b> Explain communication strategies for parallel BFS.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<p>When BFS runs on a distributed-memory parallel system, processors must coordinate to avoid duplicate work and to share newly-discovered nodes efficiently. Three standard communication strategies are used.</p>
+
+<h3>1. Random Communication Strategy</h3>
+<ul>
+  <li>When a processor finds a new node, it sends the discovery to a <b>randomly chosen</b> processor.</li>
+  <li>The random target is responsible for deciding whether the node is new and adding it to its next-level frontier.</li>
+  <li><b>Pros:</b>
+    <ul>
+      <li>Spreads load evenly on average.</li>
+      <li>Simple to implement.</li>
+      <li>No hotspots over time.</li>
+    </ul>
+  </li>
+  <li><b>Cons:</b>
+    <ul>
+      <li>May produce duplicate notifications (two processors discover the same node).</li>
+      <li>Unpredictable communication pattern.</li>
+      <li>Hard to debug.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>2. Ring Communication Strategy</h3>
+<ul>
+  <li>Processors are arranged in a logical ring.</li>
+  <li>Each processor passes newly-discovered nodes only to its <b>immediate neighbour</b> in the ring.</li>
+  <li>Discoveries propagate around the ring step by step.</li>
+  <li><b>Pros:</b>
+    <ul>
+      <li>Simple, deterministic, low overhead per round.</li>
+      <li>Easy to implement and debug.</li>
+    </ul>
+  </li>
+  <li><b>Cons:</b>
+    <ul>
+      <li>Slow propagation across many processors — takes O(p) steps to reach all.</li>
+      <li>Higher latency for global decisions.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>3. Blackboard Communication Strategy</h3>
+<ul>
+  <li>A single shared "blackboard" (centralized data store) holds the current frontier.</li>
+  <li>Every processor reads pending work from the blackboard and writes new discoveries back.</li>
+  <li><b>Pros:</b>
+    <ul>
+      <li>Clean global view of the frontier.</li>
+      <li>Easy duplicate elimination.</li>
+      <li>Simple programming model.</li>
+    </ul>
+  </li>
+  <li><b>Cons:</b>
+    <ul>
+      <li>The blackboard becomes a <b>bottleneck</b> as the number of processors grows.</li>
+      <li>Not scalable to thousands of processors.</li>
+      <li>Single point of failure.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>4. Comparison table</h3>
+<table>
+  <tr><th>Strategy</th><th>Pattern</th><th>Pros</th><th>Cons</th></tr>
+  <tr><td>Random</td><td>Send to random processor</td><td>Even load, simple</td><td>Duplicates, unpredictable</td></tr>
+  <tr><td>Ring</td><td>Pass around the ring</td><td>Simple, deterministic</td><td>Slow propagation (O(p))</td></tr>
+  <tr><td>Blackboard</td><td>Shared central store</td><td>Easy duplicate removal</td><td>Bottleneck, not scalable</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>3 strategies: Random, Ring, Blackboard.</li>
+    <li>Random = send to random processor; even load but duplicates.</li>
+    <li>Ring = pass to neighbour; deterministic but slow (O(p)).</li>
+    <li>Blackboard = central shared store; clean but a bottleneck.</li>
+    <li>Choice depends on number of processors and graph structure.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q9">Q9 — Dijkstra's Algorithm in Parallel</h2>
+<span class="freq-tag">Asked 1 time</span>(May'25 — 9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 9 marks)</b> Explain Dijkstra's algorithm in parallel formulation.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Sequential Dijkstra's recap</h3>
+<ul>
+  <li>Solves the Single-Source Shortest Path (SSSP) problem on a weighted graph (no negative edges).</li>
+  <li>Maintain a priority queue of (vertex, tentative distance).</li>
+  <li>Repeatedly extract the vertex with minimum distance; relax all its outgoing edges.</li>
+  <li>Complexity: O(V² ) with array, O((V + E) log V) with binary heap.</li>
+</ul>
+
+<h3>2. Two parallel formulations</h3>
+
+<h4>(a) Source-partitioned formulation (All-Pairs SSSP)</h4>
+<ul>
+  <li>Different processors compute SSSP from DIFFERENT source vertices simultaneously.</li>
+  <li>Used to compute the entire All-Pairs Shortest Path matrix.</li>
+  <li>Embarrassingly parallel — no communication required between processors.</li>
+  <li>Speedup ≈ p (ideal).</li>
+  <li>Useful when we need shortest paths from many sources.</li>
+</ul>
+
+<h4>(b) Source-parallel formulation (Single source, parallelized)</h4>
+<ul>
+  <li>Partition the vertex set among p processors.</li>
+  <li>Each processor maintains tentative distances only for its assigned vertices.</li>
+  <li>At each iteration:
+    <ol>
+      <li>Each processor finds its LOCAL minimum-distance vertex.</li>
+      <li>A global all-to-one reduction picks the TRUE minimum across all processors.</li>
+      <li>The winning vertex's id and distance are broadcast to all.</li>
+      <li>All processors relax their local edges leading FROM that vertex.</li>
+    </ol>
+  </li>
+  <li>Synchronize and repeat until all V vertices are settled.</li>
+</ul>
+
+<h3>3. Complexity of source-parallel formulation</h3>
+<ul>
+  <li>V iterations total (one vertex settled per iteration).</li>
+  <li>Per iteration: local min in O(V/p) + reduction in O(log p) + edge relaxation in O(V/p).</li>
+  <li><b>Total: O(V²/p + V · log p).</b></li>
+</ul>
+
+<h3>4. Comparison</h3>
+<table>
+  <tr><th>Formulation</th><th>Best when</th><th>Communication</th><th>Time</th></tr>
+  <tr><td>Source-partitioned (APSP)</td><td>Many sources needed</td><td>None</td><td>O(V²/p) × p sources</td></tr>
+  <tr><td>Source-parallel (SSSP)</td><td>One source</td><td>Global reduction each iter</td><td>O(V²/p + V log p)</td></tr>
+</table>
+
+<h3>5. Applications</h3>
+<ul>
+  <li>Navigation systems (GPS routing).</li>
+  <li>Network routing protocols (OSPF, IS-IS).</li>
+  <li>Connectivity analysis in social networks.</li>
+  <li>Logistics and supply-chain optimization.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Sequential Dijkstra: O(V²) array / O((V+E) log V) heap.</li>
+    <li>Source-partitioned: different sources on different processors (embarrassingly parallel).</li>
+    <li>Source-parallel: split vertices, do global min-reduction each iteration.</li>
+    <li>Source-parallel time: O(V²/p + V log p).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q10">Q10 — Distributed Computing for Document Classification</h2>
+<span class="freq-tag">Asked 1 time</span>(May'25 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 6 marks)</b> Explain Distributed Computing for Document Classification.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. The problem</h3>
+<p>Given millions of documents (news articles, emails, web pages), classify each into one of several categories (sports, finance, politics, …) using a machine-learning model (Naive Bayes, SVM, neural net).</p>
+
+<h3>2. Why distribute?</h3>
+<ul>
+  <li>A single machine cannot store or process millions of documents in reasonable time.</li>
+  <li>The work is embarrassingly parallel — each document can be classified independently.</li>
+  <li>Distributing across many nodes gives near-linear speedup.</li>
+</ul>
+
+<h3>3. MapReduce-style distributed approach</h3>
+<ol>
+  <li><b>Split input:</b> millions of documents are split into chunks; one chunk per worker.</li>
+  <li><b>Map phase:</b> each worker loads the classification model, processes its chunk of documents, emits (category, document_id) pairs.</li>
+  <li><b>Shuffle phase:</b> all pairs with the same category are routed (hashed) to the same reducer.</li>
+  <li><b>Reduce phase:</b> for each category, the reducer assembles the list of documents belonging to it.</li>
+  <li><b>Output:</b> categorized results stored in a database or file system.</li>
+</ol>
+
+<h3>4. Other distributed strategies</h3>
+<ul>
+  <li><b>Data parallelism</b> — same model on every node, different chunks of data. Used in distributed training.</li>
+  <li><b>Model parallelism</b> — different layers / parts of a huge model on different nodes (used for very large neural networks).</li>
+  <li><b>Pipeline parallelism</b> — different stages of the classification pipeline (tokenize → feature extract → predict) on different nodes.</li>
+</ul>
+
+<h3>5. Frameworks used</h3>
+<ul>
+  <li><b>Hadoop / MapReduce</b> — classic batch processing.</li>
+  <li><b>Apache Spark</b> — faster in-memory distributed processing.</li>
+  <li><b>Kubernetes</b> — orchestrates classifier microservices.</li>
+  <li><b>Apache Kafka</b> — handles real-time streams of incoming documents.</li>
+  <li><b>TensorFlow Distributed / PyTorch DDP</b> — for distributed neural-network classifiers.</li>
+</ul>
+
+<h3>6. Applications</h3>
+<ul>
+  <li>Email spam filtering at scale (Gmail).</li>
+  <li>News article categorization (Google News).</li>
+  <li>Sentiment analysis of social media at scale.</li>
+  <li>Search engine result ranking.</li>
+  <li>Content moderation on social platforms.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Document classification is embarrassingly parallel.</li>
+    <li>Standard pattern: Map → Shuffle → Reduce.</li>
+    <li>Strategies: data parallel, model parallel, pipeline parallel.</li>
+    <li>Frameworks: Hadoop, Spark, Kubernetes, Kafka.</li>
+    <li>Applications: spam filter, news categorization, sentiment analysis.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q11">Q11 — CRCW PRAM Formulation</h2>
+<span class="freq-tag">Asked 1 time</span>(May'25 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 6 marks)</b> Write a short note on parallel formulation for CRCW PRAM.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is PRAM?</h3>
+<p><b>PRAM (Parallel Random Access Machine)</b> is a theoretical model of parallel computation where p processors all share a common memory. It is used to analyze the theoretical time complexity of parallel algorithms.</p>
+
+<h3>2. The 4 PRAM variants (based on memory access rules)</h3>
+<table>
+  <tr><th>Model</th><th>Read</th><th>Write</th></tr>
+  <tr><td>EREW</td><td>Exclusive (one at a time)</td><td>Exclusive</td></tr>
+  <tr><td>CREW</td><td>Concurrent (many at once)</td><td>Exclusive</td></tr>
+  <tr><td>ERCW</td><td>Exclusive</td><td>Concurrent</td></tr>
+  <tr><td>CRCW</td><td>Concurrent</td><td>Concurrent</td></tr>
+</table>
+
+<h3>3. CRCW PRAM — Concurrent Read Concurrent Write</h3>
+<ul>
+  <li>Multiple processors can read the same memory location at the same instant.</li>
+  <li>Multiple processors can write to the same memory location at the same instant.</li>
+  <li>The MOST POWERFUL PRAM model — fastest for many algorithms.</li>
+</ul>
+
+<h3>4. How to handle concurrent writes (3 conventions)</h3>
+<ul>
+  <li><b>Common CRCW:</b> all processors writing to the same location must write the SAME value (else error).</li>
+  <li><b>Arbitrary CRCW:</b> if multiple processors write, an arbitrary one's value wins.</li>
+  <li><b>Priority CRCW:</b> the lowest-numbered processor wins.</li>
+</ul>
+
+<h3>5. Example — find maximum of n numbers on CRCW PRAM (O(1) time!)</h3>
+<pre>
+1. Use n² processors. Pair them as (P_ij) for i, j in [0, n-1].
+2. Initialize array WIN[0..n-1] to TRUE (everyone is potentially max).
+3. In parallel, P_ij compares A[i] with A[j]:
+       if A[i] &lt; A[j]: set WIN[i] = FALSE
+4. In parallel, scan WIN: the index where WIN[i] is still TRUE is the max.
+</pre>
+<p>Total time: O(1) using n² processors. On weaker PRAM models this would be O(log n).</p>
+
+<h3>6. CRCW PRAM formulation of Quicksort</h3>
+<ul>
+  <li>All n processors read the pivot in parallel (concurrent read).</li>
+  <li>Each processor compares its element to the pivot.</li>
+  <li>Use parallel prefix-sum to compute new indices for each element.</li>
+  <li>All processors write their element to its new position in parallel.</li>
+  <li>Recurse on the two halves.</li>
+  <li>Complexity: O(log² n) on CRCW PRAM (compared to O(n log n) sequential).</li>
+</ul>
+
+<h3>7. Why CRCW is theoretical</h3>
+<ul>
+  <li>Real hardware cannot do unlimited concurrent reads/writes for free.</li>
+  <li>Real systems have communication delays, cache coherence overhead, etc.</li>
+  <li>CRCW PRAM is useful only as a theoretical "upper bound" on what parallel hardware can achieve.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>PRAM = theoretical shared-memory parallel model.</li>
+    <li>4 variants: EREW, CREW, ERCW, CRCW.</li>
+    <li>CRCW = Concurrent Read Concurrent Write — most powerful.</li>
+    <li>Conventions: Common, Arbitrary, Priority.</li>
+    <li>Quicksort on CRCW PRAM: O(log² n) time.</li>
+    <li>Useful for theoretical analysis; real systems can't match it.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q12">Q12 — Compare-Exchange and Compare-Split Operations</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'25 — 8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'25, 8 marks)</b> Explain compare exchange and compare-split operation on parallel Computers.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<p>Compare-exchange and compare-split are the two fundamental building blocks used by almost every parallel sorting algorithm to compare data across different processors.</p>
+
+<h3>1. Compare-Exchange (when p = n, one element per processor)</h3>
+<ul>
+  <li>Two processors P<sub>i</sub> and P<sub>j</sub> each hold ONE element.</li>
+  <li>They exchange their elements.</li>
+  <li>After the exchange, P<sub>i</sub> keeps the SMALLER value, P<sub>j</sub> keeps the LARGER.</li>
+</ul>
+
+<h4>Algorithm</h4>
+<pre>
+Compare-Exchange (P_i, P_j):
+   P_i sends its value to P_j
+   P_j sends its value to P_i
+   Both compare the two values:
+       P_i keeps min(a, b)
+       P_j keeps max(a, b)
+</pre>
+
+<h4>Example</h4>
+<pre>
+Before:  P0 has 7,  P1 has 3
+Exchange: both send their values
+After:   P0 has 3 (min),  P1 has 7 (max)
+</pre>
+
+<h3>2. Compare-Split (when p &lt; n, multiple elements per processor)</h3>
+<ul>
+  <li>Two processors P<sub>i</sub> and P<sub>j</sub> each hold n/p SORTED elements.</li>
+  <li>They send all their data to each other.</li>
+  <li>Each processor now has 2 · (n/p) sorted elements (merge of both halves).</li>
+  <li>They merge the two sorted lists.</li>
+  <li>P<sub>i</sub> keeps the SMALLER half; P<sub>j</sub> keeps the LARGER half.</li>
+</ul>
+
+<h4>Algorithm</h4>
+<pre>
+Compare-Split (P_i, P_j):
+   P_i sends its n/p sorted elements to P_j
+   P_j sends its n/p sorted elements to P_i
+   Both merge the two sorted lists into one sorted list of size 2n/p
+   P_i keeps the lower n/p elements
+   P_j keeps the upper n/p elements
+</pre>
+
+<h4>Example (n/p = 3)</h4>
+<pre>
+Before:  P0 has [1, 4, 7],  P1 has [2, 3, 8]
+After exchange + merge: combined sorted = [1, 2, 3, 4, 7, 8]
+After split: P0 keeps [1, 2, 3] (lower), P1 keeps [4, 7, 8] (upper)
+</pre>
+
+<h3>3. Comparison</h3>
+<table>
+  <tr><th>Aspect</th><th>Compare-Exchange</th><th>Compare-Split</th></tr>
+  <tr><td>Elements per processor</td><td>1</td><td>n/p</td></tr>
+  <tr><td>Used when</td><td>p = n</td><td>p &lt; n</td></tr>
+  <tr><td>Communication</td><td>1 element each way</td><td>n/p elements each way</td></tr>
+  <tr><td>Local work</td><td>1 comparison</td><td>Merge of two sorted lists</td></tr>
+  <tr><td>Used in</td><td>Bitonic sort, odd-even sort (1 elem/proc)</td><td>Practical parallel sorts (block sorts)</td></tr>
+</table>
+
+<h3>4. Why both are needed</h3>
+<ul>
+  <li>Compare-exchange is theoretically clean but requires n processors — often unrealistic.</li>
+  <li>Compare-split is the practical version when p &lt;&lt; n.</li>
+  <li>Together they allow sorting algorithms to scale from fine-grained (n processors) to coarse-grained (few processors).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Both are building blocks of parallel sorting.</li>
+    <li>Compare-exchange: 1 element per processor; pair keeps min/max.</li>
+    <li>Compare-split: n/p elements per processor; pair merges + splits into lower/upper halves.</li>
+    <li>Compare-exchange used when p = n; compare-split when p &lt; n.</li>
+    <li>Compare-split needs O(n/p) communication; compare-exchange needs O(1).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q13">Q13 — Parallel Quicksort (Recursive Decomposition + Shared vs Message-Passing)</h2>
+<span class="freq-tag">Asked 2 times</span>(Nov'25 — 8 + 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'25, 8 marks)</b> Explain the recursive decomposition in parallelizing quick sort.</p>
+    <p><b>(Nov'25, 6 marks)</b> Compare shared address and message passing formulation of quick sort.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>Part A — Recursive decomposition in parallel Quicksort</h3>
+
+<h4>1. Quicksort recap (sequential)</h4>
+<ol>
+  <li>Pick a <b>pivot</b> (random, median, etc.).</li>
+  <li>Partition the array: elements ≤ pivot to one side, elements &gt; pivot to the other.</li>
+  <li>Recursively sort the two sides.</li>
+</ol>
+<p>Average complexity: O(n log n). Worst case: O(n²) with bad pivot.</p>
+
+<h4>2. Where is the parallelism?</h4>
+<ul>
+  <li>The two recursive calls in step 3 work on INDEPENDENT halves.</li>
+  <li>They can run on DIFFERENT processors in parallel.</li>
+  <li>This is called <b>recursive decomposition</b>.</li>
+</ul>
+
+<h4>3. Algorithm (recursive decomposition)</h4>
+<pre>
+PARALLEL_QUICKSORT (A, processors):
+   if size(A) is small: sort sequentially; return
+   pivot = choose pivot
+   left, right = partition A using pivot
+   if processors &gt; 1:
+       send right half to half of processors
+       in parallel:
+           recursively sort left on first half of processors
+           recursively sort right on second half of processors
+   else:
+       sort both halves sequentially
+</pre>
+
+<h4>4. Complexity</h4>
+<ul>
+  <li>If the pivot perfectly splits the array each time, after log p levels of recursion, p processors are independently sorting n/p elements each.</li>
+  <li>Total parallel time: O(n) for partitioning + O((n/p) log(n/p)) for local sorts ≈ O(n).</li>
+  <li>Speedup ≈ log p (because partitioning is still serial-ish).</li>
+</ul>
+
+<h4>5. Challenges</h4>
+<ul>
+  <li>BAD pivot choice → load imbalance.</li>
+  <li>Partition step itself is hard to parallelize efficiently.</li>
+  <li>Communication cost when redistributing halves.</li>
+</ul>
+
+<hr>
+
+<h3>Part B — Shared-Address vs Message-Passing formulation</h3>
+
+<h4>Shared-Address formulation (e.g., OpenMP on multi-core CPU)</h4>
+<ul>
+  <li>All processors share one common memory space.</li>
+  <li>The array stays in shared memory; processors use atomic counters / parallel prefix-sum to determine new positions during partitioning.</li>
+  <li>The pivot value is "shared" implicitly (anyone can read it).</li>
+  <li>No need to redistribute data — pointers into the same array.</li>
+</ul>
+
+<h4>Message-Passing formulation (e.g., MPI on cluster)</h4>
+<ul>
+  <li>Each processor has its OWN private memory.</li>
+  <li>The pivot value must be explicitly broadcast to all processors.</li>
+  <li>After local partitioning, data must be physically redistributed (sent over network) so that each half goes to the right subgroup of processors.</li>
+  <li>Significant communication cost.</li>
+</ul>
+
+<h4>Side-by-side comparison</h4>
+<table>
+  <tr><th>Aspect</th><th>Shared-Address</th><th>Message-Passing</th></tr>
+  <tr><td>Memory</td><td>One shared address space</td><td>Each processor has own memory</td></tr>
+  <tr><td>Partition step</td><td>Use atomic counters / scan</td><td>Data must be redistributed</td></tr>
+  <tr><td>Pivot broadcast</td><td>Implicit (shared)</td><td>Explicit (MPI_Bcast)</td></tr>
+  <tr><td>Load balance</td><td>Easier (work-stealing)</td><td>Harder (depends on pivot)</td></tr>
+  <tr><td>Communication cost</td><td>Low (just synchronisation)</td><td>High (data movement)</td></tr>
+  <tr><td>Scalability</td><td>Limited by shared-memory bus</td><td>Scales to many processors</td></tr>
+  <tr><td>Example platform</td><td>OpenMP on multicore CPU</td><td>MPI on cluster</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Recursive decomposition = parallel calls on the two halves after partitioning.</li>
+    <li>Pivot quality critical for load balance.</li>
+    <li>Shared-address: simpler, lower communication, limited scalability.</li>
+    <li>Message-passing: more communication, but scales to many processors.</li>
+    <li>OpenMP = shared-address example; MPI = message-passing example.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across past 4 papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>Parallel DFS</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Parallel BFS</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Parallel Merge Sort</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>3</td></tr>
+  <tr><td>GPU Applications</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>3</td></tr>
+  <tr><td>Issues in sorting on parallel</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>3</td></tr>
+  <tr><td>Odd-even transposition bubble sort</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>3</td></tr>
+  <tr><td>Kubernetes</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>3</td></tr>
+  <tr><td>Communication strategies in BFS</td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>2</td></tr>
+  <tr><td>Dijkstra's parallel</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>1</td></tr>
+  <tr><td>Document classification</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>1</td></tr>
+  <tr><td>CRCW PRAM</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>1</td></tr>
+  <tr><td>Compare-exchange / split</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>1</td></tr>
+  <tr><td>Quicksort recursive / shared vs MPI</td><td>—</td><td>—</td><td>—</td><td>✓ ×2</td><td>2</td></tr>
+</table>
+
+<h3>Algorithm complexity cheat sheet</h3>
+<table>
+  <tr><th>Algorithm</th><th>Sequential</th><th>Parallel (with p)</th></tr>
+  <tr><td>DFS</td><td>O(V + E)</td><td>O((V + E)/p) + load balancing</td></tr>
+  <tr><td>BFS</td><td>O(V + E)</td><td>O((V + E)/p + diameter · log p)</td></tr>
+  <tr><td>Bubble (odd-even)</td><td>O(n²)</td><td>O(n) with n processors</td></tr>
+  <tr><td>Merge sort</td><td>O(n log n)</td><td>O((n/p) log n)</td></tr>
+  <tr><td>Quicksort</td><td>O(n log n)</td><td>O(log² n) on CRCW PRAM</td></tr>
+  <tr><td>Dijkstra (SSSP)</td><td>O(V²)</td><td>O(V²/p + V log p)</td></tr>
+</table>
+
+<h3>Three things to ALWAYS mention</h3>
+<ul>
+  <li><b>Kubernetes:</b> auto-scaling, self-healing, rolling updates.</li>
+  <li><b>GPU applications:</b> deep learning, scientific simulation, image/video processing.</li>
+  <li><b>Parallel DFS:</b> dynamic load balancing, work stealing, termination detection.</li>
+</ul>
+
+<h3>One-liner for the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>Real-world parallel computing = parallel algorithms (DFS, BFS, sort) + GPU acceleration + container orchestration (Kubernetes) + distributed frameworks (MapReduce, Spark).</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  HPC Chapter 6 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open this file in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

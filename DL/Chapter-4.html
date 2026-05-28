@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DL — Chapter 4: Recurrent & Recursive Nets (Unit IV)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details open>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="Chapter-4.html" class="current">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="Chapter-5.html">Ch 5 — Deep Generative Models</a>
+    <a href="Chapter-6.html">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="../NLP/Chapter-3.html">Ch 3 — Syntax Analysis</a>
+    <a href="../NLP/Chapter-4.html">Ch 4 — Semantic Analysis</a>
+    <a href="../NLP/Chapter-5.html">Ch 5 — Discourse / Pragmatics</a>
+    <a href="../NLP/Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="../BI/Chapter-3.html">Ch 3 — Data Warehousing</a>
+    <a href="../BI/Chapter-4.html">Ch 4 — Data Mining</a>
+    <a href="../BI/Chapter-5.html">Ch 5 — BI Tools &amp; OLAP</a>
+    <a href="../BI/Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>DL — Chapter 4: Recurrent &amp; Recursive Nets (Unit IV)</h1>
+<p class="meta">
+  Subject Code: 410251 &nbsp;|&nbsp; End-Sem: 04 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q3 or Q4 in the paper).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — why we need RNN for sequential data</a></li>
+    <li><a href="#q1">Q1 — RNN: definition, working, types (asked 6 times)</a></li>
+    <li><a href="#q2">Q2 — LSTM: architecture and gates (asked 5 times)</a></li>
+    <li><a href="#q3">Q3 — Encoder-Decoder Seq2Seq architecture (asked 4 times)</a></li>
+    <li><a href="#q4">Q4 — Unfolding Computational Graphs (asked 2 times)</a></li>
+    <li><a href="#q5">Q5 — Recurrent vs Recursive Neural Network (asked 2 times)</a></li>
+    <li><a href="#q6">Q6 — Long-Term Dependencies challenges (asked 2 times)</a></li>
+    <li><a href="#q7">Q7 — CNN vs RNN (asked 1 time)</a></li>
+    <li><a href="#q8">Q8 — Bidirectional RNN limitations (asked 1 time)</a></li>
+    <li><a href="#q9">Q9 — Echo State Network (asked 1 time)</a></li>
+    <li><a href="#q10">Q10 — Performance Metrics / Baseline Models / Implicit vs Explicit Memory (asked 1 time each)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+A normal neural network (CNN, MLP) looks at one image or one piece of data independently — it has no memory of what came before. But for sequential data like sentences, speech, stock prices, or video frames, the ORDER and CONTEXT matter — "The cat sat on the …" needs memory of earlier words to predict "mat". This is what an RNN does — it remembers past inputs while processing the current one.
+</div>
+
+<h3>1. What is "sequential data"?</h3>
+<ul>
+  <li>Data where ORDER matters: text, speech, music, video, time series, DNA sequences.</li>
+  <li>Same word means different things in different positions ("bank of river" vs "money bank").</li>
+  <li>Future depends on past — needs MEMORY of previous inputs.</li>
+</ul>
+
+<h3>2. Why feed-forward networks (CNN, MLP) fail on sequences</h3>
+<ul>
+  <li>They have NO memory — each input is processed independently.</li>
+  <li>They need a fixed-size input — but sequences vary in length.</li>
+  <li>They cannot share weights across time steps.</li>
+</ul>
+
+<h3>3. Solution: RNN (Recurrent Neural Network)</h3>
+<ul>
+  <li>Adds a "loop" inside the network so that information from the previous time step is carried to the next.</li>
+  <li>Uses the SAME weights at every time step (parameter sharing across time).</li>
+  <li>Can handle variable-length sequences.</li>
+</ul>
+
+<hr>
+
+<h2 id="q1">Q1 — Recurrent Neural Network (RNN): What, Why, Working, Types</h2>
+<span class="freq-tag">Asked 6 times</span>(May'23, Nov'23 twice, May'24, May'25, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> What is RNN? What is need of RNN? Explain in brief about working of RNN.</p>
+    <p><b>(Nov'23, 6 marks)</b> Explain Recurrent Neural Network with its architecture.</p>
+    <p><b>(Nov'23, 6 marks)</b> Explain the types of Recurrent Neural Network.</p>
+    <p><b>(May'24, 6 marks)</b> Explain RNN with its types.</p>
+    <p><b>(May'25, 5 marks)</b> Explain in brief about working of RNN.</p>
+    <p><b>(Nov'25, 6 marks)</b> List the types of Recurrent Neural Network and explain LSTM three gates.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A person reading a sentence remembers the words they have already read while reading the current word. This memory helps them understand the FULL context. An RNN is a neural network with a memory loop that lets it "remember" past inputs while processing the current one — just like a human reading a sentence.
+</div>
+
+<h3>1. Definition</h3>
+<p>A <b>Recurrent Neural Network (RNN)</b> is a type of neural network designed to process sequential data. It has a hidden state that carries information from one time step to the next, giving the network a form of memory.</p>
+
+<h3>2. Need / Why we need RNN</h3>
+<ul>
+  <li>Many real-world problems involve sequences (text, speech, time series, video).</li>
+  <li>Standard neural networks have NO memory of previous inputs.</li>
+  <li>RNNs SHARE weights across time steps — fewer parameters for long sequences.</li>
+  <li>RNNs handle <b>variable-length</b> inputs and outputs (sentences of any length).</li>
+  <li>Allows the network to learn temporal patterns and dependencies.</li>
+</ul>
+
+<h3>3. Basic working of an RNN</h3>
+<p>At each time step t, the RNN receives an input x<sub>t</sub> and a hidden state h<sub>t-1</sub> from the previous step. It produces a new hidden state h<sub>t</sub> and (optionally) an output y<sub>t</sub>.</p>
+
+<div class="formula-line">
+  h<sub>t</sub> = f(W<sub>xh</sub> · x<sub>t</sub> + W<sub>hh</sub> · h<sub>t-1</sub> + b<sub>h</sub>)<br>
+  y<sub>t</sub> = g(W<sub>hy</sub> · h<sub>t</sub> + b<sub>y</sub>)
+</div>
+
+<ul>
+  <li>W<sub>xh</sub>, W<sub>hh</sub>, W<sub>hy</sub> are weight matrices — SHARED across all time steps.</li>
+  <li>f, g are activation functions (typically tanh and softmax).</li>
+  <li>h<sub>0</sub> is initialized to zero or learned.</li>
+</ul>
+
+<h3>4. Folded vs Unfolded RNN diagram</h3>
+<pre>
+Folded (compact view):              Unfolded (across time):
+
+     ┌──→┐                          x₁    x₂    x₃    x₄
+     │   │                          │     │     │     │
+     │  ┌▼──┐                       ▼     ▼     ▼     ▼
+   x ──►│ h │── y                  [h₁]─►[h₂]─►[h₃]─►[h₄]
+        └───┘                       │     │     │     │
+                                    ▼     ▼     ▼     ▼
+                                   y₁    y₂    y₃    y₄
+</pre>
+
+<h3>5. Types of RNN (based on input-output structure)</h3>
+
+<h4>(a) One-to-One</h4>
+<ul>
+  <li>Single input → single output.</li>
+  <li>Same as standard feed-forward network (no recurrence).</li>
+  <li>Example: image classification.</li>
+</ul>
+
+<h4>(b) One-to-Many</h4>
+<ul>
+  <li>Single input → sequence of outputs.</li>
+  <li>Example: image captioning (image → sentence describing it).</li>
+</ul>
+
+<h4>(c) Many-to-One</h4>
+<ul>
+  <li>Sequence of inputs → single output.</li>
+  <li>Example: sentiment analysis (sentence → positive/negative).</li>
+</ul>
+
+<h4>(d) Many-to-Many (same length)</h4>
+<ul>
+  <li>Sequence of inputs → equal-length sequence of outputs.</li>
+  <li>Example: part-of-speech tagging (each word gets a tag).</li>
+</ul>
+
+<h4>(e) Many-to-Many (different lengths)</h4>
+<ul>
+  <li>Sequence input → sequence output of different length.</li>
+  <li>Example: language translation (English sentence → French sentence).</li>
+  <li>Uses Encoder-Decoder architecture.</li>
+</ul>
+
+<h3>6. Training RNNs: Backpropagation Through Time (BPTT)</h3>
+<ul>
+  <li>Unfold the RNN across time → it becomes a deep feed-forward network.</li>
+  <li>Apply standard backpropagation through this unfolded network.</li>
+  <li>Gradients flow backward through all the time steps.</li>
+  <li>Suffers from vanishing / exploding gradients for long sequences.</li>
+</ul>
+
+<h3>7. Variants of RNN</h3>
+<ul>
+  <li><b>Vanilla RNN</b> — basic version; struggles with long sequences.</li>
+  <li><b>LSTM (Long Short-Term Memory)</b> — adds memory gates; handles long sequences.</li>
+  <li><b>GRU (Gated Recurrent Unit)</b> — simpler than LSTM, similar performance.</li>
+  <li><b>Bidirectional RNN</b> — runs forward AND backward; sees both past and future.</li>
+  <li><b>Deep RNN</b> — stacks multiple RNN layers vertically.</li>
+</ul>
+
+<h3>8. Applications of RNN</h3>
+<ul>
+  <li>Language modeling (predict next word).</li>
+  <li>Machine translation (English → French).</li>
+  <li>Speech recognition (audio → text).</li>
+  <li>Text generation (chatbots, GPT-like models historically).</li>
+  <li>Time-series prediction (stock prices, weather).</li>
+  <li>Music generation.</li>
+  <li>Video analysis (action recognition).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>RNN = neural network with memory loop, designed for sequences.</li>
+    <li>Uses same weights at every time step (parameter sharing).</li>
+    <li>h<sub>t</sub> = f(W·x<sub>t</sub> + U·h<sub>t-1</sub> + b).</li>
+    <li>5 types by input/output: 1-1, 1-many, many-1, many-many (same), many-many (different).</li>
+    <li>Trained using Backpropagation Through Time (BPTT).</li>
+    <li>Variants: LSTM, GRU, Bidirectional, Deep RNN.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — LSTM (Long Short-Term Memory)</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, Nov'23 twice, May'25, Nov'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> How LSTM and Bidirectional LSTM works.</p>
+    <p><b>(Nov'23, 6 marks)</b> Draw and explain architecture for Long Short-Term Memory (LSTM).</p>
+    <p><b>(Nov'23, 5 marks)</b> Explain how the memory cell in the LSTM is implemented computationally.</p>
+    <p><b>(May'25, 6 marks)</b> Explain the LSTM in RNN.</p>
+    <p><b>(Nov'25, 6 marks)</b> Explain LSTM three gates.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A vanilla RNN's memory is like a leaky bucket — it forgets old information very quickly. LSTM adds three "gates" — like locks on the bucket — that decide what to remember, what to forget, and what to output. This lets it remember important things from MUCH earlier in the sequence.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>LSTM (Long Short-Term Memory)</b> is a special type of RNN designed to learn long-term dependencies in sequences. It uses a <b>memory cell</b> and <b>three gates</b> (forget, input, output) to control the flow of information.</p>
+
+<h3>2. Why we need LSTM (problem with vanilla RNN)</h3>
+<ul>
+  <li>Vanilla RNNs suffer from <b>vanishing/exploding gradient</b> problems.</li>
+  <li>They cannot effectively learn dependencies more than 5–10 time steps apart.</li>
+  <li>LSTMs solve this with gating mechanisms that preserve gradients over long sequences.</li>
+</ul>
+
+<h3>3. LSTM cell components</h3>
+<ul>
+  <li><b>Cell state (C<sub>t</sub>)</b> — the long-term memory; runs straight through the cell with minor modifications.</li>
+  <li><b>Hidden state (h<sub>t</sub>)</b> — the short-term output passed to the next step.</li>
+  <li><b>Forget Gate (f<sub>t</sub>)</b> — decides what to REMOVE from cell state.</li>
+  <li><b>Input Gate (i<sub>t</sub>)</b> — decides what NEW info to ADD to cell state.</li>
+  <li><b>Output Gate (o<sub>t</sub>)</b> — decides what to OUTPUT from the cell state.</li>
+</ul>
+
+<h3>4. LSTM equations</h3>
+<div class="formula-line">
+  f<sub>t</sub> = σ(W<sub>f</sub>·[h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>f</sub>)  &nbsp;&nbsp;# Forget gate<br>
+  i<sub>t</sub> = σ(W<sub>i</sub>·[h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>i</sub>)  &nbsp;&nbsp;# Input gate<br>
+  Ĉ<sub>t</sub> = tanh(W<sub>C</sub>·[h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>C</sub>)  # Candidate cell state<br>
+  C<sub>t</sub> = f<sub>t</sub> ⊙ C<sub>t-1</sub> + i<sub>t</sub> ⊙ Ĉ<sub>t</sub>  &nbsp;&nbsp;# New cell state<br>
+  o<sub>t</sub> = σ(W<sub>o</sub>·[h<sub>t-1</sub>, x<sub>t</sub>] + b<sub>o</sub>)  &nbsp;&nbsp;# Output gate<br>
+  h<sub>t</sub> = o<sub>t</sub> ⊙ tanh(C<sub>t</sub>)  &nbsp;&nbsp;# Hidden output
+</div>
+<p>(⊙ = element-wise multiplication, σ = sigmoid)</p>
+
+<h3>5. Diagram of LSTM cell (text)</h3>
+<pre>
+   h_{t-1}      x_t
+        \      /
+         \    /
+          \  /
+       +----------------+
+       |  Forget Gate σ |── f_t ──┐
+       +----------------+         ↓
+       |  Input Gate σ  |── i_t ──┐
+       +----------------+         ↓
+       |  Candidate tanh|── Ĉ_t ──┐
+       +----------------+         ↓
+                              ╔══════╗
+              C_{t-1} ─────► ╫  ⊙   ╬────► C_t
+                              ╚══════╝
+                                 │
+                              ┌─tanh
+                                 │
+       +----------------+        ⊙────► h_t
+       |  Output Gate σ |── o_t ─┘
+       +----------------+
+</pre>
+
+<h3>6. Working — step by step</h3>
+<ol>
+  <li><b>Forget Gate:</b> looks at h<sub>t-1</sub> and x<sub>t</sub>; outputs a number 0–1 for each cell state value. 0 = "forget completely", 1 = "keep completely".</li>
+  <li><b>Input Gate:</b> decides which values we will update.</li>
+  <li><b>Candidate values (Ĉ<sub>t</sub>):</b> a tanh layer creates new candidate values to add.</li>
+  <li><b>Update cell state:</b> multiply old state by forget gate, then add (input gate × candidate).</li>
+  <li><b>Output Gate:</b> decides what part of the cell state to expose as h<sub>t</sub>.</li>
+  <li>Pass h<sub>t</sub> and C<sub>t</sub> to the next time step.</li>
+</ol>
+
+<h3>7. Bidirectional LSTM (BiLSTM)</h3>
+<ul>
+  <li>Two LSTMs: one processes the sequence LEFT-TO-RIGHT (forward), other RIGHT-TO-LEFT (backward).</li>
+  <li>Their outputs are concatenated at each time step.</li>
+  <li>Allows the model to use BOTH past AND future context.</li>
+  <li>Used in speech recognition, machine translation, named-entity recognition.</li>
+</ul>
+
+<h3>8. Advantages of LSTM</h3>
+<ul>
+  <li>Handles long-term dependencies effectively (100s of steps).</li>
+  <li>Avoids vanishing gradient problem.</li>
+  <li>Selectively remembers/forgets information using gates.</li>
+  <li>Widely used in NLP and time-series prediction.</li>
+</ul>
+
+<h3>9. Disadvantages</h3>
+<ul>
+  <li>More parameters than vanilla RNN (slower training).</li>
+  <li>Computationally expensive for very long sequences.</li>
+  <li>Sequential nature limits parallelization (transformers are now preferred for many NLP tasks).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>LSTM = RNN with memory cell + 3 gates (forget, input, output).</li>
+    <li>Solves vanishing gradient problem in vanilla RNN.</li>
+    <li>Cell state C<sub>t</sub> = long-term memory; hidden state h<sub>t</sub> = short-term output.</li>
+    <li>Forget gate = what to remove; Input gate = what to add; Output gate = what to expose.</li>
+    <li>Bidirectional LSTM = forward + backward LSTMs combined.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — Encoder-Decoder Sequence-to-Sequence Architecture</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, May'24, May'25, Nov'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Explain Encoder-Decoder Sequence to Sequence architecture with its application.</p>
+    <p><b>(May'24, 6 marks)</b> Explain in brief Encoder Decoder architecture.</p>
+    <p><b>(May'25, 5 marks)</b> Explain Encoder-Decoder RNN model.</p>
+    <p><b>(Nov'25, 6 marks)</b> What is Encoder-Decoder architecture, and how does it work in sequence-to-sequence learning?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A translator listens to a full English sentence (compresses it into a mental summary called the "context"), then speaks the French translation word by word from that summary. The "listening" part is the ENCODER. The "speaking" part is the DECODER. The compressed mental summary is the CONTEXT VECTOR.
+</div>
+
+<h3>1. Definition</h3>
+<p>An <b>Encoder-Decoder (Seq2Seq) architecture</b> is a neural network framework that maps an INPUT sequence to an OUTPUT sequence, where the two sequences can be of DIFFERENT lengths. It uses two RNNs (or LSTMs): an encoder that compresses the input into a fixed-size vector, and a decoder that generates the output from this vector.</p>
+
+<h3>2. Architecture components</h3>
+
+<h4>(a) Encoder</h4>
+<ul>
+  <li>An RNN/LSTM/GRU that reads the input sequence ONE token at a time.</li>
+  <li>Updates its hidden state with every token.</li>
+  <li>The final hidden state summarizes the entire input → called the <b>context vector</b> (or thought vector).</li>
+</ul>
+
+<h4>(b) Context Vector</h4>
+<ul>
+  <li>A fixed-size vector that encodes ALL information about the input sequence.</li>
+  <li>Bridge between encoder and decoder.</li>
+</ul>
+
+<h4>(c) Decoder</h4>
+<ul>
+  <li>Another RNN/LSTM/GRU that takes the context vector as initial state.</li>
+  <li>Generates the output sequence ONE token at a time.</li>
+  <li>Each generated token is fed back as input for the next step.</li>
+  <li>Stops when a special END token is produced.</li>
+</ul>
+
+<h3>3. Diagram</h3>
+<pre>
+  INPUT (English):  "I  am  a  student"
+                     ↓   ↓   ↓   ↓
+                  [E1]→[E2]→[E3]→[E4] ── final hidden state = context
+                                                     ↓
+                                              ┌──────┴──────┐
+                                              │  CONTEXT     │
+                                              └──────┬──────┘
+                                                     ↓
+                                      [D1]→[D2]→[D3]→[D4]
+                                       ↓    ↓    ↓    ↓
+                                     "Je  suis un  étudiant"
+                                     OUTPUT (French)
+</pre>
+
+<h3>4. Working step by step</h3>
+<ol>
+  <li>Tokenize input sequence (e.g., "I am a student" → [I, am, a, student]).</li>
+  <li>Feed tokens one-by-one to the encoder; hidden state updates each step.</li>
+  <li>After last input token, the encoder's final hidden state = CONTEXT VECTOR.</li>
+  <li>Initialize the decoder with this context vector.</li>
+  <li>Decoder generates first output token (e.g., "Je"); feeds it back as input.</li>
+  <li>Repeat: generate next token, feed back, … until END token.</li>
+</ol>
+
+<h3>5. Limitations of basic encoder-decoder</h3>
+<ul>
+  <li>The context vector is FIXED-SIZE → can't capture all information from very long inputs.</li>
+  <li>Decoder relies on a single summary → "information bottleneck".</li>
+  <li><b>Solution:</b> Attention mechanism (lets decoder look at all encoder hidden states, not just the final one).</li>
+</ul>
+
+<h3>6. Applications</h3>
+<ul>
+  <li><b>Machine translation</b> (English → French, Hindi → English).</li>
+  <li><b>Text summarization</b> (long article → short summary).</li>
+  <li><b>Speech recognition</b> (audio → text).</li>
+  <li><b>Chatbots</b> (user query → response).</li>
+  <li><b>Image captioning</b> (image → text using CNN encoder + RNN decoder).</li>
+  <li><b>Video captioning</b> (video sequence → text description).</li>
+  <li><b>Question answering</b> systems.</li>
+  <li><b>Code generation</b> from natural language descriptions.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Encoder-Decoder = 2 RNNs that map input sequence to output sequence of different length.</li>
+    <li>Encoder reads input → produces context vector.</li>
+    <li>Decoder takes context vector → generates output one token at a time.</li>
+    <li>Bottleneck: fixed-size context vector. Solved by attention.</li>
+    <li>Applications: translation, summarization, chatbots, image captioning.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — Unfolding Computational Graphs</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, Nov'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 5 marks)</b> Explain Unfolding computational graphs with example.</p>
+    <p><b>(Nov'25, 6 marks)</b> How is the computational graph of an RNN different from that of a feedforward neural network?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Unfolding</b> a computational graph means representing a recurrent (looped) network as a sequence of repeated copies of the same cell, one per time step. The CYCLE (loop) in the folded view is "unrolled" into a chain.</p>
+
+<h3>2. Why we unfold</h3>
+<ul>
+  <li>Recurrent networks have loops → standard backpropagation doesn't work directly on loops.</li>
+  <li>Unfolding converts the recurrent network into an equivalent deep feed-forward network.</li>
+  <li>Then we can apply standard backpropagation → this is called Backpropagation Through Time (BPTT).</li>
+  <li>It also makes the computation easier to visualize and debug.</li>
+</ul>
+
+<h3>3. Folded vs Unfolded view</h3>
+<pre>
+Folded (with loop):                Unfolded across 4 time steps:
+
+     ┌──→──┐                      x₁    x₂    x₃    x₄
+     │     │                       │     │     │     │
+     │   ┌─▼─┐                     ▼     ▼     ▼     ▼
+   x ───►│ h │─── y         h₀→[h₁]──►[h₂]──►[h₃]──►[h₄]
+         └───┘                     │     │     │     │
+                                   ▼     ▼     ▼     ▼
+                                  y₁    y₂    y₃    y₄
+</pre>
+
+<h3>4. Mathematical formulation</h3>
+<p>Folded form:</p>
+<div class="formula-line">h<sub>t</sub> = f(h<sub>t-1</sub>, x<sub>t</sub>; θ)</div>
+<p>Unfolded form (for 3 time steps):</p>
+<div class="formula-line">
+  h<sub>3</sub> = f(f(f(h<sub>0</sub>, x<sub>1</sub>; θ), x<sub>2</sub>; θ), x<sub>3</sub>; θ)
+</div>
+<p>Same parameters θ are SHARED across all time steps.</p>
+
+<h3>5. RNN vs Feed-forward computational graph</h3>
+<table>
+  <tr><th>Feature</th><th>Feed-Forward</th><th>RNN (unfolded)</th></tr>
+  <tr><td>Cycles</td><td>None (DAG)</td><td>Has loop in folded form</td></tr>
+  <tr><td>Layers</td><td>Different at each level</td><td>Same cell repeated per time step</td></tr>
+  <tr><td>Parameter sharing</td><td>No (each layer has own weights)</td><td>Yes (same weights at every step)</td></tr>
+  <tr><td>Memory</td><td>None</td><td>Hidden state carries context</td></tr>
+  <tr><td>Handles sequences</td><td>No (fixed-size input)</td><td>Yes (variable-length)</td></tr>
+  <tr><td>Training</td><td>Standard backprop</td><td>BPTT (Backpropagation Through Time)</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Unfolding = unrolling the recurrent loop into a chain across time steps.</li>
+    <li>Allows standard backpropagation to work (BPTT).</li>
+    <li>Same weights are SHARED at every time step.</li>
+    <li>RNN graph has loops; feed-forward graph is acyclic.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Recurrent vs Recursive Neural Network</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, May'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 5 marks)</b> Differentiate between Recurrent and Recursive Neural Network.</p>
+    <p><b>(May'25, 6 marks)</b> Explain recursive neural network.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Recurrent Neural Network (RNN)</h3>
+<ul>
+  <li>Processes data in a <b>sequential / linear chain</b> structure.</li>
+  <li>Hidden state passes from one time step to the next: h<sub>t</sub> = f(h<sub>t-1</sub>, x<sub>t</sub>).</li>
+  <li>Natural for sequences: text, speech, time series.</li>
+</ul>
+
+<h3>2. Recursive Neural Network</h3>
+<ul>
+  <li>Processes data in a <b>TREE structure</b> (hierarchical).</li>
+  <li>Combines pairs of child nodes into a parent node using the same neural function recursively.</li>
+  <li>Natural for tree-structured data: parse trees of sentences, scene graphs, hierarchical clusters.</li>
+  <li>Example: combine "The" and "cat" → phrase node; combine phrase node and verb → sentence node.</li>
+</ul>
+
+<h3>3. Comparison table</h3>
+<table>
+  <tr><th>Feature</th><th>Recurrent NN</th><th>Recursive NN</th></tr>
+  <tr><td>Data structure</td><td>Linear sequence (chain)</td><td>Tree (hierarchical)</td></tr>
+  <tr><td>Hidden state flow</td><td>Time step → next time step</td><td>Children → parent node</td></tr>
+  <tr><td>Application</td><td>Text, audio, time series</td><td>Parse trees, scene parsing</td></tr>
+  <tr><td>Computational graph</td><td>Long chain</td><td>Tree</td></tr>
+  <tr><td>Generalization</td><td>Special case of recursive (chain tree)</td><td>General — handles arbitrary trees</td></tr>
+  <tr><td>Training</td><td>BPTT</td><td>Backpropagation through structure</td></tr>
+</table>
+
+<h3>4. Recursive NN — typical use</h3>
+<pre>
+Sentence: "The cat sat"
+
+Recursive NN combines pairs:
+
+        Sentence
+         /    \
+        /      \
+       /        \
+      NP        VP
+     /  \        |
+    /    \       |
+   The  cat     sat
+
+Each internal node = neural combination of its children
+</pre>
+
+<h3>5. Applications of Recursive NN</h3>
+<ul>
+  <li>Sentiment analysis on parse trees (Stanford Sentiment Treebank).</li>
+  <li>Scene parsing in computer vision.</li>
+  <li>Compositional semantics in NLP.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>RNN = linear chain; Recursive NN = tree hierarchy.</li>
+    <li>RNN: h<sub>t</sub> from h<sub>t-1</sub>; Recursive: parent from children.</li>
+    <li>RNN for sequences (text, audio); Recursive for trees (parse trees).</li>
+    <li>RNN is a special case of Recursive NN (linear chain = degenerate tree).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — Challenges of Long-Term Dependencies</h2>
+<span class="freq-tag">Asked 2 times</span>(May'25, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 6 marks)</b> What are the challenges of long term dependencies?</p>
+    <p><b>(Nov'25, 6 marks)</b> Explain any Seven Challenges of Long-Term Dependencies.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is "long-term dependency"?</h3>
+<p>In a sequence, sometimes the current output depends on information from MANY steps earlier. Example: in "I grew up in France ... [50 words later] ... I speak fluent French" — the model needs to remember "France" 50 steps ago to predict "French".</p>
+
+<h3>2. The 7 main challenges</h3>
+
+<h4>(a) Vanishing Gradient Problem</h4>
+<ul>
+  <li>When errors are backpropagated through many time steps, gradients become exponentially smaller.</li>
+  <li>Early layers learn very slowly or stop learning entirely.</li>
+  <li>Network fails to capture dependencies more than ~10 steps apart.</li>
+</ul>
+
+<h4>(b) Exploding Gradient Problem</h4>
+<ul>
+  <li>Opposite of vanishing — gradients grow exponentially large.</li>
+  <li>Weights become NaN; training becomes unstable.</li>
+  <li>Solution: gradient clipping (cap gradient magnitude).</li>
+</ul>
+
+<h4>(c) Slow Learning</h4>
+<ul>
+  <li>Even when training does happen, learning long dependencies takes many epochs.</li>
+  <li>The longer the dependency, the harder it is to learn.</li>
+</ul>
+
+<h4>(d) Memory Loss / Forgetting</h4>
+<ul>
+  <li>Vanilla RNN's hidden state is overwritten at every step.</li>
+  <li>Old information gets lost / "diluted" quickly.</li>
+</ul>
+
+<h4>(e) Difficulty in Optimization</h4>
+<ul>
+  <li>Long sequences create deep computational graphs.</li>
+  <li>Loss surface becomes very non-convex with many bad local minima.</li>
+  <li>Choosing the right learning rate is critical.</li>
+</ul>
+
+<h4>(f) High Computational Cost</h4>
+<ul>
+  <li>BPTT requires storing all hidden states from the entire sequence.</li>
+  <li>Memory usage grows linearly with sequence length.</li>
+  <li>Training is slow for long sequences.</li>
+</ul>
+
+<h4>(g) Sequential Nature Prevents Parallelism</h4>
+<ul>
+  <li>Each step depends on the previous → cannot parallelize across time steps.</li>
+  <li>Makes RNN slower than CNN on modern GPUs.</li>
+  <li>This is one reason Transformers (parallel) replaced RNNs in NLP.</li>
+</ul>
+
+<h3>3. Solutions to these challenges</h3>
+<ul>
+  <li><b>LSTM and GRU</b> — use gates to preserve gradients.</li>
+  <li><b>Gradient clipping</b> — limits maximum gradient magnitude.</li>
+  <li><b>Better initialization</b> — e.g. orthogonal weight init.</li>
+  <li><b>Skip / residual connections</b> — give gradient a shortcut path.</li>
+  <li><b>Attention mechanisms</b> — direct connections to past states.</li>
+  <li><b>Transformers</b> — eliminate recurrence entirely.</li>
+  <li><b>Truncated BPTT</b> — only backprop through a window of recent steps.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>7 challenges: vanishing gradient, exploding gradient, slow learning, memory loss, hard optimization, high cost, no parallelism.</li>
+    <li>Vanishing gradient = main culprit for long-term dependency failure.</li>
+    <li>Solutions: LSTM/GRU, gradient clipping, attention, transformers, truncated BPTT.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — CNN vs RNN (Difference)</h2>
+<span class="freq-tag">Asked 1 time</span>(May'25 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 6 marks)</b> Difference between CNN Vs RNN.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<table>
+  <tr><th>Feature</th><th>CNN</th><th>RNN</th></tr>
+  <tr><td>Designed for</td><td>Spatial data (images, grids)</td><td>Sequential data (text, audio, time series)</td></tr>
+  <tr><td>Architecture</td><td>Conv + Pool + FC layers</td><td>Recurrent loop with hidden state</td></tr>
+  <tr><td>Key operation</td><td>Convolution (filter sliding)</td><td>State update over time</td></tr>
+  <tr><td>Memory</td><td>None (each input independent)</td><td>Yes (hidden state across time)</td></tr>
+  <tr><td>Parameter sharing</td><td>Across spatial positions</td><td>Across time steps</td></tr>
+  <tr><td>Handles variable length</td><td>No (fixed input size)</td><td>Yes</td></tr>
+  <tr><td>Parallelization</td><td>Highly parallelizable</td><td>Sequential (hard to parallelize)</td></tr>
+  <tr><td>Training algorithm</td><td>Standard backpropagation</td><td>BPTT (Backprop Through Time)</td></tr>
+  <tr><td>Common problems</td><td>Overfitting</td><td>Vanishing/exploding gradient</td></tr>
+  <tr><td>Applications</td><td>Image classification, object detection</td><td>Translation, speech, time series</td></tr>
+  <tr><td>Famous architectures</td><td>AlexNet, VGG, ResNet</td><td>LSTM, GRU, Seq2Seq</td></tr>
+</table>
+
+<p><b>Summary:</b> CNN is for spatial / grid data, RNN is for sequential / temporal data. They can also be combined (e.g., CNN + RNN for video captioning).</p>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>CNN = spatial data; RNN = sequential data.</li>
+    <li>CNN shares parameters across SPACE; RNN shares across TIME.</li>
+    <li>CNN is parallel; RNN is sequential.</li>
+    <li>CNN suffers from overfitting; RNN suffers from vanishing gradients.</li>
+    <li>Both can be combined for tasks like image captioning.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — Bidirectional RNN: Limitations and Differences</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'25 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'25, 6 marks)</b> What are limitations of Bidirectional RNNs, and how do they differ from standard RNNs?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is a Bidirectional RNN (BiRNN)?</h3>
+<p>A Bidirectional RNN uses TWO RNNs: one processes the sequence in the FORWARD direction (past → future), and another processes it BACKWARD (future → past). At each time step, the outputs from both directions are combined (usually concatenated).</p>
+
+<h3>2. Difference from standard RNN</h3>
+<table>
+  <tr><th>Feature</th><th>Standard RNN</th><th>Bidirectional RNN</th></tr>
+  <tr><td>Direction</td><td>Forward only</td><td>Both forward and backward</td></tr>
+  <tr><td>Context used</td><td>Only past</td><td>Both past and future</td></tr>
+  <tr><td>Number of hidden states</td><td>1 per time step</td><td>2 per time step (forward + backward)</td></tr>
+  <tr><td>Parameters</td><td>1 set</td><td>2 sets (twice as many)</td></tr>
+  <tr><td>Memory usage</td><td>Lower</td><td>~2× higher</td></tr>
+  <tr><td>Suitable for</td><td>Online / real-time tasks</td><td>Offline tasks (full sequence available)</td></tr>
+</table>
+
+<h3>3. Limitations of Bidirectional RNN</h3>
+<ol>
+  <li><b>Cannot be used for real-time / online tasks</b> — requires the FULL sequence before processing (because backward direction needs future tokens).</li>
+  <li><b>Twice the parameters and twice the memory</b> — 2 RNNs instead of 1.</li>
+  <li><b>Slower training and inference</b> — both directions must be computed.</li>
+  <li><b>Cannot work with streaming data</b> — speech assistants, live translation, etc.</li>
+  <li><b>Still suffers from vanishing gradient</b> in vanilla form (use BiLSTM to fix this).</li>
+  <li><b>Doubled risk of overfitting</b> due to twice as many parameters.</li>
+  <li><b>Higher latency</b> — must wait for whole input before producing first output.</li>
+</ol>
+
+<h3>4. Where Bidirectional RNN is useful</h3>
+<ul>
+  <li>Named-Entity Recognition (NER).</li>
+  <li>Part-of-Speech tagging.</li>
+  <li>Speech recognition (offline batch).</li>
+  <li>Machine translation (with encoder).</li>
+  <li>Sentence-level classification.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>BiRNN = forward RNN + backward RNN; uses both past and future context.</li>
+    <li>Standard RNN uses only past; BiRNN uses past + future.</li>
+    <li>Limitations: no real-time use, 2× parameters, slower, can overfit more.</li>
+    <li>Useful for offline tasks where full sequence is available.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q9">Q9 — Echo State Network</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'25 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'25, 6 marks)</b> How does Echo State Network Differ from Traditional RNNs?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p>An <b>Echo State Network (ESN)</b> is a special type of RNN that uses a large, randomly initialized recurrent layer (called the <b>reservoir</b>) whose weights are NEVER updated. Only the output layer weights are trained.</p>
+
+<h3>2. Architecture</h3>
+<ul>
+  <li><b>Input layer:</b> feeds input into the reservoir.</li>
+  <li><b>Reservoir:</b> a large, sparsely connected recurrent layer with random fixed weights.</li>
+  <li><b>Output layer:</b> a simple linear layer; only this is trained (often using linear regression).</li>
+</ul>
+
+<h3>3. How ESN differs from Traditional RNN</h3>
+<table>
+  <tr><th>Feature</th><th>Traditional RNN</th><th>Echo State Network</th></tr>
+  <tr><td>Weight training</td><td>All weights trained via BPTT</td><td>Only output weights trained (reservoir is fixed random)</td></tr>
+  <tr><td>Training complexity</td><td>Expensive (BPTT)</td><td>Very fast (linear regression on output)</td></tr>
+  <tr><td>Hidden layer size</td><td>Small to medium</td><td>Large (hundreds–thousands of neurons)</td></tr>
+  <tr><td>Connectivity</td><td>Dense</td><td>Sparse</td></tr>
+  <tr><td>Vanishing gradient</td><td>Severe problem</td><td>Avoided (no backprop through reservoir)</td></tr>
+  <tr><td>Suitable for</td><td>Complex sequential learning</td><td>Time-series prediction with quick training</td></tr>
+</table>
+
+<h3>4. Advantages of ESN</h3>
+<ul>
+  <li>Very fast training (no BPTT needed).</li>
+  <li>Avoids vanishing/exploding gradients.</li>
+  <li>Good for time-series prediction and chaotic systems.</li>
+</ul>
+
+<h3>5. Limitations of ESN</h3>
+<ul>
+  <li>Reservoir parameters are not optimized → may need to try many random initializations.</li>
+  <li>Less powerful than LSTM/GRU for complex tasks.</li>
+  <li>Performance highly depends on the random reservoir.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>ESN = RNN with FIXED random reservoir; only output layer trained.</li>
+    <li>Avoids BPTT and vanishing gradient.</li>
+    <li>Very fast to train but less powerful than LSTM.</li>
+    <li>Good for time-series, chaotic systems.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q10">Q10 — Performance Metrics / Baseline Models / Implicit vs Explicit Memory</h2>
+<span class="freq-tag">Asked 1 time each</span>(May'24)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 6 marks)</b> WSN (Write Short Notes) on Performance Matrices.</p>
+    <p><b>(May'24, 6 marks)</b> Compare implicit and explicit memory.</p>
+    <p><b>(May'24, 5 marks)</b> What are default baseline models? Explain in brief.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>Part A — Performance Metrics for Deep Learning Models</h3>
+<ul>
+  <li><b>Accuracy:</b> fraction of correct predictions. (correct / total)</li>
+  <li><b>Precision:</b> TP / (TP + FP) — of all predicted positives, how many were actually positive.</li>
+  <li><b>Recall (Sensitivity):</b> TP / (TP + FN) — of all actual positives, how many were caught.</li>
+  <li><b>F1 Score:</b> 2 · (Precision · Recall) / (Precision + Recall) — harmonic mean.</li>
+  <li><b>Confusion matrix:</b> table showing TP, FP, TN, FN for classification.</li>
+  <li><b>ROC-AUC:</b> Area Under the Receiver Operating Characteristic curve.</li>
+  <li><b>MSE / MAE:</b> Mean Squared/Absolute Error — for regression.</li>
+  <li><b>BLEU score:</b> for translation tasks.</li>
+  <li><b>Perplexity:</b> for language models.</li>
+  <li><b>Inference latency &amp; throughput:</b> speed metrics.</li>
+</ul>
+
+<h3>Part B — Default Baseline Models</h3>
+<p>When starting a deep learning project, a <b>default baseline model</b> is a simple, well-known model used as a starting point to benchmark performance. Examples:</p>
+<ul>
+  <li><b>For image classification:</b> ResNet-50 or a pre-trained VGG16.</li>
+  <li><b>For text classification:</b> a simple LSTM or BERT-base.</li>
+  <li><b>For tabular data:</b> a small MLP.</li>
+  <li><b>For regression on time-series:</b> ARIMA or simple LSTM.</li>
+</ul>
+<p>Baseline helps determine if your custom model is actually improving over a simple, known-good model. Saves time and prevents reinventing the wheel.</p>
+
+<h3>Part C — Implicit vs Explicit Memory</h3>
+<table>
+  <tr><th>Aspect</th><th>Implicit Memory</th><th>Explicit Memory</th></tr>
+  <tr><td>Where stored</td><td>Inside network weights / hidden states</td><td>Separate external memory bank</td></tr>
+  <tr><td>Access</td><td>Implicit / automatic</td><td>Read/write via learned addressing</td></tr>
+  <tr><td>Capacity</td><td>Limited by hidden state size</td><td>Can be arbitrarily large</td></tr>
+  <tr><td>Example architectures</td><td>RNN, LSTM, GRU</td><td>Neural Turing Machine, Memory Networks, Transformers (with key-value memory)</td></tr>
+  <tr><td>Use case</td><td>Short sequences, statistical patterns</td><td>Tasks requiring large factual recall (QA, reasoning)</td></tr>
+  <tr><td>Training</td><td>End-to-end backprop</td><td>Often needs attention / addressing mechanism</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Metrics: Accuracy, Precision, Recall, F1, Confusion matrix, ROC-AUC, MSE.</li>
+    <li>Baseline models = simple known-good starting points (ResNet-50, BERT-base).</li>
+    <li>Implicit memory = stored in weights / hidden state (RNN).</li>
+    <li>Explicit memory = separate read/write memory (NTM, Memory Networks).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>RNN (what/working/types)</td><td>✓</td><td>✓ ×2</td><td>✓</td><td>✓</td><td>✓</td><td>6</td></tr>
+  <tr><td>LSTM (architecture/gates)</td><td>✓</td><td>✓ ×2</td><td>—</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>Encoder-Decoder Seq2Seq</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Unfolding computational graphs</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>Recurrent vs Recursive NN</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>2</td></tr>
+  <tr><td>Long-Term Dependencies challenges</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>2</td></tr>
+  <tr><td>CNN vs RNN</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>1</td></tr>
+  <tr><td>Bidirectional RNN limitations</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>1</td></tr>
+  <tr><td>Echo State Network</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>1</td></tr>
+  <tr><td>Performance Metrics</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>1</td></tr>
+  <tr><td>Default Baseline Models</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>1</td></tr>
+  <tr><td>Implicit vs Explicit Memory</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>1</td></tr>
+</table>
+
+<h3>Must-remember formulas / facts</h3>
+<div class="formula-line">
+  Vanilla RNN: &nbsp;h<sub>t</sub> = tanh(W<sub>x</sub>·x<sub>t</sub> + W<sub>h</sub>·h<sub>t-1</sub> + b)<br>
+  LSTM: 3 gates (forget, input, output) + cell state C<sub>t</sub><br>
+  Encoder-Decoder: Encoder makes context vector; Decoder generates output<br>
+  Training: BPTT (Backpropagation Through Time)<br>
+  Main problem: Vanishing gradient (solved by LSTM/GRU)
+</div>
+
+<h3>5 types of RNN by input-output</h3>
+<ol>
+  <li>One-to-One: image classification</li>
+  <li>One-to-Many: image captioning</li>
+  <li>Many-to-One: sentiment analysis</li>
+  <li>Many-to-Many (same length): POS tagging</li>
+  <li>Many-to-Many (different lengths): machine translation</li>
+</ol>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>RNN adds memory to neural networks for sequences; LSTM uses 3 gates (forget, input, output) to handle long sequences; Encoder-Decoder maps input sequence to output sequence of different length.</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  DL Chapter 4 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open this file in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

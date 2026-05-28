@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NLP — Chapter 6: Applications of NLP (Unit VI)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="../DL/Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="../DL/Chapter-4.html">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="../DL/Chapter-5.html">Ch 5 — Deep Generative Models</a>
+    <a href="../DL/Chapter-6.html">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details open>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="Chapter-3.html">Ch 3 — Language Modelling</a>
+    <a href="Chapter-4.html">Ch 4 — Information Retrieval</a>
+    <a href="Chapter-5.html">Ch 5 — NLP Tools &amp; Techniques</a>
+    <a href="Chapter-6.html" class="current">Ch 6 — NLP Applications</a>
+  </details>
+  <details>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="../BI/Chapter-3.html">Ch 3 — Data Warehousing</a>
+    <a href="../BI/Chapter-4.html">Ch 4 — Data Mining</a>
+    <a href="../BI/Chapter-5.html">Ch 5 — BI Tools &amp; OLAP</a>
+    <a href="../BI/Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>NLP — Chapter 6: Applications of NLP (Unit VI)</h1>
+<p class="meta">
+  Subject Code: 410252(A) | End-Sem: 09 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q7 or Q8).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — applications overview</a></li>
+    <li><a href="#q1">Q1 — Machine Translation: Rule-based, SMT (asked 6 times)</a></li>
+    <li><a href="#q2">Q2 — Natural Language Generation (NLG) (asked 5 times)</a></li>
+    <li><a href="#q3">Q3 — Question Answering (asked 3 times)</a></li>
+    <li><a href="#q4">Q4 — Conversational Agents / Chatbots (asked 2 times)</a></li>
+    <li><a href="#q5">Q5 — Text Entailment (asked 2 times)</a></li>
+    <li><a href="#q6">Q6 — Sentiment Analysis (asked 1 time)</a></li>
+    <li><a href="#q7">Q7 — Dialog Agents (asked 1 time)</a></li>
+    <li><a href="#q8">Q8 — Cross-Lingual Translation Challenges (asked 1 time)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+This unit is the EXCITING one — it puts NLP into real-world use. Google Translate (machine translation), Siri (dialog systems), chatbots (conversational agents), Amazon reviews sentiment analyzer, IBM Watson question answering — all are NLP applications. The previous 3 units gave us the TOOLS; this unit shows us the FINISHED PRODUCTS.
+</div>
+
+<h3>Main NLP applications covered in this unit</h3>
+<ul>
+  <li><b>Machine Translation (MT)</b> — translating between languages.</li>
+  <li><b>Natural Language Generation (NLG)</b> — producing human-readable text.</li>
+  <li><b>Sentiment Analysis</b> — classifying text as positive / negative / neutral.</li>
+  <li><b>Question Answering (QA)</b> — answering natural-language questions.</li>
+  <li><b>Text Entailment</b> — deciding if one text logically follows from another.</li>
+  <li><b>Discourse Processing</b> — understanding multi-sentence relationships.</li>
+  <li><b>Dialog and Conversational Agents</b> — chatbots and virtual assistants.</li>
+</ul>
+
+<hr>
+
+<h2 id="q1">Q1 — Machine Translation (Rule-based, SMT, NMT)</h2>
+<span class="freq-tag">Asked 6 times</span>(May'23 ×2, Nov'23, May'24, May'25, Nov'25 — usually 7–10 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 7 marks)</b> Explain Statistical Machine Translation (SMT) with suitable diagrams and example.</p>
+    <p><b>(May'23, 10 marks)</b> Describe various Machine Translation Approaches.</p>
+    <p><b>(Nov'23, 10 marks)</b> Explain Rule-based MT and SMT with diagrams and example.</p>
+    <p><b>(May'24, 9 marks)</b> Key principles of rule-based MT. Differences from statistical approaches. Example.</p>
+    <p><b>(May'25, 9 marks)</b> Rule-based MT vs SMT. Example of rule-based translation.</p>
+    <p><b>(Nov'25, 9 marks)</b> Compare architectures of RBMT and SMT. How they handle syntactic and semantic ambiguities.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Translating "I love mangoes" → Hindi can be done in 3 ways:
+(1) A linguist makes hand-crafted RULES ("subject + verb + object → kartā + karma + kriyā") — Rule-Based MT.
+(2) A computer reads MILLIONS of pairs of English-Hindi sentences and learns statistical patterns of what word usually translates to what — Statistical MT.
+(3) A neural network learns translations end-to-end from huge data — Neural MT (modern, e.g., Google Translate).
+</div>
+
+<h3>1. What is Machine Translation (MT)?</h3>
+<p><b>Machine Translation</b> is the use of software to translate text or speech from one natural language (source) to another (target). MT is one of the oldest and most challenging NLP applications.</p>
+
+<h3>2. Three main approaches</h3>
+
+<h4>(A) Rule-Based Machine Translation (RBMT)</h4>
+<ul>
+  <li>Uses HAND-CRAFTED linguistic rules and bilingual dictionaries.</li>
+  <li>Built by language experts.</li>
+  <li>Pipeline:
+    <ol>
+      <li>Morphological analysis of source language.</li>
+      <li>Syntactic parsing → parse tree.</li>
+      <li>Semantic transfer using rules and dictionary.</li>
+      <li>Target language syntactic generation.</li>
+      <li>Morphological generation in target language.</li>
+    </ol>
+  </li>
+  <li>Three sub-types:
+    <ul>
+      <li><b>Direct (word-by-word):</b> dictionary lookup + minimal reordering.</li>
+      <li><b>Transfer-based:</b> parse → transfer rules → generate.</li>
+      <li><b>Interlingua-based:</b> source → language-independent meaning representation → target.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4>(B) Statistical Machine Translation (SMT)</h4>
+<ul>
+  <li>Learns translation probabilities from large parallel corpora.</li>
+  <li>Famous IBM models (1990s); Google Translate used SMT until ~2016.</li>
+  <li>Based on Bayes' rule:
+    <div class="formula-line">
+      argmax<sub>t</sub> P(t | s) = argmax<sub>t</sub> P(s | t) · P(t)
+    </div>
+    <ul>
+      <li>P(s | t) = translation model.</li>
+      <li>P(t) = target language model.</li>
+    </ul>
+  </li>
+  <li>Two main types:
+    <ul>
+      <li><b>Word-based SMT:</b> aligns single words.</li>
+      <li><b>Phrase-based SMT:</b> aligns multi-word phrases (more accurate, dominant approach).</li>
+    </ul>
+  </li>
+  <li>Three components:
+    <ul>
+      <li><b>Translation model</b> — learned from parallel corpus.</li>
+      <li><b>Language model</b> — fluency of target sentence.</li>
+      <li><b>Decoder</b> — searches for best translation.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4>(C) Neural Machine Translation (NMT) — modern</h4>
+<ul>
+  <li>Uses deep neural networks (encoder-decoder + attention; now Transformers).</li>
+  <li>End-to-end trained on parallel corpora.</li>
+  <li>Google Translate switched to NMT in 2016; quality jumped dramatically.</li>
+  <li>Examples: Google Translate, DeepL, OpenNMT.</li>
+</ul>
+
+<h3>3. SMT Architecture (text diagram)</h3>
+<pre>
+   Source Sentence (English)
+        ↓
+   ┌──────────────┐
+   │ Pre-processing│  (tokenize, lowercase, etc.)
+   └──────┬───────┘
+          │
+   ┌──────▼──────┐    ┌──────────────┐
+   │ Translation │ ←─ │  Parallel     │
+   │   Model     │    │  Corpus       │
+   └──────┬──────┘    └──────────────┘
+          │
+   ┌──────▼──────┐    ┌──────────────┐
+   │  Language   │ ←─ │ Target lang.  │
+   │   Model     │    │ Monolingual   │
+   └──────┬──────┘    └──────────────┘
+          │
+   ┌──────▼──────┐
+   │   Decoder   │  (Beam search → best translation)
+   └──────┬──────┘
+          ↓
+   Target Sentence (Hindi)
+</pre>
+
+<h3>4. RBMT vs SMT — comparison</h3>
+<table>
+  <tr><th>Aspect</th><th>Rule-Based MT</th><th>Statistical MT</th></tr>
+  <tr><td>Knowledge source</td><td>Hand-crafted rules + dictionaries</td><td>Parallel corpora + statistics</td></tr>
+  <tr><td>Built by</td><td>Linguists</td><td>Machine learning from data</td></tr>
+  <tr><td>Coverage</td><td>Limited to coded rules</td><td>Wide (any text in corpus)</td></tr>
+  <tr><td>Quality on unseen text</td><td>Brittle (fails on new patterns)</td><td>More robust</td></tr>
+  <tr><td>Adapting to new language pair</td><td>Years of linguistic work</td><td>Just need parallel corpus</td></tr>
+  <tr><td>Handles syntactic ambiguity</td><td>Via parsing rules</td><td>Via statistical preference</td></tr>
+  <tr><td>Handles semantic ambiguity</td><td>Limited (needs WSD rules)</td><td>Better (uses context statistics)</td></tr>
+  <tr><td>Fluency</td><td>Often unnatural</td><td>More natural</td></tr>
+  <tr><td>Performance for low-resource pairs</td><td>Possible (just write rules)</td><td>Poor without enough corpus</td></tr>
+  <tr><td>Examples</td><td>SYSTRAN (early), Apertium</td><td>Moses, IBM Model 1-5 (history)</td></tr>
+</table>
+
+<h3>5. Example of rule-based translation</h3>
+<pre>
+Source (English):  "I love mangoes"
+Rules used:
+  1. Lexical translation: I→मैं, love→प्यार करता हूँ, mangoes→आम
+  2. Syntactic rule: English SVO → Hindi SOV
+  3. Morphological agreement: gender, number with subject
+
+Output (Hindi): "मैं आमों से प्यार करता हूँ"
+(Word-by-word: "I mangoes-PL with love do am")
+</pre>
+
+<h3>6. Example of SMT</h3>
+<pre>
+Phrase-based translation table (learned from corpus):
+  "I love"  ↔  "मुझे ... पसंद हैं"  (probability 0.7)
+  "I love"  ↔  "मैं प्यार करता हूँ"  (probability 0.3)
+  "mangoes" ↔  "आम"               (probability 0.95)
+
+Language model picks the most fluent combination:
+  "मुझे आम पसंद हैं" (high LM probability)
+  → final translation
+</pre>
+
+<h3>7. Cross-Lingual Translation</h3>
+<ul>
+  <li>Translation between language pairs where direct training data is scarce.</li>
+  <li>Uses pivot languages (e.g., Hindi → English → Tamil).</li>
+  <li>Modern multilingual NMT models like Google's M4 can translate among 100+ languages.</li>
+</ul>
+
+<h3>8. Evaluation of MT</h3>
+<ul>
+  <li><b>BLEU</b> (Bilingual Evaluation Understudy) — most common.</li>
+  <li><b>METEOR</b> — improves on BLEU with synonyms and stemming.</li>
+  <li><b>TER</b> (Translation Edit Rate).</li>
+  <li><b>Human evaluation</b> — gold standard but expensive.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>3 MT approaches: Rule-Based, Statistical (SMT), Neural (NMT).</li>
+    <li>RBMT = hand-crafted rules; SMT = learned from parallel corpora; NMT = end-to-end deep learning.</li>
+    <li>SMT formula: argmax<sub>t</sub> P(s | t) · P(t).</li>
+    <li>Modern systems (Google, DeepL) use NMT.</li>
+    <li>Evaluation: BLEU, METEOR, TER, human evaluation.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — Natural Language Generation (NLG)</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 — usually 7–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'23, 7 marks)</b> Explain Natural Language Generation with reference architecture.</p>
+    <p><b>(May'24, 9 marks)</b> Define NLG. How does it differ from text-to-speech synthesis? Applications.</p>
+    <p><b>(May'25, 8 marks)</b> Explain NLG with reference architecture.</p>
+    <p><b>(Nov'25, 8 marks)</b> Explain NLG with reference architecture.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+When you ask Siri "what's the weather?" and she replies "It will rain in Pune today, 25°C, mostly cloudy", that response was GENERATED by an NLG system, starting from raw weather data. NLG produces natural-sounding human language from structured data or internal representations.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Natural Language Generation (NLG)</b> is the NLP task of automatically producing human-readable text from data, knowledge bases, or other structured input. It is the OPPOSITE of Natural Language Understanding (NLU).</p>
+
+<h3>2. NLG vs Text-to-Speech (TTS)</h3>
+<table>
+  <tr><th>Aspect</th><th>NLG</th><th>Text-to-Speech (TTS)</th></tr>
+  <tr><td>Input</td><td>Data, knowledge, semantic representation</td><td>Written text</td></tr>
+  <tr><td>Output</td><td>Written text</td><td>Spoken audio</td></tr>
+  <tr><td>Goal</td><td>Generate WHAT to say</td><td>Generate HOW it sounds</td></tr>
+  <tr><td>Domain</td><td>Linguistics + AI</td><td>Audio synthesis</td></tr>
+  <tr><td>Tools</td><td>GPT, Templates, T5</td><td>Tacotron, WaveNet</td></tr>
+</table>
+<p>NLG often <b>precedes</b> TTS in a voice assistant pipeline: NLG decides what to say → TTS speaks it.</p>
+
+<h3>3. NLG Reference Architecture (6 stages)</h3>
+<pre>
+   Input data / knowledge
+            │
+            ▼
+   ┌─────────────────────┐
+   │ 1. Content Planning  │ — WHAT to say (select facts)
+   └─────────┬───────────┘
+             │
+             ▼
+   ┌─────────────────────┐
+   │ 2. Document Planning │ — Order content into sections
+   └─────────┬───────────┘
+             │
+             ▼
+   ┌─────────────────────┐
+   │ 3. Sentence Planning │ — Aggregate, choose tone
+   └─────────┬───────────┘
+             │
+             ▼
+   ┌─────────────────────┐
+   │ 4. Lexicalization    │ — Choose words and phrases
+   └─────────┬───────────┘
+             │
+             ▼
+   ┌─────────────────────┐
+   │ 5. Referring Expr.   │ — Choose pronouns ("he", "it")
+   └─────────┬───────────┘
+             │
+             ▼
+   ┌─────────────────────┐
+   │ 6. Surface Realization│ — Apply grammar, morphology
+   └─────────┬───────────┘
+             │
+             ▼
+        Final text
+</pre>
+
+<h3>4. Detailed explanation of each stage</h3>
+
+<h4>(1) Content Planning (Content Selection)</h4>
+<ul>
+  <li>Decide WHICH facts/information to include in the output.</li>
+  <li>Filter important data from a large input.</li>
+  <li>Example: from a weather database, pick only temperature, rain, wind.</li>
+</ul>
+
+<h4>(2) Document Planning (Structuring)</h4>
+<ul>
+  <li>Decide the OVERALL STRUCTURE of the output (paragraphs, sections, order).</li>
+  <li>Example: forecast first, then current conditions, then advice.</li>
+</ul>
+
+<h4>(3) Sentence Planning (Microplanning)</h4>
+<ul>
+  <li>Combine related facts into sentences.</li>
+  <li>Choose voice (active/passive), tense, tone.</li>
+  <li>Example: combine "temperature = 25°C" + "weather = rainy" → "It will be rainy with 25°C".</li>
+</ul>
+
+<h4>(4) Lexicalization (Word Choice)</h4>
+<ul>
+  <li>Choose specific words/phrases.</li>
+  <li>Example: "rainy" vs "wet" vs "showery".</li>
+</ul>
+
+<h4>(5) Referring Expression Generation</h4>
+<ul>
+  <li>Decide how to refer to entities (full name, pronoun, etc.).</li>
+  <li>Example: "Pune" first time → "the city" later → "it" after.</li>
+</ul>
+
+<h4>(6) Surface Realization (Linguistic Generation)</h4>
+<ul>
+  <li>Apply grammar rules, morphological inflections, punctuation.</li>
+  <li>Produce the final grammatically correct sentence.</li>
+</ul>
+
+<h3>5. Approaches to NLG</h3>
+<ul>
+  <li><b>Template-based:</b> fill blanks in pre-written templates (simple but rigid).</li>
+  <li><b>Rule-based / grammar-based:</b> use linguistic rules (controlled output).</li>
+  <li><b>Statistical NLG:</b> learn from corpora.</li>
+  <li><b>Neural NLG:</b> use seq2seq, transformers, GPT (modern, flexible).</li>
+</ul>
+
+<h3>6. Applications of NLG</h3>
+<ul>
+  <li><b>Automated journalism</b> — sports recaps, financial reports.</li>
+  <li><b>Weather forecasts</b> from meteorological data.</li>
+  <li><b>Business intelligence dashboards</b> — narrative summaries.</li>
+  <li><b>Chatbots and virtual assistants</b> (Siri, Alexa, Google Assistant).</li>
+  <li><b>E-commerce</b> — product descriptions auto-generated.</li>
+  <li><b>Medical reports</b> from patient data.</li>
+  <li><b>Data storytelling</b> for analytics.</li>
+  <li><b>Personalized email / SMS</b> generation.</li>
+  <li><b>Game dialogue generation.</b></li>
+  <li><b>Code documentation</b> generation.</li>
+</ul>
+
+<h3>7. Modern NLG (transformer-based)</h3>
+<ul>
+  <li>GPT, T5, BART have largely replaced traditional pipeline NLG for many tasks.</li>
+  <li>End-to-end: take input data, output natural text directly.</li>
+  <li>State-of-the-art for creative writing, summarization, dialogue.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>NLG = generate human-readable text from data / structured input.</li>
+    <li>Different from TTS: NLG produces text; TTS produces audio.</li>
+    <li>6 stages: Content Planning → Document Planning → Sentence Planning → Lexicalization → Referring Expressions → Surface Realization.</li>
+    <li>Approaches: template, rule-based, statistical, neural (GPT, T5).</li>
+    <li>Applications: automated journalism, weather reports, chatbots, BI, e-commerce.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — Question Answering (QA) System</h2>
+<span class="freq-tag">Asked 3 times</span>(Nov'23, May'25, Nov'25 — usually 7–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 7 marks)</b> Explain three stages of Question Answering system with neat diagram.</p>
+    <p><b>(May'25, 8 marks)</b> Explain fundamental components of a QA system.</p>
+    <p><b>(Nov'25, 9 marks)</b> Explain architecture and challenges of building a QA system.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p>A <b>Question Answering (QA) system</b> is an NLP system that automatically answers questions posed in natural language by retrieving information from a knowledge source (text corpus, structured database, or knowledge graph).</p>
+
+<h3>2. Types of QA systems</h3>
+<ul>
+  <li><b>Closed-domain QA:</b> answers questions in a specific domain (medical, legal).</li>
+  <li><b>Open-domain QA:</b> answers questions on any topic (Wikipedia, web).</li>
+  <li><b>Factoid QA:</b> answer is a specific fact (date, name).</li>
+  <li><b>Non-factoid QA:</b> longer explanations or opinions.</li>
+  <li><b>Reading comprehension:</b> answer based on a given passage.</li>
+  <li><b>Knowledge-based QA:</b> answer using a structured knowledge graph.</li>
+</ul>
+
+<h3>3. Three main stages of QA (classical pipeline)</h3>
+
+<h4>Stage 1: Question Analysis / Processing</h4>
+<ul>
+  <li>Tokenize and parse the question.</li>
+  <li>Classify question type (who, what, where, when, how, why).</li>
+  <li>Identify expected answer type (PERSON, LOCATION, DATE, NUMBER, …).</li>
+  <li>Extract keywords / entities.</li>
+  <li>Generate a query for the retrieval step.</li>
+</ul>
+
+<h4>Stage 2: Document / Passage Retrieval</h4>
+<ul>
+  <li>Use IR techniques (TF-IDF, BM25, or neural retrievers) to fetch documents relevant to the question.</li>
+  <li>Optionally split documents into smaller passages.</li>
+  <li>Rank passages by relevance.</li>
+</ul>
+
+<h4>Stage 3: Answer Extraction</h4>
+<ul>
+  <li>From the top passages, identify the exact ANSWER SPAN.</li>
+  <li>For factoid questions, look for entity matching the expected type.</li>
+  <li>Modern systems use BERT-based reading comprehension models.</li>
+  <li>Rank candidate answers; return the most confident.</li>
+</ul>
+
+<h3>4. QA system architecture (diagram)</h3>
+<pre>
+   User Question
+       │
+       ▼
+   ┌───────────────────────┐
+   │ Stage 1:               │
+   │ Question Analysis      │ → type, keywords, expected answer
+   └───────┬───────────────┘
+           │
+           ▼
+   ┌───────────────────────┐    ┌─────────────┐
+   │ Stage 2:               │ ← │  Corpus /   │
+   │ Document Retrieval     │   │  Documents  │
+   └───────┬───────────────┘    └─────────────┘
+           │
+           ▼
+   ┌───────────────────────┐
+   │ Stage 3:               │
+   │ Answer Extraction      │ → final answer + confidence
+   └───────┬───────────────┘
+           │
+           ▼
+      Final Answer
+</pre>
+
+<h3>5. Modern neural QA systems</h3>
+<ul>
+  <li><b>BERT-based QA</b> — fine-tune BERT on SQuAD-like datasets; predict answer start and end positions.</li>
+  <li><b>Retriever-Reader</b> — dense passage retrieval (DPR) + BERT reader.</li>
+  <li><b>End-to-end transformer models</b> — T5, BART.</li>
+  <li><b>Knowledge graph QA</b> — answer using entity-relation graph.</li>
+  <li><b>Conversational QA</b> — multi-turn (context-aware).</li>
+</ul>
+
+<h3>6. Challenges in QA</h3>
+<ul>
+  <li>Ambiguous questions ("How long is …?" — length or duration?).</li>
+  <li>Multi-hop reasoning (combining facts from multiple sources).</li>
+  <li>Out-of-domain or open-ended questions.</li>
+  <li>Limited training data for non-English languages.</li>
+  <li>Handling conflicting information from different sources.</li>
+  <li>Evaluating answer correctness (exact match, F1, semantic similarity).</li>
+  <li>Generating fluent natural answers (not just extracting spans).</li>
+  <li>Real-time response speed.</li>
+</ul>
+
+<h3>7. Real-world examples</h3>
+<ul>
+  <li>IBM Watson (won Jeopardy! in 2011).</li>
+  <li>Google Featured Snippets.</li>
+  <li>Apple Siri, Amazon Alexa, Google Assistant.</li>
+  <li>ChatGPT (LLM-based QA).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>QA = automatically answer questions in natural language.</li>
+    <li>3 stages: Question Analysis → Document Retrieval → Answer Extraction.</li>
+    <li>Types: closed-domain, open-domain, factoid, non-factoid, reading comprehension.</li>
+    <li>Modern QA uses BERT and retriever-reader architectures.</li>
+    <li>Challenges: ambiguity, multi-hop reasoning, evaluation, multilingual.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — Conversational Agents / Chatbots</h2>
+<span class="freq-tag">Asked 2 times</span>(May'24, Nov'25 — usually 8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 8 marks)</b> Key components of a conversational agent (chatbots, virtual assistants). Role of NLG and NLU.</p>
+    <p><b>(Nov'25, 8 marks)</b> Discuss key components of a conversational agent. Role of NLG and NLU in creating effective conversational agents.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p>A <b>Conversational Agent</b> (also called chatbot, virtual assistant, or dialog system) is an AI system designed to interact with humans through natural language, either via text or voice. Examples: Siri, Alexa, Google Assistant, ChatGPT, customer-support chatbots.</p>
+
+<h3>2. Types of Conversational Agents</h3>
+<ul>
+  <li><b>Rule-based / Pattern-matching:</b> simple if-else, regex (ELIZA, AIML).</li>
+  <li><b>Retrieval-based:</b> selects best response from predefined templates.</li>
+  <li><b>Generative:</b> generates novel responses (GPT-based).</li>
+  <li><b>Task-oriented:</b> helps with specific tasks (booking flights, banking).</li>
+  <li><b>Open-domain / chitchat:</b> general conversation.</li>
+</ul>
+
+<h3>3. Key Components</h3>
+
+<h4>(a) Natural Language Understanding (NLU)</h4>
+<ul>
+  <li>Convert user's input text into structured representation.</li>
+  <li>Subtasks:
+    <ul>
+      <li><b>Intent recognition</b> (e.g., "book flight" intent).</li>
+      <li><b>Entity / slot extraction</b> (e.g., source = Pune, destination = Mumbai, date = tomorrow).</li>
+      <li><b>Sentiment / tone detection.</b></li>
+    </ul>
+  </li>
+</ul>
+
+<h4>(b) Dialog Manager</h4>
+<ul>
+  <li>The "brain" — tracks conversation state and decides next action.</li>
+  <li>Maintains context across turns.</li>
+  <li>Implements policy: ask for missing info, confirm, execute action.</li>
+</ul>
+
+<h4>(c) Knowledge Base / Backend</h4>
+<ul>
+  <li>Database, API, or knowledge graph that holds factual information.</li>
+  <li>Examples: flight schedule API, FAQ database, weather service.</li>
+</ul>
+
+<h4>(d) Natural Language Generation (NLG)</h4>
+<ul>
+  <li>Convert system's response into fluent natural language.</li>
+  <li>Either template-based or neural.</li>
+</ul>
+
+<h4>(e) Speech Components (for voice assistants)</h4>
+<ul>
+  <li><b>Automatic Speech Recognition (ASR):</b> speech → text.</li>
+  <li><b>Text-to-Speech (TTS):</b> text → speech.</li>
+</ul>
+
+<h3>4. Architecture diagram</h3>
+<pre>
+   User input (text / speech)
+            │
+            ▼
+   ┌─────────────────┐    (For voice:) ┌──────────┐
+   │  ASR (optional) │ ←─ Audio ────── │ User     │
+   └────────┬────────┘                 └──────────┘
+            │
+            ▼
+   ┌─────────────────┐
+   │      NLU         │ → intent + entities
+   └────────┬────────┘
+            │
+            ▼
+   ┌─────────────────┐
+   │ Dialog Manager  │ ←→ Knowledge Base / API
+   └────────┬────────┘
+            │
+            ▼
+   ┌─────────────────┐
+   │      NLG        │ → response text
+   └────────┬────────┘
+            │
+            ▼
+   ┌─────────────────┐
+   │  TTS (optional) │
+   └────────┬────────┘
+            │
+            ▼
+       Response to user
+</pre>
+
+<h3>5. Role of NLU and NLG in effectiveness</h3>
+<ul>
+  <li><b>NLU</b> is the FRONT door. If it misinterprets the user's intent, the rest goes wrong.
+    <ul>
+      <li>Good NLU = correctly understands varied phrasings ("Book me a ticket" = "Reserve a seat" = "I want to fly").</li>
+      <li>Strong entity extraction → fewer follow-up clarifications.</li>
+    </ul>
+  </li>
+  <li><b>NLG</b> is the BACK door. Even with perfect understanding, a clunky response feels robotic.
+    <ul>
+      <li>Good NLG = natural, varied, polite responses.</li>
+      <li>Personalization, context-awareness, emotional tone matter.</li>
+    </ul>
+  </li>
+  <li>Together they make the conversation feel HUMAN-LIKE.</li>
+</ul>
+
+<h3>6. Challenges in building chatbots</h3>
+<ul>
+  <li>Handling unexpected input ("out-of-domain" questions).</li>
+  <li>Maintaining context across many turns.</li>
+  <li>Personalization (different users need different responses).</li>
+  <li>Multilingual support.</li>
+  <li>Emotional intelligence and empathy.</li>
+  <li>Avoiding offensive or biased responses.</li>
+  <li>Integrating with backend systems.</li>
+</ul>
+
+<h3>7. Examples</h3>
+<ul>
+  <li><b>Siri</b> (Apple), <b>Alexa</b> (Amazon), <b>Google Assistant</b>.</li>
+  <li><b>Cortana</b> (Microsoft).</li>
+  <li><b>ChatGPT</b> (OpenAI), <b>Claude</b> (Anthropic) — large language model based.</li>
+  <li>Customer support chatbots on banking, e-commerce websites.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Conversational agent = chatbot / virtual assistant.</li>
+    <li>Components: NLU, Dialog Manager, Knowledge Base, NLG, (ASR + TTS for voice).</li>
+    <li>NLU understands intent + entities; NLG produces fluent response.</li>
+    <li>Both NLU and NLG quality directly affect user experience.</li>
+    <li>Modern systems use LLMs (GPT, Claude) for end-to-end conversations.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Text Entailment</h2>
+<span class="freq-tag">Asked 2 times</span>(Nov'23, May'25 — usually 9–10 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 10 marks)</b> Describe Text Entailment as an NLP application.</p>
+    <p><b>(May'25, 9 marks)</b> Define text entailment; importance in natural language understanding. How does it differ from text similarity or paraphrasing?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Text Entailment</b> (also called Recognizing Textual Entailment, RTE) is the NLP task of determining whether the MEANING of one piece of text (called the <b>hypothesis</b>) can be INFERRED from another piece of text (called the <b>premise</b>).</p>
+
+<h3>2. The three possible relations</h3>
+<ul>
+  <li><b>Entailment:</b> hypothesis logically follows from the premise.</li>
+  <li><b>Contradiction:</b> hypothesis is logically opposite to the premise.</li>
+  <li><b>Neutral:</b> hypothesis is neither entailed nor contradicted.</li>
+</ul>
+
+<h3>3. Examples</h3>
+<table>
+  <tr><th>Premise</th><th>Hypothesis</th><th>Label</th></tr>
+  <tr><td>"A man is playing guitar."</td><td>"A person is making music."</td><td>Entailment</td></tr>
+  <tr><td>"A man is playing guitar."</td><td>"A man is silent."</td><td>Contradiction</td></tr>
+  <tr><td>"A man is playing guitar."</td><td>"The man enjoys jazz."</td><td>Neutral</td></tr>
+</table>
+
+<h3>4. Importance in Natural Language Understanding (NLU)</h3>
+<ul>
+  <li>Tests a system's ability to do REASONING with language.</li>
+  <li>Underlies many NLP tasks:
+    <ul>
+      <li>Question answering (answer must entail the question).</li>
+      <li>Information retrieval (results must entail query intent).</li>
+      <li>Summarization (summary must entail the source).</li>
+      <li>Machine translation (translation should entail source).</li>
+      <li>Plagiarism detection.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>5. Text Entailment vs Similarity vs Paraphrasing</h3>
+<table>
+  <tr><th>Concept</th><th>Definition</th><th>Direction</th></tr>
+  <tr><td>Entailment</td><td>Hypothesis follows from premise</td><td>One-way (premise → hypothesis)</td></tr>
+  <tr><td>Similarity</td><td>Two texts share meaning to some degree</td><td>Symmetric</td></tr>
+  <tr><td>Paraphrasing</td><td>Two texts have the same meaning, different words</td><td>Symmetric (bidirectional entailment)</td></tr>
+</table>
+
+<p>So: paraphrasing = entailment in BOTH directions. Similarity is a soft, gradient measure (not yes/no).</p>
+
+<h3>6. Approaches to Text Entailment</h3>
+<ul>
+  <li><b>Lexical overlap</b> — count shared words.</li>
+  <li><b>Logical / rule-based</b> — convert to formal logic.</li>
+  <li><b>Machine learning</b> with hand-crafted features.</li>
+  <li><b>Deep learning</b> — LSTM, BERT, transformer-based classifiers.</li>
+  <li><b>NLI benchmarks:</b> SNLI, MultiNLI, ANLI datasets.</li>
+</ul>
+
+<h3>7. Applications</h3>
+<ul>
+  <li>Search engine validation (does the result answer the query?).</li>
+  <li>Fact-checking (does an article support a claim?).</li>
+  <li>Summarization evaluation.</li>
+  <li>Question answering pipelines.</li>
+  <li>Educational systems (grading student answers).</li>
+  <li>Legal document analysis.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Text Entailment = does hypothesis follow from premise?</li>
+    <li>Three labels: Entailment, Contradiction, Neutral.</li>
+    <li>Different from similarity (gradient) and paraphrasing (bidirectional entailment).</li>
+    <li>Modern approach: BERT-based classifier.</li>
+    <li>Applications: QA, fact-checking, summarization eval, plagiarism.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — Sentiment Analysis</h2>
+<span class="freq-tag">Asked 1 time</span>(May'23 — 10 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 10 marks)</b> Write a note on Sentiment Analysis.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Sentiment Analysis</b> (also called Opinion Mining) is the NLP task of automatically determining the EMOTIONAL TONE or OPINION expressed in a piece of text — typically positive, negative, or neutral.</p>
+
+<h3>2. Granularity levels</h3>
+<ul>
+  <li><b>Document-level:</b> overall sentiment of a whole document/review.</li>
+  <li><b>Sentence-level:</b> sentiment of individual sentences.</li>
+  <li><b>Aspect-based:</b> sentiment toward specific aspects ("the camera is great, but the battery is poor").</li>
+  <li><b>Entity-level:</b> sentiment toward specific entities (people, products).</li>
+</ul>
+
+<h3>3. Categories of sentiment</h3>
+<ul>
+  <li><b>Binary:</b> positive vs negative.</li>
+  <li><b>Ternary:</b> positive / negative / neutral.</li>
+  <li><b>Fine-grained:</b> 1-5 star rating.</li>
+  <li><b>Emotion classification:</b> joy, anger, sadness, fear, surprise, disgust.</li>
+</ul>
+
+<h3>4. Approaches</h3>
+
+<h4>(a) Lexicon-based / Rule-based</h4>
+<ul>
+  <li>Use a sentiment lexicon (e.g., SentiWordNet, VADER, AFINN).</li>
+  <li>Count positive and negative words; output the difference.</li>
+  <li>Handle negation ("not good" → flip sentiment).</li>
+  <li>Pros: simple, interpretable, no training data needed.</li>
+  <li>Cons: misses context and sarcasm.</li>
+</ul>
+
+<h4>(b) Machine Learning</h4>
+<ul>
+  <li>Features: bag-of-words, TF-IDF, n-grams.</li>
+  <li>Classifiers: Naive Bayes, SVM, Logistic Regression.</li>
+  <li>Pros: better than rules; needs labeled training data.</li>
+</ul>
+
+<h4>(c) Deep Learning</h4>
+<ul>
+  <li>LSTM, CNN, Transformer (BERT) based sentiment classifiers.</li>
+  <li>State-of-the-art accuracy.</li>
+  <li>Handle context, negation, complex syntax well.</li>
+</ul>
+
+<h3>5. Challenges</h3>
+<ul>
+  <li><b>Sarcasm and irony</b> ("Oh great, another Monday!").</li>
+  <li><b>Negation</b> ("not bad" = positive).</li>
+  <li><b>Domain dependence</b> (positive in movies ≠ positive in food).</li>
+  <li><b>Multilingual sentiment.</b></li>
+  <li><b>Aspect-level sentiment</b> (different aspects = different sentiments).</li>
+  <li><b>Emoji and slang handling.</b></li>
+  <li><b>Contextual / discourse-level sentiment.</b></li>
+</ul>
+
+<h3>6. Applications</h3>
+<ul>
+  <li>Product review analysis (Amazon, Flipkart).</li>
+  <li>Social media monitoring (Twitter sentiment around brands, politicians, events).</li>
+  <li>Customer feedback analysis.</li>
+  <li>Stock market prediction from news sentiment.</li>
+  <li>Movie / restaurant rating prediction.</li>
+  <li>Election prediction.</li>
+  <li>Hate-speech detection.</li>
+</ul>
+
+<h3>7. Tools and resources</h3>
+<ul>
+  <li><b>VADER</b> (Python library) — for social media.</li>
+  <li><b>TextBlob</b> — simple polarity score.</li>
+  <li><b>SentiWordNet</b> — WordNet with sentiment scores.</li>
+  <li><b>Hugging Face transformers</b> — pre-trained BERT sentiment models.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Sentiment analysis = determine emotional tone (positive / negative / neutral).</li>
+    <li>Granularity: document, sentence, aspect, entity.</li>
+    <li>Approaches: lexicon, ML (NB, SVM), deep learning (LSTM, BERT).</li>
+    <li>Challenges: sarcasm, negation, domain, multilingual.</li>
+    <li>Applications: reviews, social media, finance, customer feedback.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — Dialog Systems and Conversational Agents</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'23 — combined with text entailment, 10 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 10 marks)</b> Describe NLP applications: i) Text Entailment ii) Dialog and Conversational Agents.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<p>For full details see <a href="#q4">Q4 — Conversational Agents</a> and <a href="#q5">Q5 — Text Entailment</a> above.</p>
+
+<h3>Dialog System — quick summary</h3>
+<ul>
+  <li>A system that engages in continuous conversation with humans.</li>
+  <li>Components: NLU + Dialog Manager + NLG (+ ASR/TTS for voice).</li>
+  <li>Types: task-oriented (booking, banking) vs chitchat (open-ended).</li>
+  <li>Examples: Siri, Alexa, ChatGPT.</li>
+  <li>Modern systems use LLMs for natural multi-turn conversation.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Dialog systems engage in multi-turn conversations.</li>
+    <li>Use NLU → Dialog Manager → NLG pipeline.</li>
+    <li>Modern dialog systems are powered by large language models.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — Cross-Lingual Translation Challenges</h2>
+<span class="freq-tag">Asked 1 time</span>(May'24 — 8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 8 marks)</b> Discuss the challenges in cross-lingual translation and benefits in real-world applications.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. What is Cross-Lingual Translation?</h3>
+<p>Translation between two languages where the system may not have abundant direct training data. Often handled by pivoting through a high-resource language (typically English).</p>
+
+<h3>2. Challenges</h3>
+<ul>
+  <li><b>Limited parallel corpora</b> for low-resource language pairs (e.g., Marathi → Tamil).</li>
+  <li><b>Differences in grammar / word order</b> (English SVO vs Hindi SOV).</li>
+  <li><b>Morphological richness</b> in Indian languages (one English word = many Hindi forms).</li>
+  <li><b>Cultural and idiomatic expressions</b> hard to translate directly.</li>
+  <li><b>Out-of-vocabulary words</b> (proper nouns, technical terms).</li>
+  <li><b>Different writing scripts</b> (Latin, Devanagari, Tamil, Arabic).</li>
+  <li><b>Ambiguity propagation</b> through multiple pivot translations.</li>
+  <li><b>Quality evaluation</b> for non-English languages is hard.</li>
+  <li><b>Code-mixing / code-switching</b> (Hinglish, Tamglish) in real text.</li>
+  <li><b>Polysemy</b> — words with multiple meanings.</li>
+</ul>
+
+<h3>3. Techniques to address these challenges</h3>
+<ul>
+  <li><b>Pivot translation:</b> source → English → target.</li>
+  <li><b>Multilingual NMT models</b> (mBART, M2M-100, NLLB) — single model for many language pairs.</li>
+  <li><b>Transfer learning</b> from high-resource to low-resource languages.</li>
+  <li><b>Back-translation</b> (synthetic parallel data).</li>
+  <li><b>Subword tokenization (BPE)</b> for morphologically rich languages.</li>
+  <li><b>Romanization / script normalization.</b></li>
+</ul>
+
+<h3>4. Benefits in real-world applications</h3>
+<ul>
+  <li><b>Global communication</b> — break language barriers.</li>
+  <li><b>E-commerce</b> — translate product listings to local languages.</li>
+  <li><b>Healthcare</b> — translate medical instructions.</li>
+  <li><b>Education</b> — translate learning content (Khan Academy in multiple languages).</li>
+  <li><b>News</b> — translate international news.</li>
+  <li><b>Government services</b> — make official documents accessible in regional languages.</li>
+  <li><b>Tourism and travel</b> — Google Translate camera mode for menus and signs.</li>
+  <li><b>Customer support</b> — multilingual chatbots.</li>
+  <li><b>Cultural preservation</b> — translate texts of endangered languages.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Challenges: limited corpora, grammar differences, morphology, cultural idioms, OOV, scripts, code-mixing.</li>
+    <li>Solutions: pivot translation, multilingual NMT, transfer learning, back-translation.</li>
+    <li>Benefits: global communication, e-commerce, education, news, government.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>Machine Translation (RBMT, SMT)</td><td>✓ ×2</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>6</td></tr>
+  <tr><td>Natural Language Generation</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>Question Answering</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>3</td></tr>
+  <tr><td>Conversational Agents</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>Text Entailment</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>2</td></tr>
+  <tr><td>Sentiment Analysis</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>1</td></tr>
+  <tr><td>Cross-lingual translation challenges</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>1</td></tr>
+</table>
+
+<h3>Must-remember facts</h3>
+<ul>
+  <li>3 MT approaches: RBMT (rules), SMT (statistics), NMT (neural).</li>
+  <li>SMT: argmax<sub>t</sub> P(s | t) · P(t).</li>
+  <li>NLG 6 stages: Content Planning → Document Planning → Sentence Planning → Lexicalization → Referring Expressions → Surface Realization.</li>
+  <li>QA 3 stages: Question Analysis → Document Retrieval → Answer Extraction.</li>
+  <li>Conversational Agent components: NLU + Dialog Manager + Knowledge Base + NLG (+ ASR/TTS for voice).</li>
+  <li>Text Entailment: Entailment, Contradiction, Neutral.</li>
+  <li>Sentiment: lexicon, ML, deep learning approaches.</li>
+</ul>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>NLP applications turn theory into products: MT (translate), NLG (generate text), QA (answer questions), Conversational Agents (chatbots), Sentiment Analysis (opinions), Text Entailment (logical inference).</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  NLP Chapter 6 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NLP — Chapter 4: Information Retrieval using NLP (Unit IV)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="../DL/Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="../DL/Chapter-4.html">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="../DL/Chapter-5.html">Ch 5 — Deep Generative Models</a>
+    <a href="../DL/Chapter-6.html">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details open>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="Chapter-3.html">Ch 3 — Language Modelling</a>
+    <a href="Chapter-4.html" class="current">Ch 4 — Information Retrieval</a>
+    <a href="Chapter-5.html">Ch 5 — NLP Tools &amp; Techniques</a>
+    <a href="Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="../BI/Chapter-3.html">Ch 3 — Data Warehousing</a>
+    <a href="../BI/Chapter-4.html">Ch 4 — Data Mining</a>
+    <a href="../BI/Chapter-5.html">Ch 5 — BI Tools &amp; OLAP</a>
+    <a href="../BI/Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>NLP — Chapter 4: Information Retrieval using NLP (Unit IV)</h1>
+<p class="meta">
+  Subject Code: 410252(A) (Elective V) | End-Sem: 09 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q3 or Q4).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — what is Information Retrieval?</a></li>
+    <li><a href="#q1">Q1 — Vector Space Model (VSM) (asked 5 times)</a></li>
+    <li><a href="#q2">Q2 — Named Entity Recognition (NER) (asked 5 times)</a></li>
+    <li><a href="#q3">Q3 — Entity Extraction &amp; Relation Extraction (asked 5 times)</a></li>
+    <li><a href="#q4">Q4 — Cross-Lingual Information Retrieval (CLIR) (asked 5 times)</a></li>
+    <li><a href="#q5">Q5 — Reference Resolution &amp; Coreference Resolution (asked 4 times)</a></li>
+    <li><a href="#q6">Q6 — Concept of Information Retrieval (asked 3 times)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+You type "best pizza Pune" into Google → it returns the most relevant web pages from billions. That's INFORMATION RETRIEVAL — the science of finding documents matching a user's information need. NLP makes IR smarter — understanding queries, recognizing entities, handling synonyms, working across languages.
+</div>
+
+<h3>What is Information Retrieval (IR)?</h3>
+<p><b>IR</b> is the process of obtaining relevant information (documents, web pages, images) from a large collection in response to a user's query. The core challenge: matching user's INTENT with relevant content.</p>
+
+<h3>Main components of an IR system</h3>
+<ul>
+  <li><b>Document collection</b> (corpus).</li>
+  <li><b>Indexing</b> — preprocess documents into searchable structures (inverted index, embeddings).</li>
+  <li><b>Query processing</b> — tokenize, normalize, expand the user query.</li>
+  <li><b>Ranking</b> — compute relevance scores and order documents.</li>
+  <li><b>Evaluation</b> — precision, recall, F1, MAP, NDCG.</li>
+</ul>
+
+<hr>
+
+<h2 id="q1">Q1 — Vector Space Model (VSM)</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 — usually 6–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, Nov'23, 6 marks)</b> Explain the concept of the Vector Space Model and describe how it is used in Information Retrieval.</p>
+    <p><b>(May'24, 9 marks)</b> Describe VSM. How does VSM represent documents and queries, and how are similarities calculated? Discuss strengths and weaknesses.</p>
+    <p><b>(May'25, 8 marks)</b> Describe the Vector Space Model (VSM) for information retrieval.</p>
+    <p><b>(Nov'25, 9 marks)</b> Explain VSM in IR. How are documents and queries represented, how is relevance computed?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine every document is a POINT in a giant space with one axis for each word in the vocabulary. A document about cricket lies near other cricket documents. A query is also placed in this space; the documents CLOSEST to the query are the most relevant.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Vector Space Model (VSM)</b> represents documents and queries as vectors in a high-dimensional space. Each dimension corresponds to a term in the vocabulary. Relevance is computed by measuring the similarity (typically cosine) between the query vector and document vectors.</p>
+
+<h3>2. How documents are represented</h3>
+<ul>
+  <li>Vocabulary = all unique terms across the corpus.</li>
+  <li>Each document = vector with one dimension per term.</li>
+  <li>Each component = weight (TF, TF-IDF, binary, etc.) of that term in the document.</li>
+  <li>If V = 10,000 terms, each document is a 10,000-dimensional vector.</li>
+</ul>
+
+<h3>3. How queries are represented</h3>
+<ul>
+  <li>The query is treated like a short document.</li>
+  <li>Converted into the same vector space using the same weighting scheme.</li>
+</ul>
+
+<h3>4. Cosine similarity (computing relevance)</h3>
+<div class="formula-line">
+  similarity(q, d) = (q · d) / (||q|| · ||d||) = cos θ
+</div>
+<ul>
+  <li>q · d = dot product of query and document vectors.</li>
+  <li>||q||, ||d|| = magnitudes (Euclidean norms).</li>
+  <li>Result: a number in [0, 1] (since vectors are non-negative).</li>
+  <li>1 = perfect match; 0 = no overlap.</li>
+</ul>
+
+<h3>5. Steps of VSM-based retrieval</h3>
+<ol>
+  <li>Build vocabulary from corpus.</li>
+  <li>Build document vectors using TF-IDF weighting.</li>
+  <li>When a query arrives, build its vector.</li>
+  <li>Compute cosine similarity with each document.</li>
+  <li>Rank documents by similarity (highest first).</li>
+  <li>Return top-K results to the user.</li>
+</ol>
+
+<h3>6. Example</h3>
+<pre>
+Vocabulary: {ball, team, bank, money}
+
+Documents (TF-IDF vectors):
+  Doc1: [3, 4, 0, 0]    → about sports
+  Doc2: [0, 0, 5, 6]    → about finance
+
+Query: "team ball"
+  q = [2, 2, 0, 0]
+
+cos(q, Doc1) = (3·2 + 4·2 + 0 + 0) / (||q|| · ||Doc1||) = 14 / (√8 · √25) = 14 / 14.14 ≈ 0.99
+cos(q, Doc2) = 0 / anything = 0
+
+→ Doc1 is returned as the best match.
+</pre>
+
+<h3>7. Diagram (2-D conceptual)</h3>
+<pre>
+       y-axis "team"
+        ↑
+        |       Doc1 (sports)
+        |     /
+        |   /
+        | /
+        |
+        |  q (query)
+        |
+   ─────|──────────────→ x-axis "ball"
+        |
+        |________________________
+                         Doc2 (finance: orthogonal direction)
+</pre>
+
+<h3>8. Strengths of VSM</h3>
+<ul>
+  <li>Simple, intuitive, easy to implement.</li>
+  <li>Supports partial matching (not all terms need to match).</li>
+  <li>Produces ranked results (not just binary).</li>
+  <li>Foundation for many advanced IR techniques.</li>
+  <li>Works well with TF-IDF weighting.</li>
+</ul>
+
+<h3>9. Weaknesses / Limitations</h3>
+<ul>
+  <li>Assumes terms are INDEPENDENT (ignores word order, syntax).</li>
+  <li>Cannot handle SYNONYMS (e.g., "car" vs "automobile" treated as different).</li>
+  <li>Cannot handle POLYSEMY (one word with multiple meanings).</li>
+  <li>Sparse high-dimensional vectors → computational cost.</li>
+  <li>No semantic understanding.</li>
+  <li>Solved by LSA, neural embeddings, BERT.</li>
+</ul>
+
+<h3>10. Applications</h3>
+<ul>
+  <li>Web search engines (Google's early ranker).</li>
+  <li>Document retrieval systems.</li>
+  <li>Plagiarism detection.</li>
+  <li>Recommender systems (content-based filtering).</li>
+  <li>Email spam filtering.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>VSM = documents &amp; queries as vectors in vocabulary space.</li>
+    <li>Weights usually TF-IDF.</li>
+    <li>Relevance = cosine similarity.</li>
+    <li>Strengths: simple, ranked results, partial matching.</li>
+    <li>Weaknesses: no synonymy/polysemy handling, no semantic understanding.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — Named Entity Recognition (NER)</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 — usually 4–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, Nov'23, 4–8 marks)</b> What is NER? Describe the various metrics used for evaluation.</p>
+    <p><b>(May'24, 9 marks)</b> Methods for evaluating NER systems; common metrics.</p>
+    <p><b>(May'25, 2 marks)</b> What is Named Entity Recognition (NER)?</p>
+    <p><b>(Nov'25, 9 marks)</b> Describe NER system building process; outline steps using supervised learning.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+When you read "Sundar Pichai is the CEO of Google in Mountain View", your brain instantly tags: Person = Sundar Pichai, Organization = Google, Location = Mountain View. NER teaches a computer to do this automatically.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Named Entity Recognition (NER)</b> is a sub-task of NLP that automatically identifies and classifies named entities (persons, organizations, locations, dates, numerical values, etc.) within text.</p>
+
+<h3>2. Common entity types</h3>
+<ul>
+  <li><b>PERSON</b> — names of people (Sundar Pichai, Mahatma Gandhi).</li>
+  <li><b>ORG</b> — organizations (Google, SPPU, ISRO).</li>
+  <li><b>LOC / GPE</b> — locations (Pune, India, Asia).</li>
+  <li><b>DATE / TIME</b> — temporal expressions (2026, 5 PM, Monday).</li>
+  <li><b>MONEY</b> — currency amounts (₹500, $10).</li>
+  <li><b>PERCENT</b> — percentages (50%).</li>
+  <li><b>PRODUCT</b> — products (iPhone 15, Tesla Model 3).</li>
+  <li><b>EVENT</b> — named events (Olympics, Diwali).</li>
+</ul>
+
+<h3>3. NER System Building Process (steps)</h3>
+<ol>
+  <li><b>Data collection:</b> gather labeled text data (e.g., CoNLL-2003 dataset).</li>
+  <li><b>Text preprocessing:</b> tokenization, sentence splitting, lowercase (sometimes), POS tagging.</li>
+  <li><b>Feature extraction:</b>
+    <ul>
+      <li>Word-level features (capitalization, suffixes, prefixes).</li>
+      <li>Context features (previous/next words, POS tags).</li>
+      <li>Gazetteer features (lists of known entities).</li>
+      <li>Word embeddings (word2vec, BERT).</li>
+    </ul>
+  </li>
+  <li><b>Model training:</b> use supervised algorithms like CRF (Conditional Random Field), BiLSTM-CRF, or transformer-based (BERT).</li>
+  <li><b>Tagging scheme:</b> usually IOB or BIO format
+    <ul>
+      <li>B = Beginning of entity</li>
+      <li>I = Inside entity</li>
+      <li>O = Outside any entity</li>
+    </ul>
+  </li>
+  <li><b>Evaluation</b> on test set using precision, recall, F1.</li>
+  <li><b>Deployment and continuous improvement.</b></li>
+</ol>
+
+<h3>4. Example with BIO tagging</h3>
+<pre>
+Sentence:  Sundar  Pichai  is  the  CEO  of  Google  in  Mountain  View
+Tags:      B-PER   I-PER   O   O    O    O   B-ORG   O   B-LOC     I-LOC
+</pre>
+
+<h3>5. Evaluation Metrics for NER</h3>
+<table>
+  <tr><th>Metric</th><th>Formula</th><th>Meaning</th></tr>
+  <tr><td>Precision</td><td>TP / (TP + FP)</td><td>Of predicted entities, how many are correct.</td></tr>
+  <tr><td>Recall</td><td>TP / (TP + FN)</td><td>Of true entities, how many were caught.</td></tr>
+  <tr><td>F1 Score</td><td>2·P·R / (P + R)</td><td>Harmonic mean.</td></tr>
+  <tr><td>Accuracy</td><td>(TP + TN) / Total</td><td>Less useful in NER (highly imbalanced).</td></tr>
+</table>
+
+<p>Special considerations for NER evaluation:</p>
+<ul>
+  <li><b>Exact match:</b> the entity boundaries AND type must be exactly correct.</li>
+  <li><b>Partial / Type match:</b> partial credit if some tokens overlap or type matches.</li>
+  <li><b>Per-entity-type metrics:</b> precision/recall computed separately for each entity type.</li>
+  <li><b>MUC / CoNLL scoring schemes</b> are widely used in NER benchmarks.</li>
+</ul>
+
+<h3>6. Approaches to NER</h3>
+<ul>
+  <li><b>Rule-based:</b> regex patterns, dictionaries. Works for simple cases.</li>
+  <li><b>Statistical / ML:</b> HMM, CRF, MaxEnt with hand-crafted features.</li>
+  <li><b>Deep Learning:</b> BiLSTM-CRF, Transformer-based (BERT-NER, spaCy).</li>
+  <li><b>Hybrid:</b> combines rule-based + ML.</li>
+</ul>
+
+<h3>7. Challenges of NER</h3>
+<ul>
+  <li>Ambiguity: "Apple" → company or fruit?</li>
+  <li>Capitalization variation (especially in informal text).</li>
+  <li>Nested entities (e.g., "University of California, Los Angeles").</li>
+  <li>Cross-domain transfer (medical, legal terms differ).</li>
+  <li>Multilingual NER.</li>
+</ul>
+
+<h3>8. Applications</h3>
+<ul>
+  <li>Search engines (extract names, locations from queries).</li>
+  <li>News aggregation (people, places, organizations in news).</li>
+  <li>Customer support (identify product names).</li>
+  <li>Medical NER (drug names, diseases).</li>
+  <li>Legal NER (laws, cases, jurisdictions).</li>
+  <li>Knowledge graph construction.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>NER = identify and classify named entities (PER, ORG, LOC, DATE, …).</li>
+    <li>Tagging scheme: BIO (Beginning, Inside, Outside).</li>
+    <li>Metrics: Precision, Recall, F1 (per type).</li>
+    <li>Approaches: rule-based, statistical (CRF), deep learning (BiLSTM-CRF, BERT).</li>
+    <li>Challenges: ambiguity, nested entities, domain transfer.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — Entity Extraction and Relation Extraction</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 — usually 8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'23, 8 marks)</b> Describe entity extraction and relation extraction with help of examples.</p>
+    <p><b>(May'24, 9 marks)</b> Importance of entity extraction. How does it differ from NER?</p>
+    <p><b>(May'25, 8 marks)</b> Process of Entity Extraction; techniques and algorithms.</p>
+    <p><b>(Nov'25, 8 marks)</b> Compare Entity Extraction, Relation Extraction, and Coreference Resolution.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Entity Extraction</h3>
+<p><b>Entity Extraction</b> is the task of identifying and extracting structured pieces of information (entities) from unstructured text. It is a SUPERSET of NER — it includes named entities AND other entities like phone numbers, product specs, custom domain entities, etc.</p>
+
+<h4>Difference from NER</h4>
+<table>
+  <tr><th>Aspect</th><th>NER</th><th>Entity Extraction</th></tr>
+  <tr><td>Scope</td><td>Named entities (PER, ORG, LOC, etc.)</td><td>Broader: includes NER + custom entities (phone, email, product, attribute)</td></tr>
+  <tr><td>Domain</td><td>Generic</td><td>Often domain-specific (medical, legal, finance)</td></tr>
+  <tr><td>Output</td><td>Tagged tokens</td><td>Structured records / key-value pairs</td></tr>
+</table>
+
+<h4>Techniques used for Entity Extraction</h4>
+<ul>
+  <li><b>Rule-based</b> (regex for emails, phone numbers).</li>
+  <li><b>Dictionary lookup</b> (e.g., known product names list).</li>
+  <li><b>Statistical models</b> (CRF, HMM).</li>
+  <li><b>Deep learning</b> (BiLSTM-CRF, BERT).</li>
+  <li><b>Hybrid</b> approaches.</li>
+</ul>
+
+<h4>Example of Entity Extraction</h4>
+<pre>
+Text: "Please contact John Doe at john.doe@example.com or +91-9876543210
+       for a quote on iPhone 15 (256GB) priced at ₹95,000."
+
+Extracted entities:
+  - PERSON: John Doe
+  - EMAIL: john.doe@example.com
+  - PHONE: +91-9876543210
+  - PRODUCT: iPhone 15
+  - STORAGE: 256GB
+  - PRICE: ₹95,000
+</pre>
+
+<hr>
+
+<h3>2. Relation Extraction</h3>
+<p><b>Relation Extraction (RE)</b> is the task of identifying SEMANTIC RELATIONSHIPS between pairs of entities mentioned in text.</p>
+
+<h4>Common relation types</h4>
+<ul>
+  <li><b>Person-Org:</b> works-for, founded, CEO-of.</li>
+  <li><b>Person-Person:</b> spouse, parent, sibling.</li>
+  <li><b>Person-Location:</b> born-in, lives-in.</li>
+  <li><b>Org-Location:</b> headquartered-in.</li>
+  <li><b>Other:</b> part-of, contains, manufactured-by.</li>
+</ul>
+
+<h4>Example of Relation Extraction</h4>
+<pre>
+Text: "Sundar Pichai is the CEO of Google."
+
+Entities:  Sundar Pichai (PER),  Google (ORG)
+Relation:  CEO-of(Sundar Pichai, Google)
+</pre>
+
+<h4>Approaches</h4>
+<ul>
+  <li><b>Pattern-based:</b> handcrafted templates ("X is the CEO of Y").</li>
+  <li><b>Supervised:</b> train classifier on labeled relation pairs (using SVM, neural nets).</li>
+  <li><b>Semi-supervised:</b> bootstrapping starting from a few seed examples.</li>
+  <li><b>Distant supervision:</b> automatically label sentences using existing knowledge bases.</li>
+  <li><b>Neural approaches:</b> CNN, LSTM, transformer-based (BERT).</li>
+</ul>
+
+<h3>3. Entity Extraction vs Relation Extraction (comparison)</h3>
+<table>
+  <tr><th>Aspect</th><th>Entity Extraction</th><th>Relation Extraction</th></tr>
+  <tr><td>What it finds</td><td>Individual entities</td><td>Connections between entities</td></tr>
+  <tr><td>Output</td><td>List of entities</td><td>Triples (Entity1, Relation, Entity2)</td></tr>
+  <tr><td>Comes first</td><td>Earlier in pipeline</td><td>After entity extraction</td></tr>
+  <tr><td>Example</td><td>"Pichai", "Google"</td><td>CEO-of(Pichai, Google)</td></tr>
+</table>
+
+<h3>4. Applications</h3>
+<ul>
+  <li><b>Knowledge graph construction</b> (Wikidata, Freebase).</li>
+  <li><b>Question answering systems.</b></li>
+  <li><b>Resume parsing</b> for HR.</li>
+  <li><b>Medical record extraction.</b></li>
+  <li><b>Legal document analysis.</b></li>
+  <li><b>Business intelligence</b> (extract financial entities and relations).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Entity Extraction = identify named + custom entities (broader than NER).</li>
+    <li>Relation Extraction = find semantic relationships between entities.</li>
+    <li>Output of RE: triples (Entity1, Relation, Entity2).</li>
+    <li>Approaches: pattern-based, supervised, semi-supervised, neural.</li>
+    <li>Used in knowledge graphs, QA, medical, legal, business apps.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — Cross-Lingual Information Retrieval (CLIR)</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 — usually 6–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'23, 6 marks)</b> What is Cross-Lingual Information Retrieval? Provide an example.</p>
+    <p><b>(May'24, 9 marks)</b> Define CLIR, discuss challenges. How do MT techniques assist?</p>
+    <p><b>(May'25, 8 marks)</b> Explain CLIR. Challenges and techniques.</p>
+    <p><b>(Nov'25, 8 marks)</b> What is CLIR? Discuss challenges and evaluate different approaches.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+You type "best biryani recipe" in English, but the best recipe is on a Hindi blog. You won't find it with English-only search. CLIR translates the query (or the documents) so search can cross language boundaries.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Cross-Lingual Information Retrieval (CLIR)</b> is the task of retrieving relevant documents written in one or more languages DIFFERENT from the language of the user's query. It enables users to access information across language barriers.</p>
+
+<h3>2. Example</h3>
+<ul>
+  <li>User query (English): "best mango farming techniques"</li>
+  <li>Document collection: Marathi, Hindi, Tamil agriculture documents.</li>
+  <li>CLIR system: returns relevant documents in any of these languages.</li>
+  <li>Optionally translates the results back to English for the user.</li>
+</ul>
+
+<h3>3. Three main approaches to CLIR</h3>
+
+<h4>(a) Query Translation</h4>
+<ul>
+  <li>Translate the user's query into the document's language.</li>
+  <li>Then use standard monolingual IR.</li>
+  <li>Most common approach (queries are short, so MT is cheap).</li>
+</ul>
+
+<h4>(b) Document Translation</h4>
+<ul>
+  <li>Translate the entire document collection into the user's language at index time.</li>
+  <li>Then use standard monolingual IR.</li>
+  <li>Expensive but improves search quality.</li>
+</ul>
+
+<h4>(c) Interlingual / Concept-based</h4>
+<ul>
+  <li>Map both queries and documents into a language-INDEPENDENT representation (concepts, embeddings).</li>
+  <li>Compare in the shared space.</li>
+  <li>Uses multilingual embeddings like mBERT, LASER, multilingual BERT.</li>
+</ul>
+
+<h3>4. Challenges of CLIR</h3>
+<ul>
+  <li><b>Translation ambiguity</b> — words can have multiple meanings; wrong translation hurts retrieval.</li>
+  <li><b>Out-of-vocabulary terms</b> — proper nouns, slang may not be in dictionary.</li>
+  <li><b>Morphological richness</b> — Indian languages have many word forms.</li>
+  <li><b>Limited parallel corpora</b> for low-resource language pairs.</li>
+  <li><b>Cultural and idiomatic expressions</b> hard to translate.</li>
+  <li><b>Different writing scripts</b> (Devanagari, Tamil, Arabic).</li>
+  <li><b>Different word orders</b> (English SVO vs Hindi SOV).</li>
+  <li><b>Evaluation</b> — needs multilingual test sets.</li>
+</ul>
+
+<h3>5. How Machine Translation assists CLIR</h3>
+<ul>
+  <li>MT systems translate queries or documents automatically.</li>
+  <li><b>SMT (Statistical MT)</b> — uses parallel corpora and statistical models.</li>
+  <li><b>NMT (Neural MT)</b> — modern deep-learning approach (Transformer-based).</li>
+  <li>For better CLIR, MT systems can return MULTIPLE translation candidates (n-best lists).</li>
+  <li>Improvements: integrate translation probability into ranking, use query expansion.</li>
+</ul>
+
+<h3>6. Resources and tools for CLIR</h3>
+<ul>
+  <li>Bilingual dictionaries.</li>
+  <li>Parallel corpora (EuroParl, IIT Bombay English-Hindi).</li>
+  <li>Pre-trained multilingual models (mBERT, XLM-R, MUSE).</li>
+  <li>Indic NLP tools (for Indian languages).</li>
+</ul>
+
+<h3>7. Applications</h3>
+<ul>
+  <li>Multilingual search engines (Google, Bing).</li>
+  <li>Cross-language news aggregation.</li>
+  <li>Patent and scientific literature retrieval.</li>
+  <li>Cultural heritage digitization.</li>
+  <li>E-commerce — find products listed in other languages.</li>
+  <li>Tourism — find local information in a foreign country.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>CLIR = retrieve documents in a different language from the query.</li>
+    <li>Three approaches: query translation, document translation, interlingual.</li>
+    <li>MT (SMT or NMT) helps translate queries/docs.</li>
+    <li>Challenges: ambiguity, OOV terms, morphology, low-resource pairs, scripts.</li>
+    <li>Applications: multilingual search, news, patents, e-commerce.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Reference Resolution &amp; Coreference Resolution</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'25, Nov'25 — usually 4–8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 4 marks)</b> What is Coreference Resolution? Give examples.</p>
+    <p><b>(Nov'23, 8 marks)</b> Explain reference resolution and coreference resolution with example.</p>
+    <p><b>(May'25, 8 marks)</b> Reference and coreference resolution; relationships between entities.</p>
+    <p><b>(Nov'25, 8 marks)</b> Compare entity extraction, relation extraction, coreference resolution.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Read: "Sundar Pichai joined Google in 2004. He became CEO in 2015." You instinctively know "He" refers back to "Sundar Pichai". Computers must be TAUGHT to make this link — that's coreference resolution.
+</div>
+
+<h3>1. Reference Resolution</h3>
+<p><b>Reference Resolution</b> = the process of determining what real-world entity (or piece of text) a referring expression points to. It is the general task of linking referring expressions (pronouns, names, descriptions) to their referents.</p>
+
+<h3>2. Coreference Resolution</h3>
+<p><b>Coreference Resolution</b> is a sub-task of reference resolution. It identifies all mentions in a text that refer to the SAME real-world entity, grouping them into "coreference chains".</p>
+
+<h3>3. Types of referring expressions</h3>
+<ul>
+  <li><b>Pronominal:</b> "he", "she", "it", "they", "this", "that".</li>
+  <li><b>Definite noun phrases:</b> "the CEO", "the company".</li>
+  <li><b>Demonstrative:</b> "that man", "those documents".</li>
+  <li><b>Proper names:</b> "Sundar Pichai", "Google".</li>
+  <li><b>Anaphora:</b> referring back ("Mary likes cats. She has three of them.").</li>
+  <li><b>Cataphora:</b> referring forward ("When she arrived, Mary opened the door.").</li>
+</ul>
+
+<h3>4. Example of coreference resolution</h3>
+<pre>
+Text:  "Sundar Pichai joined Google in 2004. He led product development. In 2015,
+        Pichai became its CEO. The company's success is largely due to him."
+
+Coreference chains:
+  Chain 1 (Sundar Pichai):  Sundar Pichai → He → Pichai → him
+  Chain 2 (Google):         Google → its → The company
+</pre>
+
+<h3>5. Steps in Coreference Resolution</h3>
+<ol>
+  <li>Identify all <b>mentions</b> (entities, pronouns, noun phrases).</li>
+  <li>For each pair of mentions, predict whether they refer to the same entity.</li>
+  <li>Cluster mentions into coreference chains.</li>
+</ol>
+
+<h3>6. Approaches</h3>
+<ul>
+  <li><b>Rule-based</b> — gender, number, syntactic agreement, recency.</li>
+  <li><b>Mention-pair classifier</b> — supervised ML; for each pair, predict coreferent or not.</li>
+  <li><b>Mention-ranking model</b> — rank candidate antecedents.</li>
+  <li><b>Cluster-based</b> — incrementally build clusters.</li>
+  <li><b>Neural / Deep learning</b> — BERT-based coreference (state-of-the-art).</li>
+</ul>
+
+<h3>7. Challenges</h3>
+<ul>
+  <li>Ambiguous pronouns ("he" could refer to multiple men in context).</li>
+  <li>Long-distance references.</li>
+  <li>World knowledge ("Joan asked Sue if she could help" — who is "she"?).</li>
+  <li>Gender ambiguity, especially in singular "they".</li>
+  <li>Nested coreference chains.</li>
+</ul>
+
+<h3>8. Comparison: Entity Extraction vs Relation Extraction vs Coreference Resolution</h3>
+<table>
+  <tr><th>Task</th><th>Goal</th><th>Output</th></tr>
+  <tr><td>Entity Extraction</td><td>Find entities</td><td>List of entities (with types)</td></tr>
+  <tr><td>Relation Extraction</td><td>Find connections between entities</td><td>Triples (Entity1, Relation, Entity2)</td></tr>
+  <tr><td>Coreference Resolution</td><td>Group mentions of same entity</td><td>Coreference chains / clusters</td></tr>
+</table>
+
+<h3>9. Applications</h3>
+<ul>
+  <li>Question Answering (resolve "she" in question to a specific person).</li>
+  <li>Text summarization (avoid duplicated mentions).</li>
+  <li>Machine Translation (correct pronoun translation).</li>
+  <li>Information Extraction (build knowledge graphs).</li>
+  <li>Dialogue systems (chatbots tracking referents).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Reference resolution = link referring expressions to entities (general task).</li>
+    <li>Coreference resolution = group all mentions of same entity into a chain.</li>
+    <li>Types of referring expressions: pronouns, NPs, demonstratives, anaphora, cataphora.</li>
+    <li>Approaches: rule-based, mention-pair classifier, neural (BERT).</li>
+    <li>Used in QA, summarization, MT, dialogue systems.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — Concept of Information Retrieval</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, Nov'23, May'25 — usually 2–4 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 4 marks)</b> Describe the concept of IR system in NLP.</p>
+    <p><b>(Nov'23, 4 marks)</b> Describe IR; significance of NLP in IR.</p>
+    <p><b>(May'25, 2 marks)</b> What is Information Retrieval, and how is it used in NLP?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Information Retrieval (IR)</b> is the process of obtaining relevant information from a large collection (documents, web pages, images, etc.) in response to a user's information need expressed as a query.</p>
+
+<h3>2. Components of an IR system</h3>
+<ul>
+  <li><b>Document corpus</b> — collection of documents to search.</li>
+  <li><b>Indexing</b> — preprocess and store documents in efficient data structures.</li>
+  <li><b>Query processor</b> — analyze and normalize user's query.</li>
+  <li><b>Ranking algorithm</b> — score documents by relevance.</li>
+  <li><b>User interface</b> — display results.</li>
+</ul>
+
+<h3>3. IR pipeline</h3>
+<pre>
+   User query  →  Tokenize  →  Remove stopwords  →  Stem  →  Match against index
+                                                                 ↓
+                                                              Rank docs
+                                                                 ↓
+                                                           Return top K
+</pre>
+
+<h3>4. Role of NLP in IR</h3>
+<ul>
+  <li><b>Query understanding</b> — interpret synonyms, paraphrases, intent.</li>
+  <li><b>Document preprocessing</b> — tokenization, lemmatization, POS tagging.</li>
+  <li><b>Named entity recognition</b> — identify people, places in queries and docs.</li>
+  <li><b>Semantic matching</b> — embeddings, BERT, beyond exact word match.</li>
+  <li><b>Question answering</b> — answer questions directly, not just return docs.</li>
+  <li><b>Personalization</b> — adapt to user language and context.</li>
+  <li><b>Cross-lingual retrieval</b> — handle queries in one language, docs in another.</li>
+</ul>
+
+<h3>5. Models of IR</h3>
+<ul>
+  <li><b>Boolean model</b> — match terms using AND/OR/NOT.</li>
+  <li><b>Vector Space Model (VSM)</b> — similarity in vector space (see Q1).</li>
+  <li><b>Probabilistic model (BM25)</b> — probabilistic ranking.</li>
+  <li><b>Language model approach</b> — model query as generated from document.</li>
+  <li><b>Neural IR</b> — use BERT, DPR for dense retrieval.</li>
+</ul>
+
+<h3>6. Evaluation metrics</h3>
+<ul>
+  <li><b>Precision</b> — fraction of retrieved docs that are relevant.</li>
+  <li><b>Recall</b> — fraction of relevant docs that are retrieved.</li>
+  <li><b>F1 score.</b></li>
+  <li><b>Mean Average Precision (MAP).</b></li>
+  <li><b>NDCG</b> (Normalized Discounted Cumulative Gain).</li>
+</ul>
+
+<h3>7. Applications</h3>
+<ul>
+  <li>Web search (Google, Bing, DuckDuckGo).</li>
+  <li>Library catalog search.</li>
+  <li>E-commerce product search.</li>
+  <li>Email search.</li>
+  <li>Patent and academic literature search.</li>
+  <li>Question answering systems.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>IR = finding relevant documents from a large collection given a query.</li>
+    <li>Components: corpus, indexing, query processing, ranking, UI.</li>
+    <li>NLP helps with query understanding, preprocessing, semantic matching, NER, QA, multilingual.</li>
+    <li>Models: Boolean, VSM, BM25, language model, neural IR.</li>
+    <li>Metrics: Precision, Recall, F1, MAP, NDCG.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>Vector Space Model (VSM)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>Named Entity Recognition</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>Entity Extraction / Relation Extraction</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>Cross-Lingual Information Retrieval</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>Reference / Coreference Resolution</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Information Retrieval concept</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>3</td></tr>
+</table>
+
+<h3>Must-remember formulas / facts</h3>
+<div class="formula-line">
+  Cosine similarity: cos(q, d) = (q · d) / (||q|| · ||d||)<br>
+  Precision = TP / (TP + FP)<br>
+  Recall = TP / (TP + FN)<br>
+  F1 = 2 · P · R / (P + R)<br>
+  BIO tagging in NER: B = begin, I = inside, O = outside<br>
+  CLIR approaches: query translation, document translation, interlingual
+</div>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>IR retrieves relevant documents for a query; VSM uses vectors + cosine similarity; NER finds named entities; Coreference links mentions of same entity; CLIR works across languages using MT.</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  NLP Chapter 4 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

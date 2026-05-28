@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NLP — Chapter 3: Language Modelling (Unit III)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="../DL/Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="../DL/Chapter-4.html">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="../DL/Chapter-5.html">Ch 5 — Deep Generative Models</a>
+    <a href="../DL/Chapter-6.html">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details open>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="Chapter-3.html" class="current">Ch 3 — Language Modelling</a>
+    <a href="Chapter-4.html">Ch 4 — Information Retrieval</a>
+    <a href="Chapter-5.html">Ch 5 — NLP Tools &amp; Techniques</a>
+    <a href="Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="../BI/Chapter-3.html">Ch 3 — Data Warehousing</a>
+    <a href="../BI/Chapter-4.html">Ch 4 — Data Mining</a>
+    <a href="../BI/Chapter-5.html">Ch 5 — BI Tools &amp; OLAP</a>
+    <a href="../BI/Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>NLP — Chapter 3: Language Modelling (Unit III)</h1>
+<p class="meta">
+  Subject Code: 410252(A) (Elective V) | End-Sem: 09 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q1 or Q2 in the paper).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — what is language modelling?</a></li>
+    <li><a href="#q1">Q1 — N-gram / Bigram models with smoothing (asked 4 times)</a></li>
+    <li><a href="#q2">Q2 — TF-IDF (asked 4 times)</a></li>
+    <li><a href="#q3">Q3 — Latent Semantic Analysis (LSA) (asked 3 times)</a></li>
+    <li><a href="#q4">Q4 — Generative vs Discriminative models (asked 3 times)</a></li>
+    <li><a href="#q5">Q5 — Latent Dirichlet Allocation (LDA) (asked 3 times)</a></li>
+    <li><a href="#q6">Q6 — Markov model for next-word prediction (asked 2 times)</a></li>
+    <li><a href="#q7">Q7 — BERT and Contextualized Representations (asked 2 times)</a></li>
+    <li><a href="#q8">Q8 — Non-Negative Matrix Factorization (NMF) (asked 2 times)</a></li>
+    <li><a href="#q9">Q9 — Log-Linear Models (asked 1 time)</a></li>
+    <li><a href="#q10">Q10 — word2vec vs doc2vec (asked 1 time)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+Your phone's keyboard predicts the next word as you type — "I am going to the …" → it suggests "office", "market", "movie". How does it know? It has learned, from millions of sentences, which word USUALLY comes next given the previous few words. That is a LANGUAGE MODEL — a mathematical model that assigns probabilities to sequences of words.
+</div>
+
+<h3>1. What is Language Modelling?</h3>
+<p>A <b>language model</b> is a probability distribution over sequences of words. It tells us how likely a particular sentence is in a given language. Given some past context, it can predict the next word.</p>
+
+<h3>2. Types of language models</h3>
+<ul>
+  <li><b>Statistical / Probabilistic models</b> — Markov models, n-gram models.</li>
+  <li><b>Log-linear / Maximum entropy models</b> — features-based.</li>
+  <li><b>Neural language models</b> — RNNs, LSTMs, Transformers (BERT, GPT).</li>
+  <li><b>Graph-based models</b> — encode word relationships as graphs.</li>
+  <li><b>Topic models</b> — LSA, LDA, NMF (for document-level patterns).</li>
+</ul>
+
+<h3>3. Word representations (Word Embeddings)</h3>
+<ul>
+  <li><b>Bag-of-words (BoW)</b> — counts of each word.</li>
+  <li><b>TF-IDF</b> — weighted by importance across documents.</li>
+  <li><b>word2vec / GloVe</b> — dense vector embeddings.</li>
+  <li><b>BERT / contextualized</b> — word vectors depend on context.</li>
+</ul>
+
+<hr>
+
+<h2 id="q1">Q1 — N-gram / Bigram Models with Smoothing (Numerical)</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'24, Nov'25 — usually 8–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'24, 8 marks)</b> Given a corpus of 10,000 words, vocab 5000, bigram "the cat" appears 50 times, unigram "the" 1000 times, "cat" 100 times. Using add-k smoothing with k=0.5, find probability of "the cat sat on the mat".</p>
+    <p><b>(Nov'23, 8 marks)</b> Given a small corpus, find Bigram probability of a test sentence.</p>
+    <p><b>(Nov'25, 9 marks)</b> Construct bigram model from corpus; compute smoothed bigram probability of a sentence using Add-1 smoothing; show all steps.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A bigram model is like watching ONE step back in a conversation: to guess the next word, look only at the immediately previous word. Example: P("cat" | "the") = "of all the times 'the' appeared, what fraction was it followed by 'cat'?"
+</div>
+
+<h3>1. What is an N-gram model?</h3>
+<p>An <b>N-gram</b> is a sequence of N consecutive words. An <b>n-gram language model</b> approximates the probability of the next word given the previous (n−1) words using counts from a text corpus.</p>
+<ul>
+  <li><b>Unigram (n=1):</b> P(w) — based only on word's own frequency.</li>
+  <li><b>Bigram (n=2):</b> P(w<sub>i</sub> | w<sub>i-1</sub>) — depends on previous 1 word.</li>
+  <li><b>Trigram (n=3):</b> P(w<sub>i</sub> | w<sub>i-2</sub>, w<sub>i-1</sub>) — depends on previous 2 words.</li>
+</ul>
+
+<h3>2. Maximum Likelihood Estimate (MLE) formula</h3>
+<div class="formula-line">
+  P(w<sub>i</sub> | w<sub>i-1</sub>) = Count(w<sub>i-1</sub>, w<sub>i</sub>) / Count(w<sub>i-1</sub>)
+</div>
+
+<h3>3. The need for smoothing</h3>
+<ul>
+  <li>If a bigram never appears in the corpus, its MLE probability = 0.</li>
+  <li>One zero kills the whole sentence probability (since we multiply).</li>
+  <li>SMOOTHING redistributes some probability mass to unseen bigrams.</li>
+</ul>
+
+<h3>4. Add-k (Lidstone / Laplace) Smoothing</h3>
+<div class="formula-line">
+  P<sub>add-k</sub>(w<sub>i</sub> | w<sub>i-1</sub>) = (Count(w<sub>i-1</sub>, w<sub>i</sub>) + k) / (Count(w<sub>i-1</sub>) + k · V)
+</div>
+<p>where V = vocabulary size and k is a small constant (k = 1 for Laplace; k = 0.5 for add-half).</p>
+
+<h3>5. SOLVED EXAMPLE (May'23 question)</h3>
+<p><b>Given:</b> Corpus = 10,000 words; V = 5000; Count("the cat") = 50; Count("the") = 1000; Count("cat") = 100. k = 0.5.</p>
+<p><b>Sentence:</b> "the cat sat on the mat" → bigrams = (the, cat), (cat, sat), (sat, on), (on, the), (the, mat)</p>
+
+<p>Apply add-0.5 smoothing for each bigram:</p>
+
+<pre>
+P("cat" | "the") = (50 + 0.5) / (1000 + 0.5 × 5000)
+                 = 50.5 / 3500
+                 ≈ 0.01443
+
+For bigrams that don't appear in the corpus (e.g. cat-sat, sat-on, on-the, the-mat):
+Suppose Count = 0 and the unigram preceding it is in corpus.
+
+P("sat" | "cat") = (0 + 0.5) / (Count("cat") + 0.5 × V)
+                 = 0.5 / (100 + 2500)
+                 = 0.5 / 2600
+                 ≈ 0.000192
+
+For P("on" | "sat"), P("the" | "on"), P("mat" | "the"):
+since unigram counts aren't given, assume Count(w_{i-1}) = small and similar pattern.
+For simplicity, assume each unseen-bigram probability ≈ 0.5 / (Count + 0.5·V).
+
+Sentence probability = product of all 5 bigram probabilities.
+</pre>
+
+<p>(In an exam, show the formula application clearly for each bigram and multiply at the end. Even an approximate final answer is acceptable if working is shown.)</p>
+
+<h3>6. Other smoothing techniques</h3>
+<ul>
+  <li><b>Good-Turing smoothing</b> — uses count-of-counts.</li>
+  <li><b>Kneser-Ney smoothing</b> — most popular for n-gram LMs.</li>
+  <li><b>Interpolation</b> — combine unigram, bigram, trigram with weights.</li>
+  <li><b>Backoff</b> — fall back to lower n-gram if higher one has count 0.</li>
+</ul>
+
+<h3>7. Evaluation of language models</h3>
+<ul>
+  <li><b>Perplexity:</b> 2<sup>−log P(sentence)</sup>. Lower = better.</li>
+  <li><b>Cross-entropy</b> — average log-loss per word.</li>
+  <li>Extrinsic: test on actual downstream task (speech recognition accuracy, etc.).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>n-gram = sequence of n consecutive words.</li>
+    <li>Bigram MLE: P(w<sub>i</sub>|w<sub>i-1</sub>) = Count(w<sub>i-1</sub>, w<sub>i</sub>) / Count(w<sub>i-1</sub>).</li>
+    <li>Smoothing avoids zero probabilities.</li>
+    <li>Add-k: numerator +k, denominator +k·V.</li>
+    <li>Sentence probability = product of all bigram probabilities.</li>
+    <li>Other smoothings: Good-Turing, Kneser-Ney, interpolation, backoff.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — TF-IDF (Term Frequency × Inverse Document Frequency)</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'25, Nov'25 — usually 4–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'23, 6 marks)</b> Given a document-term matrix, calculate TF-IDF score of Term 1 in Document 1.</p>
+    <p><b>(May'25, 4 marks)</b> Write a short note on TF-IDF representation.</p>
+    <p><b>(Nov'25, 9 marks)</b> Given 3 documents, compute TF-IDF of term "neural"; show DF, IDF; interpret.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine you're searching for the most important word in a magazine article. Common words like "the", "is", "of" appear everywhere — they're not informative. But a word like "supernova" appearing several times in ONE article and not in others tells you that article is probably about astronomy. TF-IDF formalizes this idea: a word's importance grows with its frequency in a document but is reduced if it appears in many documents.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>TF-IDF</b> = Term Frequency × Inverse Document Frequency. It is a numerical statistic that measures how IMPORTANT a word is to a particular document in a collection of documents.</p>
+
+<h3>2. Components</h3>
+
+<h4>(a) Term Frequency (TF)</h4>
+<div class="formula-line">
+  TF(t, d) = (Number of times t appears in d) / (Total terms in d)
+</div>
+<p>Or simply the raw count: TF(t, d) = count(t in d).</p>
+
+<h4>(b) Inverse Document Frequency (IDF)</h4>
+<div class="formula-line">
+  IDF(t) = log( N / DF(t) )
+</div>
+<p>where N = total documents, DF(t) = number of documents containing t.</p>
+
+<h4>(c) TF-IDF</h4>
+<div class="formula-line">
+  TF-IDF(t, d) = TF(t, d) × IDF(t)
+</div>
+
+<h3>3. SOLVED EXAMPLE (May'23 question)</h3>
+<p><b>Document-Term Matrix:</b></p>
+<table>
+  <tr><th></th><th>Document 1</th><th>Document 2</th><th>Document 3</th></tr>
+  <tr><th>Term 1</th><td>10</td><td>5</td><td>0</td></tr>
+  <tr><th>Term 2</th><td>2</td><td>0</td><td>8</td></tr>
+  <tr><th>Term 3</th><td>1</td><td>3</td><td>6</td></tr>
+</table>
+
+<p><b>Step 1:</b> TF(Term 1, Doc 1) = 10 (raw count) or 10/13 (if normalized by document length).</p>
+
+<p><b>Step 2:</b> DF(Term 1) = number of documents containing Term 1 = 2 (Doc 1 and Doc 2; not Doc 3).</p>
+
+<p><b>Step 3:</b> N = 3 documents. IDF(Term 1) = log(3 / 2) ≈ 0.176 (natural log) or ≈ 0.405 (log base 2).</p>
+
+<p><b>Step 4:</b> TF-IDF(Term 1, Doc 1) = 10 × 0.176 = <b>1.76</b> (using natural log) or 10 × 0.405 = <b>4.05</b> (using log base 2).</p>
+
+<h3>4. Intuition</h3>
+<ul>
+  <li>If a word appears in EVERY document → DF = N → IDF = log(1) = 0 → TF-IDF = 0. (Common words → ignored.)</li>
+  <li>If a word appears in only 1 document → DF = 1 → IDF = log(N) (high) → TF-IDF is high.</li>
+  <li>Higher TF-IDF = more distinctive word for that document.</li>
+</ul>
+
+<h3>5. Applications</h3>
+<ul>
+  <li><b>Search engines</b> — rank documents by relevance to query.</li>
+  <li><b>Document classification</b> — used as features.</li>
+  <li><b>Keyword extraction</b> — top TF-IDF words are likely the topic.</li>
+  <li><b>Information retrieval</b> — basic component of Vector Space Model.</li>
+  <li><b>Text similarity</b> — cosine similarity over TF-IDF vectors.</li>
+</ul>
+
+<h3>6. Advantages and limitations</h3>
+<ul>
+  <li>+ Simple, interpretable, no training needed.</li>
+  <li>+ Down-weights common words like "the", "is".</li>
+  <li>− No understanding of semantics (synonyms treated as different).</li>
+  <li>− Sparse high-dimensional vectors.</li>
+  <li>− Doesn't capture word ORDER.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>TF-IDF = TF(t, d) × IDF(t).</li>
+    <li>IDF = log(N / DF) — common words get low IDF.</li>
+    <li>High TF-IDF = word is FREQUENT in d but RARE in corpus.</li>
+    <li>Used in search engines, document classification, keyword extraction.</li>
+    <li>Limitation: ignores semantics and word order.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — Latent Semantic Analysis (LSA)</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, Nov'23, May'25 — usually 4–8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 4 marks)</b> Write a short note on Latent Semantic Analysis (LSA).</p>
+    <p><b>(Nov'23, 6 marks)</b> Explain in detail Latent Semantic Analysis for topic modelling.</p>
+    <p><b>(May'25, 8 marks)</b> Explain the concept of LSA and how it is used for identifying relationships between words.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Two articles about "car" and "automobile" should be treated as similar — they discuss the same topic with different words. Word-by-word matching fails here. LSA helps by finding hidden "concept dimensions" (topics) underlying the documents, so that synonyms and related words get placed close together in the topic space.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Latent Semantic Analysis (LSA)</b> is a dimensionality-reduction technique used in NLP that uses <b>Singular Value Decomposition (SVD)</b> on a document-term matrix to uncover hidden "latent" semantic relationships between words and documents.</p>
+
+<h3>2. The motivation</h3>
+<ul>
+  <li>TF-IDF treats different words as completely independent.</li>
+  <li>But words like "car" and "automobile" mean almost the same thing.</li>
+  <li>LSA finds latent topics by grouping words that often appear together.</li>
+</ul>
+
+<h3>3. Steps of LSA</h3>
+<ol>
+  <li><b>Build the term-document matrix A:</b> rows = terms, columns = documents, cells = counts or TF-IDF.</li>
+  <li><b>Apply Singular Value Decomposition (SVD):</b>
+    <div class="formula-line">A = U · Σ · V<sup>T</sup></div>
+  </li>
+  <li><b>Keep only the top k singular values</b> (largest values in Σ). This compresses the matrix to k latent dimensions ("topics").</li>
+  <li><b>Reconstruct lower-rank approximation:</b> A<sub>k</sub> = U<sub>k</sub> · Σ<sub>k</sub> · V<sub>k</sub><sup>T</sup>.</li>
+  <li>Each row of U<sub>k</sub> = vector for a TERM in latent space.</li>
+  <li>Each column of V<sub>k</sub><sup>T</sup> = vector for a DOCUMENT in latent space.</li>
+  <li>Similarity between two terms/docs computed using cosine similarity in this latent space.</li>
+</ol>
+
+<h3>4. Diagram (text)</h3>
+<pre>
+                   Documents
+       Original    →    →    →
+       Term-Doc    ┌───────────┐         ┌───┐ ┌───┐ ┌──────┐
+       Matrix A =  │           │  ≈   U  │   │·│ Σ │·│ V^T  │
+                   │ (m × n)   │   m×k   k×k       k×n
+                   └───────────┘
+                                  (k latent topics, k << min(m,n))
+</pre>
+
+<h3>5. How LSA identifies relationships</h3>
+<ul>
+  <li>Words that occur in similar documents end up close together in the k-dimensional latent space.</li>
+  <li>Synonyms like "car" / "automobile" become similar vectors.</li>
+  <li>Documents about similar topics cluster together.</li>
+  <li>A query can be projected into the same space; we retrieve the closest documents.</li>
+</ul>
+
+<h3>6. Advantages</h3>
+<ul>
+  <li>Handles synonymy (words with similar meaning).</li>
+  <li>Reduces dimensionality from thousands of terms to a few hundred topics.</li>
+  <li>Unsupervised — no labels needed.</li>
+  <li>Faster retrieval than full TF-IDF.</li>
+</ul>
+
+<h3>7. Limitations</h3>
+<ul>
+  <li>SVD is computationally expensive for very large matrices.</li>
+  <li>k (number of topics) must be chosen manually.</li>
+  <li>Topics may not be interpretable (just mathematical combinations).</li>
+  <li>Doesn't handle polysemy (one word with multiple meanings) well.</li>
+  <li>Static — adding new documents requires re-computation.</li>
+</ul>
+
+<h3>8. Applications</h3>
+<ul>
+  <li>Information retrieval (LSI = Latent Semantic Indexing).</li>
+  <li>Document clustering and classification.</li>
+  <li>Plagiarism detection.</li>
+  <li>Essay grading.</li>
+  <li>Cross-lingual retrieval.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>LSA = SVD applied to term-document matrix to find latent topics.</li>
+    <li>A = U · Σ · V<sup>T</sup>; keep top k singular values.</li>
+    <li>Handles synonymy; doesn't handle polysemy.</li>
+    <li>Used in IR, document clustering, plagiarism detection.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — Generative vs Discriminative Models</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, Nov'23, May'24 — usually 4–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 4 marks)</b> What are generative models of language, and how do they differ from discriminative models?</p>
+    <p><b>(Nov'23, 4 marks)</b> What are generative models of language? Explain any one model in detail.</p>
+    <p><b>(May'24, 9 marks)</b> Generative vs discriminative models; provide example of generative model.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definitions</h3>
+<ul>
+  <li><b>Generative model</b> learns the JOINT probability P(x, y). Given a class y, it can GENERATE new instances x. Example: HMM, Naive Bayes, n-gram LM, LDA.</li>
+  <li><b>Discriminative model</b> learns the CONDITIONAL probability P(y | x). Given an x, it predicts the label y. Example: Logistic Regression, SVM, CRF, BERT classifier.</li>
+</ul>
+
+<h3>2. Side-by-side comparison</h3>
+<table>
+  <tr><th>Aspect</th><th>Generative</th><th>Discriminative</th></tr>
+  <tr><td>Models</td><td>P(x, y)</td><td>P(y | x)</td></tr>
+  <tr><td>Can generate new data?</td><td>Yes</td><td>No</td></tr>
+  <tr><td>Learns from</td><td>Labeled and/or unlabeled data</td><td>Labeled data only</td></tr>
+  <tr><td>Examples in NLP</td><td>HMM, Naive Bayes, LDA, n-gram LM, GPT</td><td>Logistic Regression, MaxEnt, CRF, BERT classifier</td></tr>
+  <tr><td>Strength</td><td>Can handle missing data, generate samples</td><td>Usually higher accuracy on classification</td></tr>
+  <tr><td>Weakness</td><td>May not perform best for classification</td><td>Cannot generate new data</td></tr>
+</table>
+
+<h3>3. Example of generative model in NLP: Naive Bayes</h3>
+<ul>
+  <li>Used for text classification (spam vs ham, sentiment positive vs negative).</li>
+  <li>Learns P(word | class) for each class.</li>
+  <li>Uses Bayes' theorem: P(class | text) ∝ P(text | class) · P(class).</li>
+  <li>Assumes "naive" independence between words.</li>
+  <li>Despite simplicity, works well for simple text classification.</li>
+</ul>
+
+<h3>4. Example of generative model: HMM (Hidden Markov Model)</h3>
+<ul>
+  <li>Used for POS tagging, speech recognition.</li>
+  <li>Models hidden states (POS tags) and observed outputs (words).</li>
+  <li>P(words, tags) = product of transition × emission probabilities.</li>
+</ul>
+
+<h3>5. Example of generative model: n-gram language model</h3>
+<ul>
+  <li>Models P(word | previous n-1 words).</li>
+  <li>Can be used to GENERATE new sentences by sampling.</li>
+  <li>Foundation of older speech recognition and machine translation systems.</li>
+</ul>
+
+<h3>6. Example of generative model: GPT (modern)</h3>
+<ul>
+  <li>Modern neural generative model.</li>
+  <li>Generates coherent paragraphs of text.</li>
+  <li>Trained on enormous corpora of internet text.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Generative: P(x, y). Examples: HMM, Naive Bayes, LDA, GPT.</li>
+    <li>Discriminative: P(y | x). Examples: Logistic Reg, SVM, CRF, BERT classifier.</li>
+    <li>Generative can generate samples; discriminative cannot.</li>
+    <li>Discriminative usually achieves higher classification accuracy.</li>
+    <li>Generative handles unlabeled data better.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Latent Dirichlet Allocation (LDA)</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, Nov'23, May'24 — usually 8–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 8 marks)</b> Describe LDA algorithm and how it is used for topic modeling.</p>
+    <p><b>(Nov'23, 8 marks)</b> Describe LDA algorithm and how it is used for topic modeling.</p>
+    <p><b>(May'24, 9 marks)</b> Define LDA and explain its use for topic modeling. Discuss key components: topics, documents, word distributions.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine you have 1000 news articles. You don't know in advance what topics they cover. LDA reads all the articles and automatically discovers, say, 10 hidden TOPICS — like "sports", "politics", "finance", "weather". Each article is described as a MIXTURE of topics (e.g., 70% politics + 30% economy), and each topic is described as a probability distribution over words.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Latent Dirichlet Allocation (LDA)</b> is a probabilistic generative model that automatically discovers TOPICS in a collection of documents. Each document is modeled as a mixture of topics, and each topic is a probability distribution over words.</p>
+
+<h3>2. Key components / Concepts in LDA</h3>
+<ul>
+  <li><b>Documents:</b> the input — text documents in the corpus.</li>
+  <li><b>Topics:</b> hidden "concepts" (e.g., "sports", "politics") that we want to discover.</li>
+  <li><b>Word distribution per topic:</b> each topic has a probability distribution over the vocabulary (e.g., "sports" topic = {ball: 0.05, team: 0.04, player: 0.03, …}).</li>
+  <li><b>Topic distribution per document:</b> each document has a probability distribution over topics (e.g., 60% politics + 40% finance).</li>
+  <li><b>Dirichlet prior:</b> a probability distribution used to model the topic and word distributions.</li>
+</ul>
+
+<h3>3. The generative story (how LDA "thinks" documents are written)</h3>
+<ol>
+  <li>For each document, pick a TOPIC distribution (from a Dirichlet prior).</li>
+  <li>For each word position in the document:
+    <ul>
+      <li>Pick a topic from this document's topic distribution.</li>
+      <li>Pick a word from this topic's word distribution.</li>
+    </ul>
+  </li>
+  <li>This is how LDA imagines documents were "generated".</li>
+</ol>
+
+<h3>4. LDA learning algorithm (high level)</h3>
+<ul>
+  <li>Given a corpus, we REVERSE the generative process.</li>
+  <li>Goal: find the topic and word distributions that MAXIMIZE the likelihood of the observed documents.</li>
+  <li>Common methods: Gibbs sampling, Variational Inference.</li>
+  <li>Hyperparameters: number of topics K, Dirichlet priors α (topic) and β (word).</li>
+</ul>
+
+<h3>5. Output of LDA</h3>
+<ul>
+  <li>K topics, each represented by top words.</li>
+  <li>For each document, a topic distribution.</li>
+</ul>
+
+<h3>6. Example of LDA output</h3>
+<pre>
+Topic 1: ball (0.05), team (0.04), player (0.03), goal (0.02), match (0.02)  → "Sports"
+Topic 2: government (0.06), policy (0.04), election (0.03), vote (0.02)      → "Politics"
+Topic 3: bank (0.05), rupee (0.04), market (0.03), investor (0.02)            → "Finance"
+
+Document 1: 80% Sports + 15% Politics + 5% Finance
+Document 2: 70% Finance + 25% Politics + 5% Sports
+</pre>
+
+<h3>7. Applications of LDA</h3>
+<ul>
+  <li>Topic discovery in large text collections.</li>
+  <li>Document clustering and classification.</li>
+  <li>Recommender systems (e.g., "you read articles about X, you may like Y").</li>
+  <li>Trend analysis on social media.</li>
+  <li>Search engine result clustering.</li>
+  <li>Plagiarism detection.</li>
+</ul>
+
+<h3>8. Advantages and limitations</h3>
+<ul>
+  <li>+ Unsupervised — no labels needed.</li>
+  <li>+ Interpretable topics.</li>
+  <li>+ Captures soft membership (document can belong to multiple topics).</li>
+  <li>− Need to choose K (number of topics) manually.</li>
+  <li>− Slow on very large corpora.</li>
+  <li>− Ignores word order (bag-of-words assumption).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>LDA = probabilistic generative model for topic discovery.</li>
+    <li>Each document = mixture of topics; each topic = distribution over words.</li>
+    <li>Uses Dirichlet prior; learned via Gibbs sampling or Variational Inference.</li>
+    <li>Output: K topics + topic mixture per document.</li>
+    <li>Applications: topic discovery, document clustering, recommendations.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — Markov Model for Next-Word Prediction</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, May'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Describe the process of building a simple Markov model for predicting the next word in a sentence with the help of example.</p>
+    <p><b>(May'25, 6 marks)</b> What is a Markov model, and how is it used to generate language sequences?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p>A <b>Markov model</b> in NLP is a probabilistic model that predicts the next word based on the PREVIOUS N words, assuming the Markov property (future depends only on the immediate past, not the whole history).</p>
+
+<h3>2. The Markov property</h3>
+<p>The probability of the NEXT word depends ONLY on the previous N-1 words, not on all earlier words.</p>
+<ul>
+  <li>First-order Markov (= bigram): depends only on 1 previous word.</li>
+  <li>Second-order Markov (= trigram): depends on 2 previous words.</li>
+</ul>
+
+<h3>3. Building a simple Markov model (bigram)</h3>
+<ol>
+  <li><b>Collect a training corpus</b> of sentences.</li>
+  <li><b>Tokenize</b> each sentence into words; add &lt;s&gt; (start) and &lt;/s&gt; (end) tokens.</li>
+  <li><b>Count bigrams:</b> for each adjacent word pair (w<sub>i-1</sub>, w<sub>i</sub>), count its occurrences.</li>
+  <li><b>Compute probabilities:</b>
+    <div class="formula-line">P(w<sub>i</sub> | w<sub>i-1</sub>) = Count(w<sub>i-1</sub>, w<sub>i</sub>) / Count(w<sub>i-1</sub>)</div>
+  </li>
+  <li><b>Smoothing</b> (Laplace, add-k, Good-Turing) to handle unseen pairs.</li>
+  <li><b>Prediction:</b> given previous word w, the next word is argmax<sub>w'</sub> P(w' | w).</li>
+</ol>
+
+<h3>4. Example</h3>
+<pre>
+Corpus:
+  <s> I love NLP </s>
+  <s> I love food </s>
+  <s> NLP is fun </s>
+
+Bigram counts:
+  (<s>, I) = 2,  (I, love) = 2,  (love, NLP) = 1,
+  (love, food) = 1, (<s>, NLP) = 1, (NLP, is) = 1, (is, fun) = 1
+  (NLP, </s>) = 1, (food, </s>) = 1, (fun, </s>) = 1
+
+P("love" | "I") = Count(I, love) / Count(I) = 2 / 2 = 1.0
+P("NLP" | "love") = 1 / 2 = 0.5
+P("food" | "love") = 1 / 2 = 0.5
+
+So given "I", the next word is most likely "love". Given "love", next can be "NLP" or "food" (50/50).
+</pre>
+
+<h3>5. Language sequence generation</h3>
+<ol>
+  <li>Start with &lt;s&gt;.</li>
+  <li>Sample next word using P(w | &lt;s&gt;).</li>
+  <li>Use this word as new context; sample again.</li>
+  <li>Continue until &lt;/s&gt; or maximum length.</li>
+  <li>Generated text is grammatically reasonable for short sequences.</li>
+</ol>
+
+<h3>6. Applications</h3>
+<ul>
+  <li>Predictive text on phones.</li>
+  <li>Speech recognition.</li>
+  <li>POS tagging (Hidden Markov Models).</li>
+  <li>Text generation.</li>
+  <li>Spelling correction.</li>
+</ul>
+
+<h3>7. Limitations</h3>
+<ul>
+  <li>Limited context window — can't capture long-range dependencies.</li>
+  <li>Sparse data problem — many n-grams have zero counts.</li>
+  <li>Requires smoothing.</li>
+  <li>Bag-of-words feel — no semantic understanding.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Markov model assumes next word depends only on previous (n-1) words.</li>
+    <li>Building: collect corpus → count n-grams → compute conditional probabilities → smooth.</li>
+    <li>Prediction = argmax of P(w | context).</li>
+    <li>Applications: predictive text, speech, POS tagging.</li>
+    <li>Limitation: short context, needs smoothing.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — BERT and Contextualized Representations</h2>
+<span class="freq-tag">Asked 2 times</span>(Nov'23, May'24 — usually 4–10 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 4 marks)</b> Write short note on BERT.</p>
+    <p><b>(May'24, 10 marks)</b> Contextualized representations (BERT); advantages and disadvantages.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>BERT (Bidirectional Encoder Representations from Transformers)</b> is a pre-trained deep learning language model developed by Google in 2018. It produces CONTEXTUALIZED word embeddings — each word's vector representation depends on the surrounding context in the sentence.</p>
+
+<h3>2. Why BERT was a breakthrough</h3>
+<ul>
+  <li>Earlier embeddings (word2vec, GloVe) gave each word a SINGLE static vector — "bank" had the same vector in "river bank" and "money bank".</li>
+  <li>BERT gives each word a DIFFERENT vector based on the surrounding words.</li>
+  <li>This solves the polysemy problem.</li>
+</ul>
+
+<h3>3. Architecture</h3>
+<ul>
+  <li>Based on the <b>Transformer encoder</b> (Vaswani et al., 2017).</li>
+  <li>Multiple stacked Transformer encoder layers (12 in BERT-base, 24 in BERT-large).</li>
+  <li>Self-attention mechanism allows each word to attend to ALL other words bidirectionally.</li>
+  <li>Input: tokenized sentence with special [CLS] and [SEP] tokens.</li>
+  <li>Output: a vector for each token, plus a sentence-level [CLS] vector.</li>
+</ul>
+
+<h3>4. Training (pre-training tasks)</h3>
+<ul>
+  <li><b>Masked Language Model (MLM):</b> randomly mask 15% of words; predict them from context. This forces bidirectional understanding.</li>
+  <li><b>Next Sentence Prediction (NSP):</b> given two sentences, predict whether the second follows the first. Helps with sentence-level tasks.</li>
+  <li>Pre-trained on BookCorpus and English Wikipedia (~3.3 billion words).</li>
+</ul>
+
+<h3>5. Fine-tuning</h3>
+<ul>
+  <li>After pre-training, BERT can be fine-tuned on specific tasks (classification, NER, Q&amp;A) by adding small task-specific layers on top.</li>
+  <li>Fine-tuning is fast and uses much less labeled data than training from scratch.</li>
+</ul>
+
+<h3>6. Use in NLP</h3>
+<ul>
+  <li>Text classification, sentiment analysis.</li>
+  <li>Named Entity Recognition.</li>
+  <li>Question answering (SQuAD).</li>
+  <li>Sentence similarity, paraphrase detection.</li>
+  <li>Text summarization.</li>
+  <li>Search engine query understanding (Google Search uses BERT).</li>
+</ul>
+
+<h3>7. Advantages</h3>
+<ul>
+  <li>Captures context — handles polysemy.</li>
+  <li>Pre-trained on huge corpora → can transfer to many tasks with little data.</li>
+  <li>Bidirectional — looks at both left and right context.</li>
+  <li>State-of-the-art on many NLP benchmarks (at time of release).</li>
+</ul>
+
+<h3>8. Disadvantages</h3>
+<ul>
+  <li>Computationally expensive — large model, needs GPU.</li>
+  <li>Long input limit (512 tokens).</li>
+  <li>Pre-training requires huge data and compute.</li>
+  <li>Hard to interpret (deep neural).</li>
+</ul>
+
+<h3>9. Variants of BERT</h3>
+<ul>
+  <li><b>RoBERTa</b> — better-trained BERT (more data, longer training).</li>
+  <li><b>DistilBERT</b> — smaller, faster, 95% performance.</li>
+  <li><b>ALBERT</b> — parameter-shared, smaller.</li>
+  <li><b>mBERT</b> — multilingual.</li>
+  <li><b>IndicBERT</b> — Indian languages.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>BERT = Bidirectional Encoder Representations from Transformers.</li>
+    <li>Produces context-aware word embeddings.</li>
+    <li>Pre-trained on MLM + NSP, then fine-tuned for tasks.</li>
+    <li>Architecture: stacked Transformer encoders + self-attention.</li>
+    <li>Advantages: contextual, transferable, state-of-the-art.</li>
+    <li>Disadvantages: expensive, 512-token limit, hard to interpret.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — Non-Negative Matrix Factorization (NMF)</h2>
+<span class="freq-tag">Asked 2 times</span>(May'25, Nov'25 — usually 4–9 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 4 marks)</b> Explain NMF in the context of topic modeling.</p>
+    <p><b>(Nov'25, 9 marks)</b> Explain how NMF differs from LDA in topic modeling.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Non-Negative Matrix Factorization (NMF)</b> is a dimensionality-reduction technique that decomposes a non-negative matrix V into two smaller non-negative matrices W and H such that V ≈ W × H. In NLP, this is used for topic modeling.</p>
+
+<h3>2. Mathematical formulation</h3>
+<div class="formula-line">
+  V (m × n) ≈ W (m × k) · H (k × n)
+</div>
+<ul>
+  <li>V = term-document matrix.</li>
+  <li>W = topic-term matrix (each column = one topic's word distribution).</li>
+  <li>H = topic-document matrix (each column = one document's topic distribution).</li>
+  <li>k = number of topics (chosen by user).</li>
+  <li>All entries must be ≥ 0 (non-negative).</li>
+</ul>
+
+<h3>3. Why non-negative?</h3>
+<ul>
+  <li>Word counts and frequencies are naturally non-negative.</li>
+  <li>Non-negativity makes the result INTERPRETABLE — components represent additive parts of the data.</li>
+  <li>Avoids cancellation effects (unlike SVD where negative values can subtract).</li>
+</ul>
+
+<h3>4. Algorithm</h3>
+<ol>
+  <li>Initialize W and H with random non-negative values.</li>
+  <li>Iteratively update W and H using multiplicative update rules to minimize ||V − WH||.</li>
+  <li>Repeat until convergence.</li>
+  <li>Final W and H give topic-word and topic-document distributions.</li>
+</ol>
+
+<h3>5. NMF vs LDA (key differences)</h3>
+<table>
+  <tr><th>Aspect</th><th>NMF</th><th>LDA</th></tr>
+  <tr><td>Type</td><td>Linear algebra (matrix factorization)</td><td>Probabilistic generative model</td></tr>
+  <tr><td>Output</td><td>Two non-negative matrices W &amp; H</td><td>Probability distributions</td></tr>
+  <tr><td>Assumption</td><td>Linear combination of topics</td><td>Dirichlet priors over topics and words</td></tr>
+  <tr><td>Hyperparameters</td><td>Number of topics k</td><td>K, α (topic prior), β (word prior)</td></tr>
+  <tr><td>Speed</td><td>Generally faster</td><td>Slower (sampling or variational)</td></tr>
+  <tr><td>Interpretability</td><td>Good for sparse data</td><td>Good for soft probabilistic assignments</td></tr>
+  <tr><td>Optimization</td><td>Minimize reconstruction error</td><td>Maximize log-likelihood</td></tr>
+</table>
+
+<h3>6. Worked example (concept)</h3>
+<pre>
+Document-Term Matrix (3 docs, 4 terms):
+        the   ball  bank  river
+Doc1:    2    5     0     1
+Doc2:    1    3     0     2
+Doc3:    2    0     4     0
+
+NMF with k=2 topics gives:
+   W (topic-term):
+        "sports topic"  "finance topic"
+   the:      0.30           0.20
+   ball:     0.70           0.05
+   bank:     0.00           0.85
+   river:    0.10           0.00
+
+   H (topic-doc):
+                   Doc1   Doc2   Doc3
+   "sports topic"  0.80   0.70   0.10
+   "finance topic" 0.20   0.30   0.90
+
+Interpretation:
+   Doc1 is mostly about sports (ball, the).
+   Doc3 is mostly about finance (bank).
+</pre>
+
+<h3>7. Applications</h3>
+<ul>
+  <li>Topic modeling (alternative to LDA).</li>
+  <li>Document clustering.</li>
+  <li>Image processing (face decomposition).</li>
+  <li>Recommendation systems (collaborative filtering).</li>
+  <li>Bioinformatics (gene expression analysis).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>NMF: V ≈ W × H with all entries ≥ 0.</li>
+    <li>W = topic-term matrix; H = topic-document matrix.</li>
+    <li>Non-negativity = interpretable, additive parts.</li>
+    <li>NMF vs LDA: NMF is linear algebra, LDA is probabilistic.</li>
+    <li>Applications: topic modeling, clustering, image, recommendations.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q9">Q9 — Log-Linear Models</h2>
+<span class="freq-tag">Asked 1 time</span>(May'25 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 6 marks)</b> Explain the concept of log-linear models in NLP. How do these models work, and what are some common applications?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Log-Linear models</b> (also called Maximum Entropy or MaxEnt models) are a class of discriminative models that compute the probability of a class given input features as the exponential of a weighted sum of features, normalized to sum to 1.</p>
+
+<h3>2. Formula</h3>
+<div class="formula-line">
+  P(y | x) = exp( Σ w<sub>i</sub> · f<sub>i</sub>(x, y) ) / Z(x)
+</div>
+<ul>
+  <li>f<sub>i</sub>(x, y) = feature functions (binary or real-valued).</li>
+  <li>w<sub>i</sub> = learned weights.</li>
+  <li>Z(x) = normalization constant (partition function).</li>
+</ul>
+
+<h3>3. How they work</h3>
+<ol>
+  <li>Define a set of feature functions f<sub>i</sub>(x, y) that capture useful properties of the (input, output) pair.</li>
+  <li>Train: find weights w<sub>i</sub> that maximize the likelihood of training data.</li>
+  <li>Predict: for a new input x, output the y that maximizes P(y | x).</li>
+</ol>
+
+<h3>4. Advantages</h3>
+<ul>
+  <li>Can use arbitrary, overlapping features (unlike Naive Bayes which assumes independence).</li>
+  <li>Maximum entropy principle: makes the fewest assumptions consistent with the data.</li>
+  <li>Probabilistic — gives calibrated probabilities.</li>
+</ul>
+
+<h3>5. Limitations</h3>
+<ul>
+  <li>Feature engineering is required.</li>
+  <li>Z(x) can be expensive to compute for large output spaces.</li>
+  <li>Largely superseded by neural network models today.</li>
+</ul>
+
+<h3>6. Applications in NLP</h3>
+<ul>
+  <li>Part-of-Speech (POS) tagging — MaxEnt taggers.</li>
+  <li>Named Entity Recognition (NER).</li>
+  <li>Text classification.</li>
+  <li>Statistical machine translation.</li>
+  <li>Conditional Random Fields (CRF) — a generalization for sequences.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Log-linear / MaxEnt models: P(y | x) ∝ exp(Σ w<sub>i</sub> · f<sub>i</sub>).</li>
+    <li>Discriminative; use arbitrary feature functions.</li>
+    <li>Applications: POS tagging, NER, text classification.</li>
+    <li>CRFs are sequence generalizations of log-linear models.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q10">Q10 — word2vec vs doc2vec</h2>
+<span class="freq-tag">Asked 1 time</span>(May'25 — 8 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 8 marks)</b> Explain the concept of doc2vec and its use in generating document embeddings. Discuss the differences between doc2vec and word2vec.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. word2vec</h3>
+<ul>
+  <li>Developed by Mikolov et al. at Google in 2013.</li>
+  <li>Learns a dense vector representation (embedding) for each WORD.</li>
+  <li>Two architectures:
+    <ul>
+      <li><b>CBOW (Continuous Bag-of-Words):</b> predict target word from context words.</li>
+      <li><b>Skip-gram:</b> predict context words from target word.</li>
+    </ul>
+  </li>
+  <li>Words with similar meanings get similar vectors (e.g., king − man + woman ≈ queen).</li>
+  <li>Typical vector size: 100–300 dimensions.</li>
+</ul>
+
+<h3>2. doc2vec (Paragraph Vector)</h3>
+<ul>
+  <li>Extension of word2vec by Le and Mikolov (2014).</li>
+  <li>Learns a vector for an ENTIRE document/paragraph, not just words.</li>
+  <li>Two architectures:
+    <ul>
+      <li><b>PV-DM (Distributed Memory):</b> predict word from context + document vector.</li>
+      <li><b>PV-DBOW (Distributed Bag-of-Words):</b> predict random words in document from document vector.</li>
+    </ul>
+  </li>
+  <li>Documents with similar topics get similar vectors.</li>
+</ul>
+
+<h3>3. Differences between word2vec and doc2vec</h3>
+<table>
+  <tr><th>Aspect</th><th>word2vec</th><th>doc2vec</th></tr>
+  <tr><td>Granularity</td><td>Word-level</td><td>Document / paragraph level</td></tr>
+  <tr><td>Output</td><td>Vector for each word</td><td>Vector for each document + each word</td></tr>
+  <tr><td>Architectures</td><td>CBOW, Skip-gram</td><td>PV-DM, PV-DBOW</td></tr>
+  <tr><td>Used for</td><td>Word similarity, analogies</td><td>Document similarity, classification, clustering</td></tr>
+  <tr><td>Training</td><td>Faster, simpler</td><td>Slightly more complex</td></tr>
+  <tr><td>Handles new docs</td><td>—</td><td>Can infer vector for unseen docs</td></tr>
+</table>
+
+<h3>4. Applications of doc2vec</h3>
+<ul>
+  <li>Document classification.</li>
+  <li>Document similarity (recommender systems).</li>
+  <li>Sentiment analysis on reviews.</li>
+  <li>Plagiarism detection.</li>
+  <li>News article clustering.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>word2vec = word embeddings (CBOW, Skip-gram).</li>
+    <li>doc2vec = document embeddings (PV-DM, PV-DBOW).</li>
+    <li>doc2vec extends word2vec to entire documents.</li>
+    <li>Used for document classification, similarity, clustering.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>N-gram / Bigram with smoothing (numerical)</td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>4</td></tr>
+  <tr><td>TF-IDF (numerical)</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>LSA</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>3</td></tr>
+  <tr><td>Generative vs Discriminative models</td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>3</td></tr>
+  <tr><td>LDA</td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>3</td></tr>
+  <tr><td>Markov model</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>2</td></tr>
+  <tr><td>BERT / contextualized representations</td><td>—</td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>2</td></tr>
+  <tr><td>NMF</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>2</td></tr>
+  <tr><td>Log-linear models</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>1</td></tr>
+  <tr><td>doc2vec vs word2vec</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>1</td></tr>
+</table>
+
+<h3>Must-remember formulas</h3>
+<div class="formula-line">
+  Bigram MLE:&nbsp; P(w<sub>i</sub>|w<sub>i-1</sub>) = Count(w<sub>i-1</sub>, w<sub>i</sub>) / Count(w<sub>i-1</sub>)<br>
+  Add-k smoothing:&nbsp; P = (Count + k) / (Count(w<sub>i-1</sub>) + k·V)<br>
+  TF-IDF:&nbsp; TF(t,d) × log(N / DF(t))<br>
+  LSA:&nbsp; A = U · Σ · V<sup>T</sup>; keep top k singular values<br>
+  NMF:&nbsp; V ≈ W · H (all non-negative)<br>
+  Log-linear:&nbsp; P(y|x) ∝ exp(Σ w<sub>i</sub> · f<sub>i</sub>(x, y))
+</div>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>Language modeling assigns probabilities to text; n-grams use simple counts; TF-IDF weights word importance; LSA/LDA/NMF discover hidden topics; BERT gives contextual embeddings.</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  NLP Chapter 3 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open this file in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

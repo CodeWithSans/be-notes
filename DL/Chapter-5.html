@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DL — Chapter 5: Deep Generative Models (Unit V)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details open>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="Chapter-4.html">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="Chapter-5.html" class="current">Ch 5 — Deep Generative Models</a>
+    <a href="Chapter-6.html">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="../NLP/Chapter-3.html">Ch 3 — Syntax Analysis</a>
+    <a href="../NLP/Chapter-4.html">Ch 4 — Semantic Analysis</a>
+    <a href="../NLP/Chapter-5.html">Ch 5 — Discourse / Pragmatics</a>
+    <a href="../NLP/Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="../BI/Chapter-3.html">Ch 3 — Data Warehousing</a>
+    <a href="../BI/Chapter-4.html">Ch 4 — Data Mining</a>
+    <a href="../BI/Chapter-5.html">Ch 5 — BI Tools &amp; OLAP</a>
+    <a href="../BI/Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>DL — Chapter 5: Deep Generative Models (Unit V)</h1>
+<p class="meta">
+  Subject Code: 410251 &nbsp;|&nbsp; End-Sem: 04 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q5 or Q6 in the paper).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — what is a generative model?</a></li>
+    <li><a href="#q1">Q1 — GAN: architecture, components, working (asked 7 times)</a></li>
+    <li><a href="#q2">Q2 — Boltzmann Machine (asked 6 times)</a></li>
+    <li><a href="#q3">Q3 — Deep Belief Networks (asked 6 times)</a></li>
+    <li><a href="#q4">Q4 — Applications of GAN (asked 4 times)</a></li>
+    <li><a href="#q5">Q5 — Deep Generative Models overview (asked 4 times)</a></li>
+    <li><a href="#q6">Q6 — Types of GAN (asked 3 times)</a></li>
+    <li><a href="#q7">Q7 — Generative vs Discriminative Models (asked 1 time)</a></li>
+    <li><a href="#q8">Q8 — Discriminator Network in GAN (asked 2 times)</a></li>
+    <li><a href="#q9">Q9 — GAN for real/fake image detection (asked 1 time)</a></li>
+    <li><a href="#q10">Q10 — GANs in anomaly detection (asked 1 time)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+A normal neural network (classifier) sees an image and says "this is a cat" — it DISCRIMINATES between classes. A generative model does the opposite — given the label "cat", it can CREATE a brand-new image of a cat that has never existed before. Generative models are how AI can paint, write stories, compose music, or invent faces.
+</div>
+
+<h3>1. What is a Generative Model?</h3>
+<p>A <b>generative model</b> is a machine learning model that learns the underlying probability distribution of the training data, so it can <b>generate new samples</b> that look similar to the training data.</p>
+
+<h3>2. Generative vs Discriminative — quick view</h3>
+<ul>
+  <li><b>Discriminative model</b> learns P(y | x) — given input, predict label (classifier).</li>
+  <li><b>Generative model</b> learns P(x) or P(x | y) — can generate new x values.</li>
+</ul>
+
+<h3>3. Key Deep Generative Models you'll study</h3>
+<ul>
+  <li><b>Boltzmann Machine</b> — energy-based, stochastic recurrent network.</li>
+  <li><b>Restricted Boltzmann Machine (RBM)</b> — simpler, no intra-layer connections.</li>
+  <li><b>Deep Belief Network (DBN)</b> — stack of RBMs.</li>
+  <li><b>Variational Autoencoder (VAE)</b> — uses encoder-decoder with probabilistic latent space.</li>
+  <li><b>Generative Adversarial Network (GAN)</b> — two networks (generator + discriminator) compete.</li>
+  <li><b>Diffusion models</b> — modern (Stable Diffusion, DALL-E).</li>
+</ul>
+
+<hr>
+
+<h2 id="q1">Q1 — Generative Adversarial Network (GAN): Architecture &amp; Components</h2>
+<span class="freq-tag">Asked 7 times</span>(May'23 ×3, May'24, May'25 ×2, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Explain GAN architecture with an example.</p>
+    <p><b>(May'23, 6 marks)</b> Differentiate generative and discriminative models in GAN.</p>
+    <p><b>(May'23, 6 marks)</b> Do GANs find real or fake images? If yes explain in detail.</p>
+    <p><b>(May'24, 6 marks)</b> Explain Discriminator network.</p>
+    <p><b>(May'25, 6 marks)</b> What is GAN? Explain its component.</p>
+    <p><b>(May'25, 6 marks)</b> Explain in brief GAN with an example.</p>
+    <p><b>(Nov'25, 6 marks)</b> What is the role of the discriminator in GAN? Inputs/outputs of discriminator.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Imagine a forger trying to make fake currency notes, and a police officer trying to spot fake notes. Every time the police catch a fake, the forger learns from it and makes better fakes. Every time the forger fools the police, the police get smarter at spotting fakes. After many rounds, the forger becomes so good that even experts can't tell fakes from real. That's exactly how a GAN works — the GENERATOR is the forger, the DISCRIMINATOR is the police officer.
+</div>
+
+<h3>1. Definition</h3>
+<p>A <b>Generative Adversarial Network (GAN)</b>, introduced by Ian Goodfellow in 2014, is a deep learning framework in which TWO neural networks — a <b>Generator</b> and a <b>Discriminator</b> — are trained TOGETHER in a competitive game. The generator tries to create fake data that looks real; the discriminator tries to tell real data from fake.</p>
+
+<h3>2. Two Components of GAN</h3>
+
+<h4>(a) Generator (G)</h4>
+<ul>
+  <li>Takes random noise z (sampled from a distribution like Gaussian) as input.</li>
+  <li>Outputs a fake sample (e.g., a fake image) G(z).</li>
+  <li>Goal: produce fake samples that look so real that the discriminator can't tell.</li>
+</ul>
+
+<h4>(b) Discriminator (D)</h4>
+<ul>
+  <li>Takes a sample (real or fake) as input.</li>
+  <li>Outputs a probability D(x) ∈ [0, 1] that the sample is REAL.</li>
+  <li>Goal: correctly classify REAL samples as real (D(x) → 1) and FAKE samples as fake (D(G(z)) → 0).</li>
+</ul>
+
+<h3>3. GAN architecture diagram</h3>
+<pre>
+                Random noise z
+                     │
+                     ▼
+                ┌──────────┐
+                │ Generator│
+                │   G(z)   │
+                └────┬─────┘
+                     │
+              fake sample (e.g. fake image)
+                     │
+   real ──────────►  │  ──────► ┌───────────────┐
+   sample            │          │ Discriminator │
+                                │     D(x)      │
+                                └──────┬────────┘
+                                       │
+                                  probability:
+                                  0 (fake) — 1 (real)
+</pre>
+
+<h3>4. Adversarial training process</h3>
+<ol>
+  <li>Sample random noise z (e.g., Gaussian noise vector of size 100).</li>
+  <li>Generator produces fake sample G(z).</li>
+  <li>Take a real sample x from training data.</li>
+  <li>Discriminator sees both real x and fake G(z); predicts D(x) and D(G(z)).</li>
+  <li>Compute the loss:
+    <ul>
+      <li>Discriminator wants to maximize log D(x) + log(1 − D(G(z))) → catch fakes.</li>
+      <li>Generator wants to minimize log(1 − D(G(z))) → fool discriminator.</li>
+    </ul>
+  </li>
+  <li>Update D's weights (one step), then G's weights (one step).</li>
+  <li>Repeat for many iterations.</li>
+  <li>Training converges when discriminator can't distinguish real from fake → D(x) ≈ 0.5 for everything.</li>
+</ol>
+
+<h3>5. Loss function (minimax game)</h3>
+<div class="formula-line">
+  min<sub>G</sub> max<sub>D</sub> V(D, G) = E<sub>x~p_data</sub>[log D(x)] + E<sub>z~p_z</sub>[log(1 − D(G(z)))]
+</div>
+
+<h3>6. Inputs and Outputs of Discriminator (detail)</h3>
+<ul>
+  <li><b>Input:</b> a data sample x (image, audio, etc.). Can be real (from training data) or fake (from generator).</li>
+  <li><b>Output:</b> a single scalar D(x) ∈ [0, 1] representing the probability that the input is real.</li>
+  <li><b>Architecture:</b> usually a standard CNN (for images) ending in a sigmoid neuron.</li>
+  <li>Trained as a binary classifier: real = 1, fake = 0.</li>
+</ul>
+
+<h3>7. Example of GAN in action</h3>
+<ul>
+  <li>StyleGAN generates extremely realistic fake human faces (see <code>thispersondoesnotexist.com</code>).</li>
+  <li>CycleGAN converts horse photos into zebra photos.</li>
+  <li>Pix2Pix turns sketches into realistic colour images.</li>
+  <li>DCGAN was an early breakthrough for image generation.</li>
+</ul>
+
+<h3>8. Challenges in GAN training</h3>
+<ul>
+  <li><b>Mode collapse:</b> generator produces only a few types of samples (e.g., always the same face).</li>
+  <li><b>Training instability:</b> oscillation between generator and discriminator.</li>
+  <li><b>Vanishing gradients:</b> if discriminator becomes too good, generator gets no signal.</li>
+  <li><b>Hard to evaluate:</b> no clear single metric for "quality".</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>GAN = 2 networks (Generator + Discriminator) competing in a min-max game.</li>
+    <li>Generator G(z) takes noise → produces fake samples.</li>
+    <li>Discriminator D(x) takes a sample → outputs probability it is real.</li>
+    <li>Generator tries to fool D; D tries to catch fakes.</li>
+    <li>Discriminator input = real or fake sample; output = 0 (fake) or 1 (real).</li>
+    <li>Trained iteratively until D can no longer distinguish real from fake.</li>
+    <li>Challenges: mode collapse, instability, vanishing gradients.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — Boltzmann Machine</h2>
+<span class="freq-tag">Asked 6 times</span>(May'23, Nov'23, May'24 ×2, May'25, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Explain Boltzmann machine in details.</p>
+    <p><b>(Nov'23, 6 marks)</b> Draw and explain architecture of Boltzmann machine.</p>
+    <p><b>(May'24, 6 marks)</b> What is Boltzmann machine? Explain its objectives.</p>
+    <p><b>(May'24, 6 marks)</b> Define Boltzmann machine. State and Explain its types.</p>
+    <p><b>(May'25, 6 marks)</b> Explain Boltzmann Machine in details.</p>
+    <p><b>(Nov'25, 6 marks)</b> What is a Boltzmann Machine? Describe its structure and components.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A Boltzmann Machine is like a fully-connected room of people, where everyone can talk to everyone else. Each person decides whether to "speak up" (be ON) or "stay quiet" (be OFF) probabilistically, based on what the OTHER people in the room are saying. After many rounds of chatting, the room settles into stable conversational patterns. The "stable patterns" represent what the model has learned.
+</div>
+
+<h3>1. Definition</h3>
+<p>A <b>Boltzmann Machine</b> is a type of stochastic recurrent neural network and a generative energy-based model. It consists of binary units (neurons) that are fully connected to each other (visible-visible, hidden-hidden, visible-hidden). It learns by adjusting the weights so that the probability of training data is maximized.</p>
+
+<h3>2. Structure and components</h3>
+<ul>
+  <li><b>Units (neurons):</b> each unit is binary, can be either 0 or 1.</li>
+  <li><b>Visible units:</b> represent the input data we can observe.</li>
+  <li><b>Hidden units:</b> capture internal patterns / features of the data.</li>
+  <li><b>Symmetric weighted connections:</b> every pair of units is connected with a real-valued weight w<sub>ij</sub> (no self-loops).</li>
+  <li><b>Biases:</b> each unit has its own bias.</li>
+  <li><b>Energy:</b> the network defines an "energy" for every possible state of all units; low-energy states are most probable.</li>
+</ul>
+
+<h3>3. Energy and probability</h3>
+<div class="formula-line">
+  E(v, h) = −Σ a<sub>i</sub>·v<sub>i</sub> − Σ b<sub>j</sub>·h<sub>j</sub> − Σ v<sub>i</sub>·w<sub>ij</sub>·h<sub>j</sub>
+</div>
+<p>P(v, h) = e<sup>−E(v, h)</sup> / Z (where Z is a normalization constant called the partition function).</p>
+
+<h3>4. Architecture diagram (text)</h3>
+<pre>
+              Hidden units (h)
+              ●    ●    ●    ●
+              │\\   /│\   /│\\   /│
+              │ \\ / │ \\ / │ \\ / │
+              │  X  │  X  │  X  │       ← all-to-all symmetric connections
+              │ / \\ │ / \\ │ / \\ │
+              │/   \\│/   \\│/   \\│
+              ●─────●─────●─────●
+              Visible units (v)
+              (also fully connected to each other)
+</pre>
+
+<h3>5. Objectives of Boltzmann Machine</h3>
+<ul>
+  <li>Learn the underlying distribution of the input data.</li>
+  <li>Generate new samples similar to training data.</li>
+  <li>Fill in missing or noisy values.</li>
+  <li>Discover hidden features / latent representations.</li>
+  <li>Solve combinatorial optimization problems (energy-based).</li>
+</ul>
+
+<h3>6. Types of Boltzmann Machines</h3>
+
+<h4>(a) General (Fully-Connected) Boltzmann Machine</h4>
+<ul>
+  <li>All units (visible + hidden) connected to all others.</li>
+  <li>Very flexible but training is EXTREMELY slow (intractable).</li>
+</ul>
+
+<h4>(b) Restricted Boltzmann Machine (RBM)</h4>
+<ul>
+  <li>Visible units connected ONLY to hidden units (no visible-visible or hidden-hidden connections).</li>
+  <li>Much easier to train using Contrastive Divergence (CD-k).</li>
+  <li>Most popular variant; used as building blocks of Deep Belief Networks.</li>
+</ul>
+
+<h4>(c) Deep Boltzmann Machine (DBM)</h4>
+<ul>
+  <li>Multiple layers of hidden units; bidirectional connections between layers.</li>
+  <li>More expressive but harder to train than RBM.</li>
+</ul>
+
+<h4>(d) Conditional / Convolutional Boltzmann Machines</h4>
+<ul>
+  <li>Variants for specific tasks (e.g., images).</li>
+</ul>
+
+<h3>7. Training (basics)</h3>
+<ul>
+  <li>Use <b>Gibbs sampling</b> to draw samples from the model.</li>
+  <li>Adjust weights to reduce energy of training data and increase energy of generated samples.</li>
+  <li>For RBM, use <b>Contrastive Divergence (CD-k)</b> algorithm — much faster.</li>
+</ul>
+
+<h3>8. Applications</h3>
+<ul>
+  <li>Dimensionality reduction.</li>
+  <li>Collaborative filtering (recommendation systems).</li>
+  <li>Pre-training deep neural networks (historical).</li>
+  <li>Feature learning.</li>
+  <li>Anomaly detection.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Boltzmann Machine = stochastic, energy-based, fully-connected generative model.</li>
+    <li>Has visible + hidden binary units with symmetric weights.</li>
+    <li>Types: General BM, Restricted BM (RBM), Deep BM (DBM).</li>
+    <li>Trained using Gibbs sampling / Contrastive Divergence.</li>
+    <li>RBM = most popular; used to build Deep Belief Networks.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — Deep Belief Networks (DBN)</h2>
+<span class="freq-tag">Asked 6 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 ×2 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Write Short Note on Deep generative model and Deep Belief Networks.</p>
+    <p><b>(Nov'23, 6 marks)</b> Explain Deep Belief Network with diagram.</p>
+    <p><b>(May'24, 6 marks)</b> Write short Note on Deep generative model and Deep Belief Networks.</p>
+    <p><b>(May'25, 6 marks)</b> Explain deep belief networks in detail.</p>
+    <p><b>(Nov'25, 5 marks)</b> Describe the difference between generative and discriminative phases in DBN.</p>
+    <p><b>(Nov'25, 6 marks)</b> Explain: Deep Belief Network and Deep Generative Model.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p>A <b>Deep Belief Network (DBN)</b> is a deep generative model formed by STACKING multiple Restricted Boltzmann Machines (RBMs). The output of one RBM serves as the input to the next, building up a hierarchy of features.</p>
+
+<h3>2. Architecture</h3>
+<ul>
+  <li>Composed of multiple hidden layers stacked on top of an input (visible) layer.</li>
+  <li>The TOP two layers form a Restricted Boltzmann Machine (bidirectional / undirected connections).</li>
+  <li>The lower layers have DIRECTED (top-down) connections (like a sigmoid belief network).</li>
+</ul>
+
+<h3>3. DBN diagram (text)</h3>
+<pre>
+   ┌──── h₃ ──── h₃ ──── h₃ ────┐   ← top RBM (undirected)
+   │      │       │      │       │
+   └────  h₂ ──── h₂ ──── h₂ ────┘
+                ↓ (directed)
+                 h₁ ──── h₁ ──── h₁
+                ↓ (directed)
+                  v ──── v ──── v       ← visible / input layer
+</pre>
+
+<h3>4. Training process — Layer-by-layer (greedy) pretraining</h3>
+<ol>
+  <li>Train RBM-1 between visible layer v and first hidden layer h₁ (unsupervised, using contrastive divergence).</li>
+  <li>Freeze RBM-1. Use h₁ as visible input for RBM-2; train RBM-2 between h₁ and h₂.</li>
+  <li>Repeat for each subsequent layer.</li>
+  <li>(Optional) After pretraining all layers, FINE-TUNE the whole network with supervised learning (backpropagation) for classification tasks.</li>
+</ol>
+
+<h3>5. Two phases of DBN</h3>
+
+<h4>(a) Generative phase</h4>
+<ul>
+  <li>The DBN generates new samples that look like the training data.</li>
+  <li>Sample from the top RBM (Gibbs sampling) → propagate downward through directed connections → produces a new sample at the visible layer.</li>
+</ul>
+
+<h4>(b) Discriminative phase</h4>
+<ul>
+  <li>After pretraining, add a classification layer on top and fine-tune with labels.</li>
+  <li>The network now ACTS as a classifier — propagates input UPWARD through the layers and outputs class probabilities.</li>
+</ul>
+
+<h3>6. Comparison: Generative vs Discriminative phases in DBN</h3>
+<table>
+  <tr><th>Aspect</th><th>Generative phase</th><th>Discriminative phase</th></tr>
+  <tr><td>Direction</td><td>Top → Down</td><td>Bottom → Up</td></tr>
+  <tr><td>Purpose</td><td>Generate new data</td><td>Classify input data</td></tr>
+  <tr><td>Training</td><td>Unsupervised (RBM-by-RBM)</td><td>Supervised (backprop fine-tune)</td></tr>
+  <tr><td>Data needed</td><td>Unlabeled</td><td>Labeled</td></tr>
+  <tr><td>Output</td><td>Synthetic samples</td><td>Class predictions</td></tr>
+</table>
+
+<h3>7. Advantages of DBN</h3>
+<ul>
+  <li>Effective unsupervised pretraining for deep networks.</li>
+  <li>Layer-by-layer training avoids vanishing gradients.</li>
+  <li>Learns hierarchical features automatically.</li>
+  <li>Can use both labeled and unlabeled data.</li>
+</ul>
+
+<h3>8. Limitations of DBN</h3>
+<ul>
+  <li>Training is slow (multiple RBM pretraining + fine-tuning).</li>
+  <li>Largely replaced by modern architectures (CNNs, transformers).</li>
+  <li>Mainly of historical importance now.</li>
+</ul>
+
+<h3>9. Applications</h3>
+<ul>
+  <li>Handwritten digit recognition (MNIST).</li>
+  <li>Speech recognition.</li>
+  <li>Drug discovery.</li>
+  <li>Collaborative filtering.</li>
+  <li>Pre-training deep nets when labeled data is scarce.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>DBN = stacked RBMs trained layer by layer.</li>
+    <li>Top layer = undirected RBM; lower layers = directed.</li>
+    <li>Two phases: generative (top-down sampling) and discriminative (bottom-up classification).</li>
+    <li>Training: unsupervised pretraining then supervised fine-tuning.</li>
+    <li>Historical importance; mostly replaced by modern deep networks.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — Applications of GAN</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'24, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> What are applications of GAN? Explain any four in detail.</p>
+    <p><b>(Nov'23, 6 marks)</b> List the applications of GAN network with description.</p>
+    <p><b>(May'24, 6 marks)</b> Enlist and Explain applications of GAN.</p>
+    <p><b>(Nov'25, 6 marks)</b> List at least five real-world applications of GAN and describe any one in detail.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>Top applications of GAN</h3>
+
+<h4>(a) Image generation</h4>
+<ul>
+  <li>Generate ultra-realistic human faces (StyleGAN, ProGAN).</li>
+  <li>Used by websites like "This Person Does Not Exist".</li>
+  <li>Used by artists for new visual content.</li>
+</ul>
+
+<h4>(b) Image-to-image translation</h4>
+<ul>
+  <li>Convert sketches → real photos (Pix2Pix).</li>
+  <li>Convert horses → zebras, day → night, photo → painting (CycleGAN).</li>
+  <li>Used in design, art, gaming.</li>
+</ul>
+
+<h4>(c) Super-resolution (SRGAN)</h4>
+<ul>
+  <li>Convert low-resolution images into high-resolution ones.</li>
+  <li>Used in surveillance, medical imaging, satellite imagery.</li>
+</ul>
+
+<h4>(d) Data augmentation</h4>
+<ul>
+  <li>Generate synthetic training examples when real data is scarce.</li>
+  <li>Especially useful in medical imaging (privacy concerns, rare diseases).</li>
+</ul>
+
+<h4>(e) Text-to-image generation</h4>
+<ul>
+  <li>Generate images from text descriptions (e.g., "a cat riding a bicycle").</li>
+  <li>Used in advertising, content creation, prototyping (StackGAN, AttnGAN).</li>
+</ul>
+
+<h4>(f) Deepfake generation</h4>
+<ul>
+  <li>Swap faces in videos.</li>
+  <li>Synthesize voices and speech.</li>
+  <li>Used in films (CGI) and unfortunately also in malicious deepfakes.</li>
+</ul>
+
+<h4>(g) Style transfer</h4>
+<ul>
+  <li>Apply artistic style (Van Gogh, Picasso) to ordinary photos.</li>
+</ul>
+
+<h4>(h) 3D object generation</h4>
+<ul>
+  <li>Generate 3D models from 2D images.</li>
+  <li>Used in gaming and AR/VR.</li>
+</ul>
+
+<h4>(i) Music and audio generation</h4>
+<ul>
+  <li>Compose new music, generate speech / sound effects.</li>
+</ul>
+
+<h4>(j) Anomaly detection</h4>
+<ul>
+  <li>Train GAN on normal data; anomalies are detected when they cannot be well reconstructed.</li>
+  <li>Used in fraud detection, manufacturing defect detection.</li>
+</ul>
+
+<h4>(k) Drug discovery</h4>
+<ul>
+  <li>Generate new candidate molecular structures.</li>
+</ul>
+
+<h4>(l) Video generation and prediction</h4>
+<ul>
+  <li>Generate realistic video sequences or predict future frames.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Top GAN applications: image generation, image-to-image translation, super-resolution, data augmentation, text-to-image, deepfakes.</li>
+    <li>Other uses: style transfer, 3D models, music, anomaly detection, drug discovery.</li>
+    <li>Anywhere we need to CREATE new data that looks real, GAN is useful.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Deep Generative Models (overview)</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'25, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 6 marks)</b> Explain Deep generative model with example.</p>
+    <p><b>(May'25, 6 marks)</b> Explain Deep Generative Model.</p>
+    <p><b>(Nov'25, 6 marks)</b> Explain: Deep Generative Model.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p>A <b>Deep Generative Model</b> is a deep neural network that learns the probability distribution of training data and can generate NEW samples that look similar to the training data. It uses many layers (= "deep") to learn complex high-dimensional distributions.</p>
+
+<h3>2. Why "deep"?</h3>
+<ul>
+  <li>Deep networks can capture complex hierarchical patterns in data (edges → textures → objects).</li>
+  <li>Simple generative models (Gaussian mixtures) cannot model complex real-world data like images.</li>
+  <li>Deep generative models can generate realistic images, audio, text.</li>
+</ul>
+
+<h3>3. Main types of Deep Generative Models</h3>
+<ul>
+  <li><b>Restricted Boltzmann Machine (RBM)</b> — energy-based.</li>
+  <li><b>Deep Belief Network (DBN)</b> — stacked RBMs.</li>
+  <li><b>Deep Boltzmann Machine (DBM)</b> — multi-layer Boltzmann.</li>
+  <li><b>Variational Autoencoder (VAE)</b> — probabilistic encoder-decoder.</li>
+  <li><b>Generative Adversarial Network (GAN)</b> — generator vs discriminator.</li>
+  <li><b>Autoregressive models</b> (PixelRNN, PixelCNN) — predict next pixel given previous.</li>
+  <li><b>Normalizing Flow models</b> — exact likelihood with invertible transformations.</li>
+  <li><b>Diffusion models</b> — modern; gradually denoise to generate (Stable Diffusion, DALL-E).</li>
+</ul>
+
+<h3>4. Comparison of generative models</h3>
+<table>
+  <tr><th>Model</th><th>Strength</th><th>Weakness</th></tr>
+  <tr><td>RBM / DBN</td><td>Energy-based, classic</td><td>Slow training, hard to scale</td></tr>
+  <tr><td>VAE</td><td>Smooth latent space</td><td>Blurry outputs</td></tr>
+  <tr><td>GAN</td><td>Sharp, realistic outputs</td><td>Training instability, mode collapse</td></tr>
+  <tr><td>Diffusion</td><td>State-of-the-art quality</td><td>Slow inference</td></tr>
+  <tr><td>Autoregressive</td><td>High likelihood</td><td>Slow sampling</td></tr>
+</table>
+
+<h3>5. Applications of Deep Generative Models</h3>
+<ul>
+  <li>Image generation (faces, art).</li>
+  <li>Text generation (story, dialogue).</li>
+  <li>Music composition.</li>
+  <li>Drug discovery (molecule generation).</li>
+  <li>Data augmentation for training.</li>
+  <li>Anomaly detection.</li>
+  <li>Image inpainting, super-resolution.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Deep generative model = deep network that learns data distribution + generates new samples.</li>
+    <li>Types: RBM, DBN, VAE, GAN, Diffusion, Autoregressive, Normalizing Flows.</li>
+    <li>GAN = realistic outputs; VAE = smoother but blurrier; Diffusion = current state-of-the-art.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — Types of GAN</h2>
+<span class="freq-tag">Asked 3 times</span>(Nov'23, May'24, May'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23, 6 marks)</b> Explain different types of GAN.</p>
+    <p><b>(May'24, 6 marks)</b> State and explain different types of GAN.</p>
+    <p><b>(May'25, 6 marks)</b> Explain types of GAN.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Vanilla GAN (original by Goodfellow 2014)</h3>
+<ul>
+  <li>The basic GAN with one generator and one discriminator.</li>
+  <li>Uses fully-connected layers; can be unstable.</li>
+</ul>
+
+<h3>2. DCGAN (Deep Convolutional GAN)</h3>
+<ul>
+  <li>Uses convolutional layers instead of fully connected ones.</li>
+  <li>Much more stable training for image data.</li>
+  <li>Introduced architectural guidelines (batch norm, no pooling, leaky ReLU).</li>
+</ul>
+
+<h3>3. Conditional GAN (cGAN)</h3>
+<ul>
+  <li>Both generator and discriminator receive an additional CONDITION (label or text).</li>
+  <li>Allows controlled generation: "generate a dog", "generate digit 7".</li>
+</ul>
+
+<h3>4. CycleGAN</h3>
+<ul>
+  <li>Image-to-image translation WITHOUT paired training data.</li>
+  <li>Uses cycle-consistency loss.</li>
+  <li>Famous for horse → zebra, summer → winter.</li>
+</ul>
+
+<h3>5. Pix2Pix</h3>
+<ul>
+  <li>Image-to-image translation WITH paired training data.</li>
+  <li>Used for sketch → photo, satellite → map, B/W → colour.</li>
+</ul>
+
+<h3>6. StyleGAN / StyleGAN2 / StyleGAN3</h3>
+<ul>
+  <li>State-of-the-art for generating photorealistic faces.</li>
+  <li>Allows fine control over "style" of generated images.</li>
+</ul>
+
+<h3>7. SRGAN (Super-Resolution GAN)</h3>
+<ul>
+  <li>Converts low-resolution images to high-resolution.</li>
+</ul>
+
+<h3>8. ProGAN (Progressive GAN)</h3>
+<ul>
+  <li>Trains by progressively growing image resolution from low to high.</li>
+  <li>More stable training for high-res images.</li>
+</ul>
+
+<h3>9. WGAN (Wasserstein GAN)</h3>
+<ul>
+  <li>Uses Wasserstein distance instead of KL divergence.</li>
+  <li>More stable training, less mode collapse.</li>
+</ul>
+
+<h3>10. Other notable types</h3>
+<ul>
+  <li><b>InfoGAN</b> — disentangles latent space.</li>
+  <li><b>BigGAN</b> — generates very high-quality high-resolution images.</li>
+  <li><b>StackGAN</b> — text-to-image generation.</li>
+  <li><b>SeqGAN</b> — sequence generation (text, music).</li>
+</ul>
+
+<h3>11. Summary table</h3>
+<table>
+  <tr><th>Type</th><th>Main use</th></tr>
+  <tr><td>Vanilla GAN</td><td>Basic generation</td></tr>
+  <tr><td>DCGAN</td><td>Image generation (stable)</td></tr>
+  <tr><td>cGAN</td><td>Conditional generation</td></tr>
+  <tr><td>CycleGAN</td><td>Unpaired image translation</td></tr>
+  <tr><td>Pix2Pix</td><td>Paired image translation</td></tr>
+  <tr><td>StyleGAN</td><td>Photorealistic faces</td></tr>
+  <tr><td>SRGAN</td><td>Super-resolution</td></tr>
+  <tr><td>WGAN</td><td>Stable training</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Top types: DCGAN, cGAN, CycleGAN, Pix2Pix, StyleGAN, SRGAN, WGAN.</li>
+    <li>DCGAN = deep convolutional; cGAN = controlled generation.</li>
+    <li>CycleGAN = unpaired translation; Pix2Pix = paired translation.</li>
+    <li>StyleGAN = realistic faces; SRGAN = super-resolution; WGAN = stable training.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — Generative vs Discriminative Models in GAN</h2>
+<span class="freq-tag">Asked 1 time</span>(May'23 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Differentiate generative and discriminative models in GAN.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Discriminative model</h3>
+<ul>
+  <li>Learns to <b>classify</b> data — given an input x, predict label y.</li>
+  <li>Learns P(y | x) — conditional probability of label given input.</li>
+  <li>Example: image classifier deciding "cat or dog".</li>
+  <li>In GAN, the <b>DISCRIMINATOR</b> is a discriminative model — it classifies samples as real or fake.</li>
+</ul>
+
+<h3>2. Generative model</h3>
+<ul>
+  <li>Learns to <b>generate</b> data — produce new samples that look like training data.</li>
+  <li>Learns P(x) (or P(x | y) for conditional generation).</li>
+  <li>Example: model that creates new cat images.</li>
+  <li>In GAN, the <b>GENERATOR</b> is a generative model — it generates fake samples from random noise.</li>
+</ul>
+
+<h3>3. Comparison table</h3>
+<table>
+  <tr><th>Aspect</th><th>Discriminative</th><th>Generative</th></tr>
+  <tr><td>Learns</td><td>P(y | x)</td><td>P(x) or P(x | y)</td></tr>
+  <tr><td>Goal</td><td>Classify / predict label</td><td>Generate new samples</td></tr>
+  <tr><td>Role in GAN</td><td>Discriminator (D)</td><td>Generator (G)</td></tr>
+  <tr><td>Input</td><td>Real or fake sample</td><td>Random noise vector z</td></tr>
+  <tr><td>Output</td><td>Probability sample is real</td><td>Synthetic sample G(z)</td></tr>
+  <tr><td>Loss objective</td><td>Maximize accuracy of real vs fake</td><td>Maximize "real-ness" of fake</td></tr>
+  <tr><td>Examples</td><td>SVM, Logistic Regression, CNN classifier</td><td>VAE, GAN generator, Diffusion model</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Discriminative = predict label given input (P(y | x)).</li>
+    <li>Generative = produce new data (P(x)).</li>
+    <li>In GAN: Discriminator = discriminative; Generator = generative.</li>
+    <li>The two work together adversarially: D catches fakes, G fools D.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — Discriminator Network in GAN</h2>
+<span class="freq-tag">Asked 2 times</span>(May'24, Nov'25 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 6 marks)</b> Explain Discriminator network.</p>
+    <p><b>(Nov'25, 6 marks)</b> What is the role of the discriminator in GAN? What are the inputs and outputs of a discriminator network?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Role of the Discriminator</h3>
+<ul>
+  <li>The <b>discriminator</b> is a binary classifier that tries to distinguish REAL samples (from training data) from FAKE samples (from generator).</li>
+  <li>It is the "police officer" in the GAN forger-vs-police analogy.</li>
+  <li>By trying to catch fakes, it forces the generator to produce more realistic samples over time.</li>
+</ul>
+
+<h3>2. Inputs and Outputs</h3>
+<ul>
+  <li><b>Input:</b> a single sample x (image, audio, etc.). Can be either a real sample from training data OR a fake sample produced by the generator.</li>
+  <li><b>Output:</b> a single scalar D(x) ∈ [0, 1] — the probability that x is REAL.</li>
+  <li>Typically ends in a sigmoid activation that squashes the output to [0, 1].</li>
+</ul>
+
+<h3>3. Architecture (for images)</h3>
+<ul>
+  <li>Usually a standard CNN (Convolutional Neural Network).</li>
+  <li>Several convolutional layers (often with stride 2 for downsampling).</li>
+  <li>LeakyReLU activations.</li>
+  <li>Batch normalization (often).</li>
+  <li>Final fully-connected layer → single sigmoid neuron.</li>
+</ul>
+
+<h3>4. Loss function for Discriminator</h3>
+<div class="formula-line">
+  L<sub>D</sub> = − ( log D(x) + log(1 − D(G(z))) )
+</div>
+<ul>
+  <li>For real samples x: D should output 1 → log D(x) should be high.</li>
+  <li>For fake samples G(z): D should output 0 → log(1 − D(G(z))) should be high.</li>
+  <li>Discriminator wants to MAXIMIZE this objective (minimize the negative).</li>
+</ul>
+
+<h3>5. Training procedure for D</h3>
+<ol>
+  <li>Sample a real image x from the training set.</li>
+  <li>Sample noise z; pass through generator to get fake image G(z).</li>
+  <li>Compute D(x) and D(G(z)).</li>
+  <li>Compute loss L<sub>D</sub>.</li>
+  <li>Backpropagate and update D's weights only (not G's).</li>
+</ol>
+
+<h3>6. Common issues</h3>
+<ul>
+  <li><b>D too strong:</b> if D becomes too good, it gives no useful gradient to G → mode collapse / vanishing gradients.</li>
+  <li><b>D too weak:</b> if D is weak, G never has to improve.</li>
+  <li>Balance is essential — usually alternate updates of G and D.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Discriminator = binary classifier (real vs fake) in GAN.</li>
+    <li>Input: sample (real or fake). Output: probability sample is real (0–1).</li>
+    <li>Architecture: usually CNN ending in sigmoid.</li>
+    <li>Trained to maximize log D(x) + log(1 − D(G(z))).</li>
+    <li>Must be balanced with generator — neither too strong nor too weak.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q9">Q9 — Do GANs Find Real or Fake Images?</h2>
+<span class="freq-tag">Asked 1 time</span>(May'23 — 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 6 marks)</b> Do GANs find real or fake images? If yes explain it in detail.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<p><b>Yes</b> — GANs are capable of both <b>generating</b> fake images AND <b>distinguishing</b> real from fake images. These are the two complementary roles of the generator and discriminator inside a GAN.</p>
+
+<h3>1. The Generator GENERATES fake images</h3>
+<ul>
+  <li>Takes a random noise vector z (e.g., from a Gaussian distribution).</li>
+  <li>Passes it through deep convolutional layers (transposed convolutions, upsampling).</li>
+  <li>Output: a fake image that mimics the real-data distribution.</li>
+  <li>After enough training, the fakes become indistinguishable from real images.</li>
+</ul>
+
+<h3>2. The Discriminator DETECTS real vs fake</h3>
+<ul>
+  <li>Takes an image x as input (either real from dataset or fake from generator).</li>
+  <li>Passes it through CNN layers.</li>
+  <li>Outputs a probability D(x) in [0, 1].</li>
+  <li>1 = "this is definitely real"; 0 = "this is definitely fake"; 0.5 = "unsure".</li>
+</ul>
+
+<h3>3. The training game</h3>
+<ol>
+  <li>Generator tries to make fakes that fool the discriminator.</li>
+  <li>Discriminator tries to catch the fakes.</li>
+  <li>Over time, both improve — eventually generator produces samples so realistic that even the (trained) discriminator can only guess (D ≈ 0.5).</li>
+</ol>
+
+<h3>4. Use cases</h3>
+<ul>
+  <li><b>Generation:</b> create new artwork, faces, training data (used by artists, designers).</li>
+  <li><b>Detection:</b> the discriminator alone can be used to detect deepfakes, AI-generated content.</li>
+  <li><b>Anomaly detection:</b> if discriminator scores a sample very low, it might be an anomaly.</li>
+</ul>
+
+<h3>5. Real-world application — deepfake detection</h3>
+<ul>
+  <li>Train a discriminator on real videos and known deepfakes.</li>
+  <li>Use this trained discriminator as a stand-alone fake-image detector.</li>
+  <li>Major social-media platforms use such GAN-trained detectors to flag fake content.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>GAN has BOTH generation (G) and detection (D) capabilities.</li>
+    <li>Generator: noise → fake image.</li>
+    <li>Discriminator: image → probability it is real.</li>
+    <li>Used in: content creation, deepfake detection, anomaly detection.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q10">Q10 — GANs in Anomaly Detection</h2>
+<span class="freq-tag">Asked 1 time</span>(Nov'25 — 5 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'25, 5 marks)</b> Discuss the role of GANs in anomaly detection. How do they help identify outliers in data?</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Anomaly detection</b> = finding data points that are very different from the "normal" majority. Examples: fraudulent credit-card transactions, defective products on an assembly line, network intrusions, rare diseases.</p>
+
+<h3>2. How GANs are used for anomaly detection</h3>
+<ul>
+  <li>Train the GAN ONLY on NORMAL (non-anomalous) data.</li>
+  <li>After training, the generator has learned the distribution of normal samples.</li>
+  <li>Given a new test sample x:
+    <ul>
+      <li>Try to find a noise vector z such that G(z) ≈ x (i.e., reconstruct x from the latent space).</li>
+      <li>If x is NORMAL, this is easy — there is a z that produces a close match.</li>
+      <li>If x is ANOMALOUS, no good z exists — the reconstruction error is HIGH.</li>
+    </ul>
+  </li>
+  <li>Use the reconstruction error (or discriminator score) as the anomaly score.</li>
+</ul>
+
+<h3>3. Popular GAN-based anomaly detection methods</h3>
+<ul>
+  <li><b>AnoGAN</b> — first GAN-based method; uses iterative search for z.</li>
+  <li><b>f-AnoGAN</b> — faster version using a learned encoder.</li>
+  <li><b>GANomaly</b> — uses encoder-decoder-encoder structure.</li>
+  <li><b>EGBAD</b> — uses BiGAN (bidirectional GAN).</li>
+</ul>
+
+<h3>4. Why GANs work for anomaly detection</h3>
+<ul>
+  <li>Generator learns a smooth manifold of normal data.</li>
+  <li>Anomalies lie OFF this manifold → hard to reconstruct.</li>
+  <li>Discriminator also gives high "fake" probability for anomalies.</li>
+  <li>Combination of both signals = robust anomaly score.</li>
+</ul>
+
+<h3>5. Real-world applications</h3>
+<ul>
+  <li><b>Medical imaging</b> — detect tumours in X-rays / MRI.</li>
+  <li><b>Manufacturing</b> — detect defective products on assembly line.</li>
+  <li><b>Cybersecurity</b> — detect malicious network traffic.</li>
+  <li><b>Finance</b> — fraud detection in credit-card transactions.</li>
+  <li><b>Infrastructure</b> — detect failures in machinery (predictive maintenance).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Train GAN only on normal data; anomalies cannot be well reconstructed.</li>
+    <li>Use reconstruction error / discriminator score as anomaly score.</li>
+    <li>Methods: AnoGAN, f-AnoGAN, GANomaly.</li>
+    <li>Applications: medical, manufacturing, cybersecurity, finance.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>GAN architecture / components</td><td>✓ ×3</td><td>—</td><td>✓</td><td>✓ ×2</td><td>✓</td><td>7</td></tr>
+  <tr><td>Boltzmann Machine</td><td>✓</td><td>✓</td><td>✓ ×2</td><td>✓</td><td>✓</td><td>6</td></tr>
+  <tr><td>Deep Belief Networks</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓ ×2</td><td>6</td></tr>
+  <tr><td>Applications of GAN</td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>4</td></tr>
+  <tr><td>Deep Generative Models</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>3</td></tr>
+  <tr><td>Types of GAN</td><td>—</td><td>✓</td><td>✓</td><td>✓</td><td>—</td><td>3</td></tr>
+  <tr><td>Discriminator network</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>Generative vs Discriminative</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>1</td></tr>
+  <tr><td>Do GANs find real or fake images</td><td>✓</td><td>—</td><td>—</td><td>—</td><td>—</td><td>1</td></tr>
+  <tr><td>GANs for anomaly detection</td><td>—</td><td>—</td><td>—</td><td>—</td><td>✓</td><td>1</td></tr>
+</table>
+
+<h3>Must-remember 7 lines</h3>
+<ol>
+  <li><b>GAN</b> = Generator + Discriminator competing; min-max game.</li>
+  <li>Generator: noise → fake sample. Discriminator: sample → P(real).</li>
+  <li><b>Boltzmann Machine</b> = stochastic, energy-based, fully-connected; types: General, RBM, DBM.</li>
+  <li><b>RBM</b> = no visible-visible or hidden-hidden connections; trained via Contrastive Divergence.</li>
+  <li><b>DBN</b> = stacked RBMs; trained layer-by-layer then fine-tuned.</li>
+  <li><b>Generative</b> learns P(x); <b>Discriminative</b> learns P(y | x).</li>
+  <li>Top GAN applications: image generation, image translation, super-resolution, deepfakes, anomaly detection.</li>
+</ol>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>Generative models LEARN data distribution + CREATE new samples. GAN = adversarial game (Generator vs Discriminator). Boltzmann/RBM/DBN = energy-based predecessors.</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  DL Chapter 5 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open this file in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

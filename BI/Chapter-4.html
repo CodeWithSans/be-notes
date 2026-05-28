@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BI — Chapter 4: Data Preparation (Unit IV)</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+  <details>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="../HPC/Chapter-3.html">Ch 3 — Parallel Communication</a>
+    <a href="../HPC/Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="../HPC/Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="../HPC/Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+  <details>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="../DL/Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="../DL/Chapter-4.html">Ch 4 — RNN &amp; Sequence Models</a>
+    <a href="../DL/Chapter-5.html">Ch 5 — Deep Generative Models</a>
+    <a href="../DL/Chapter-6.html">Ch 6 — Reinforcement Learning</a>
+  </details>
+  <details>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="../NLP/Chapter-3.html">Ch 3 — Language Modelling</a>
+    <a href="../NLP/Chapter-4.html">Ch 4 — Information Retrieval</a>
+    <a href="../NLP/Chapter-5.html">Ch 5 — NLP Tools &amp; Techniques</a>
+    <a href="../NLP/Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+  <details open>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="Chapter-3.html">Ch 3 — Reporting Authoring</a>
+    <a href="Chapter-4.html" class="current">Ch 4 — Data Preparation</a>
+    <a href="Chapter-5.html">Ch 5 — ML in BI</a>
+    <a href="Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+  <hr style="border-top:1px solid #3a5a8d;margin:14px 0;">
+  <a href="../index.html" style="color:#ffcc44;">← Back to Home</a>
+</nav>
+
+<main class="content">
+
+<h1>BI — Chapter 4: Data Preparation (Unit IV)</h1>
+<p class="meta">
+  Subject Code: 410253(C) | End-Sem: 11 June 2026 (70 marks)<br>
+  This chapter contributes <b>17–18 marks</b> (Q3 or Q4).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary — why data preparation matters</a></li>
+    <li><a href="#q1">Q1 — Data Transformation (asked 5 times)</a></li>
+    <li><a href="#q2">Q2 — Data Validation, Incompleteness, Noise (asked 4 times)</a></li>
+    <li><a href="#q3">Q3 — Data Reduction (asked 3 times)</a></li>
+    <li><a href="#q4">Q4 — Univariate, Bivariate, Multivariate analysis (asked 3 times)</a></li>
+    <li><a href="#q5">Q5 — Data Discretization (asked 3 times)</a></li>
+    <li><a href="#q6">Q6 — Contingency Table &amp; Marginal Distribution (asked 2 times)</a></li>
+    <li><a href="#q7">Q7 — Sampling / Feature Selection / PCA (asked 2 times)</a></li>
+    <li><a href="#q8">Q8 — Data Exploration (asked 2 times)</a></li>
+    <li><a href="#q9">Q9 — Other (Dirty data, Binning, Mean/Median/Mode, Bivariate)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<h2 id="prelim">Preliminary Concepts (Read Once)</h2>
+
+<div class="analogy">
+Raw data from real-world sources is MESSY — missing values, typos, duplicates, weird outliers. Before you can analyze it or train ML models, you must CLEAN and PREPARE the data. This step is called Data Preparation (or Data Preprocessing) — and it often takes 60-80% of a data scientist's time! Garbage in = garbage out.
+</div>
+
+<h3>The 5 main steps of Data Preparation</h3>
+<ol>
+  <li><b>Data Validation</b> — find missing, noisy, inconsistent values.</li>
+  <li><b>Data Transformation</b> — convert data into a suitable form (normalize, encode).</li>
+  <li><b>Data Reduction</b> — reduce data size while preserving info (sampling, PCA).</li>
+  <li><b>Data Discretization</b> — convert continuous attributes into discrete bins.</li>
+  <li><b>Data Exploration</b> — univariate/bivariate/multivariate analysis.</li>
+</ol>
+
+<hr>
+
+<h2 id="q1">Q1 — Data Transformation</h2>
+<span class="freq-tag">Asked 5 times</span>(May'23, Nov'23, May'24, May'25, Nov'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'25, 5 marks)</b> Explain data transformation in detail with example.</p>
+    <p><b>(Nov'23 &amp; Nov'25, 5 marks)</b> What is data Transformation? Explain Data Transformation Process in Detail.</p>
+    <p><b>(May'24, 6 marks)</b> What is data transformation? Why is it needed? Explain at least 3 techniques.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+You have a list of salaries: ₹25,000 and ₹2,50,000. Same data, but to a machine learning algorithm, the bigger number dominates. Transforming both into a [0, 1] range makes them comparable. Data transformation is about converting data into a USEFUL form for analysis.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Data Transformation</b> is the process of converting data from one format, structure, or scale to another to make it more suitable for analysis or modeling.</p>
+
+<h3>2. Why we need data transformation</h3>
+<ul>
+  <li>Different attributes have different scales (age 0-100 vs salary 0-1,000,000).</li>
+  <li>Some algorithms (k-means, neural nets) are sensitive to scale.</li>
+  <li>Skewed distributions need normalization for accurate analysis.</li>
+  <li>Categorical data must be converted to numerical for ML.</li>
+  <li>Data from different sources must follow common format.</li>
+  <li>Remove dependencies (decorrelation).</li>
+</ul>
+
+<h3>3. Main techniques of data transformation</h3>
+
+<h4>(a) Normalization / Min-Max Scaling</h4>
+<p>Scale all values into a fixed range [0, 1] or [-1, 1].</p>
+<div class="formula-line">
+  x' = (x − min) / (max − min)
+</div>
+<p>Example: age 30, with min=0, max=100 → x' = 30/100 = 0.3.</p>
+
+<h4>(b) Standardization (Z-score normalization)</h4>
+<p>Transform to have mean = 0 and std deviation = 1.</p>
+<div class="formula-line">
+  x' = (x − μ) / σ
+</div>
+<p>Example: a salary value relative to the mean salary.</p>
+
+<h4>(c) Decimal Scaling</h4>
+<p>Divide by a power of 10 to move decimal point.</p>
+<div class="formula-line">
+  x' = x / 10^j  (where j makes max(|x'|) &lt; 1)
+</div>
+
+<h4>(d) Log Transformation</h4>
+<p>Apply log() function — useful for skewed data.</p>
+<p>Example: income data → log(income) to reduce skew.</p>
+
+<h4>(e) Aggregation</h4>
+<p>Combine multiple records into a single summary (sum, average).</p>
+<p>Example: daily sales aggregated into monthly sales.</p>
+
+<h4>(f) Generalization / Concept Hierarchy</h4>
+<p>Replace low-level data with higher-level concepts.</p>
+<p>Example: city → state → country; age 22 → "young adult".</p>
+
+<h4>(g) Attribute Construction (Feature Engineering)</h4>
+<p>Create new attributes from existing ones.</p>
+<p>Example: from "date of birth" → derive "age".</p>
+
+<h4>(h) Encoding (for categorical data)</h4>
+<ul>
+  <li><b>Label encoding:</b> assign integers (Red=0, Green=1, Blue=2).</li>
+  <li><b>One-hot encoding:</b> create binary columns (Red=[1,0,0]).</li>
+</ul>
+
+<h4>(i) Smoothing</h4>
+<p>Remove noise (binning, regression, clustering).</p>
+
+<h3>4. Example — Data transformation pipeline</h3>
+<pre>
+Raw data: [Age=25, Salary=₹50,000, City="Pune", Joined="2022-05-10"]
+
+Step 1 (Normalize Age):    25/100 = 0.25
+Step 2 (Standardize Salary): (50000 − 60000) / 20000 = -0.5
+Step 3 (Encode City):       Pune → [1, 0, 0]  (one-hot)
+Step 4 (Attribute construction): Joined → Years_of_Service = 3
+
+Final feature vector: [0.25, -0.5, 1, 0, 0, 3]
+</pre>
+
+<h3>5. Common transformation tools</h3>
+<ul>
+  <li>scikit-learn (Python): StandardScaler, MinMaxScaler, OneHotEncoder.</li>
+  <li>Pandas: .apply(), .map(), .pivot_table().</li>
+  <li>ETL tools: Talend, Informatica, SSIS.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Data transformation = convert data into a suitable form for analysis.</li>
+    <li>Why: different scales, skewed data, categorical → numerical, common format.</li>
+    <li>Techniques: normalization, standardization, decimal scaling, log, aggregation, encoding, attribute construction.</li>
+    <li>Standardization: (x − μ) / σ; Normalization: (x − min)/(max − min).</li>
+    <li>Categorical encoding: label encoding, one-hot encoding.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q2">Q2 — Data Validation: Incompleteness, Noise, Inconsistency</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, Nov'23, May'25, Nov'25 — usually 5 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, Nov'23, Nov'25, 5 marks)</b> Explain data validation, incompleteness, noise, inconsistency of quality of input data.</p>
+    <p><b>(May'25, 5 marks)</b> Write short note on Data Validation.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Data Validation</h3>
+<p><b>Data Validation</b> is the process of checking that input data is accurate, complete, consistent, and conforms to required quality standards before analysis or storage.</p>
+
+<h3>2. Three main quality problems in data</h3>
+
+<h4>(a) Incompleteness</h4>
+<ul>
+  <li>Data has MISSING values for some attributes.</li>
+  <li>Causes: not collected, sensor failure, user skipped field, data lost.</li>
+  <li>Example: Customer record with no email address.</li>
+  <li><b>Solutions:</b>
+    <ul>
+      <li>Delete records with missing values (if few).</li>
+      <li>Fill with default values (e.g., "unknown").</li>
+      <li>Impute with mean / median / mode.</li>
+      <li>Predict missing value using regression or ML.</li>
+      <li>Hot-deck imputation (use similar record's value).</li>
+    </ul>
+  </li>
+</ul>
+
+<h4>(b) Noise</h4>
+<ul>
+  <li><b>Noise</b> = random error or variance in measured values.</li>
+  <li>Causes: faulty sensors, measurement errors, data entry mistakes, transmission errors.</li>
+  <li>Example: temperature reading 5000°C (impossible).</li>
+  <li><b>Solutions:</b>
+    <ul>
+      <li><b>Binning:</b> sort values, group into bins, replace with bin mean / median.</li>
+      <li><b>Smoothing:</b> regression to fit smooth curve.</li>
+      <li><b>Clustering:</b> outliers in clusters are noise.</li>
+      <li><b>Outlier detection:</b> remove values outside expected range.</li>
+    </ul>
+  </li>
+</ul>
+
+<h4>(c) Inconsistency</h4>
+<ul>
+  <li>Data contradicts itself or violates rules.</li>
+  <li>Causes: data collected from multiple sources, manual entry errors, format mismatch.</li>
+  <li>Examples:
+    <ul>
+      <li>Date of birth = 1990, age = 25 (inconsistent).</li>
+      <li>"NY" in one record, "New York" in another for same city.</li>
+      <li>Negative salary or impossible values.</li>
+    </ul>
+  </li>
+  <li><b>Solutions:</b>
+    <ul>
+      <li>Standardize formats (e.g., always "YYYY-MM-DD" for dates).</li>
+      <li>Apply integrity constraints (database level).</li>
+      <li>De-duplication.</li>
+      <li>Cross-checks against authoritative sources.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>3. Other quality issues</h3>
+<ul>
+  <li><b>Duplicates</b> — same record appearing multiple times.</li>
+  <li><b>Outliers</b> — extreme values that may or may not be errors.</li>
+  <li><b>Type errors</b> — wrong data type (string in numeric field).</li>
+  <li><b>Stale data</b> — outdated information.</li>
+</ul>
+
+<h3>4. Importance of data validation</h3>
+<ul>
+  <li>Ensures GIGO (Garbage In = Garbage Out) is avoided.</li>
+  <li>Improves model accuracy.</li>
+  <li>Saves time downstream (cheaper to fix early).</li>
+  <li>Builds trust in BI reports.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Data validation = check data quality before use.</li>
+    <li>Three main problems: Incompleteness (missing), Noise (random errors), Inconsistency (contradictions).</li>
+    <li>Incomplete data: impute, delete, predict.</li>
+    <li>Noisy data: binning, smoothing, outlier removal.</li>
+    <li>Inconsistent data: standardize formats, integrity constraints, de-duplicate.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q3">Q3 — Data Reduction</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, May'25, Nov'25 — usually 6–7 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, May'25, Nov'25, 7 marks)</b> Explain data reduction in detail with example.</p>
+    <p><b>(May'24, 6 marks)</b> What is data reduction? Explain Dimensionality Reduction and Data Compression.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+You have 1 TB of customer data. Analyzing all of it takes hours. Data Reduction = make the dataset SMALLER without losing important information, so analysis is fast. Like making a thumbnail of a photo — small, but still recognizable.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Data Reduction</b> is the process of reducing the SIZE of a dataset (in rows, columns, or both) while preserving the essential information needed for analysis.</p>
+
+<h3>2. Why we need data reduction</h3>
+<ul>
+  <li>Speeds up analysis and ML training.</li>
+  <li>Reduces storage cost.</li>
+  <li>Avoids curse of dimensionality.</li>
+  <li>Removes irrelevant or redundant features.</li>
+  <li>Easier to visualize.</li>
+</ul>
+
+<h3>3. Main techniques of data reduction</h3>
+
+<h4>(a) Sampling (reduce ROWS)</h4>
+<ul>
+  <li>Select a representative subset of records.</li>
+  <li>Types: simple random sampling, stratified sampling, cluster sampling, systematic sampling.</li>
+  <li>Example: select 10,000 customers from 1 million.</li>
+</ul>
+
+<h4>(b) Feature Selection (reduce COLUMNS)</h4>
+<ul>
+  <li>Keep only the most relevant attributes.</li>
+  <li>Methods:
+    <ul>
+      <li><b>Filter methods:</b> rank features by correlation / chi-square.</li>
+      <li><b>Wrapper methods:</b> use ML model to evaluate feature subsets.</li>
+      <li><b>Embedded methods:</b> built into model (Lasso, Decision Tree importance).</li>
+    </ul>
+  </li>
+  <li>Example: drop "phone number" if you only need demographic analysis.</li>
+</ul>
+
+<h4>(c) Principal Component Analysis (PCA) — Dimensionality Reduction</h4>
+<ul>
+  <li>Transforms data into fewer NEW features (principal components) that capture most variance.</li>
+  <li>Each PC is a linear combination of original features.</li>
+  <li>Used in image compression, gene-expression analysis.</li>
+  <li>Reduces 100s of features to a few key dimensions.</li>
+</ul>
+
+<h4>(d) Data Compression</h4>
+<ul>
+  <li>Encoded representation of data takes less space.</li>
+  <li>Lossless (ZIP, Huffman) or lossy (JPEG, MP3).</li>
+  <li>In BI: cube compression (sparse cubes stored compactly).</li>
+</ul>
+
+<h4>(e) Numerosity Reduction</h4>
+<ul>
+  <li>Replace data with a smaller representation.</li>
+  <li>Examples: parametric models (regression instead of raw data), histograms, clustering, sampling.</li>
+</ul>
+
+<h4>(f) Discretization</h4>
+<ul>
+  <li>Convert continuous to categorical (covered separately).</li>
+</ul>
+
+<h4>(g) Aggregation</h4>
+<ul>
+  <li>Replace detailed records with summary (e.g., monthly aggregates instead of daily).</li>
+</ul>
+
+<h3>4. Example</h3>
+<pre>
+Original: 1,000,000 records, 50 features per record
+After data reduction:
+  - Sampling: 100,000 records
+  - Feature selection: 20 features
+  - PCA: 10 principal components
+Final: 100,000 records × 10 features = 1,000,000 data points (instead of 50M)
+</pre>
+
+<h3>5. Advantages</h3>
+<ul>
+  <li>Faster computation.</li>
+  <li>Less storage.</li>
+  <li>Less overfitting.</li>
+  <li>Easier visualization.</li>
+</ul>
+
+<h3>6. Risks</h3>
+<ul>
+  <li>May lose important patterns (especially with aggressive reduction).</li>
+  <li>Choosing how much to reduce is non-trivial.</li>
+  <li>PCA may produce uninterpretable features.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Data reduction = make dataset smaller while preserving info.</li>
+    <li>Techniques: Sampling, Feature Selection, PCA, Compression, Numerosity Reduction, Aggregation, Discretization.</li>
+    <li>Sampling = reduce rows; Feature selection = reduce columns; PCA = transform to fewer dimensions.</li>
+    <li>Benefits: faster analysis, less storage, less overfitting.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q4">Q4 — Univariate, Bivariate, Multivariate Analysis</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, Nov'23, May'25 — usually 5–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'25, 5 marks)</b> Difference between univariate, Bivariate, Multivariate analysis.</p>
+    <p><b>(Nov'23, 5 marks)</b> Explain univariate, bivariate and multivariate analysis with example and applications.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Univariate Analysis</h3>
+<p>Analysis of ONE variable at a time. Describes the distribution and characteristics of a single attribute.</p>
+<ul>
+  <li><b>Measures:</b> mean, median, mode, std deviation, variance, range, quartiles.</li>
+  <li><b>Visualizations:</b> histogram, box plot, bar chart, pie chart.</li>
+  <li><b>Purpose:</b> understand the central tendency and spread of one variable.</li>
+  <li><b>Example:</b> "What is the average age of customers?"</li>
+</ul>
+
+<h3>2. Bivariate Analysis</h3>
+<p>Analysis of relationship between TWO variables.</p>
+<ul>
+  <li><b>Measures:</b> correlation coefficient, covariance, contingency tables.</li>
+  <li><b>Visualizations:</b> scatter plot, line chart, cross-tab.</li>
+  <li><b>Purpose:</b> understand how two variables relate to each other.</li>
+  <li><b>Types:</b>
+    <ul>
+      <li>Numerical-Numerical: correlation (Pearson, Spearman).</li>
+      <li>Categorical-Categorical: contingency table, chi-square test.</li>
+      <li>Numerical-Categorical: box plots grouped by category, ANOVA.</li>
+    </ul>
+  </li>
+  <li><b>Example:</b> "Does income relate to spending?"</li>
+</ul>
+
+<h3>3. Multivariate Analysis</h3>
+<p>Analysis of THREE OR MORE variables together.</p>
+<ul>
+  <li><b>Measures:</b> correlation matrix, regression, factor analysis, PCA.</li>
+  <li><b>Visualizations:</b> heatmap, pair plot, parallel coordinates, 3D scatter.</li>
+  <li><b>Purpose:</b> understand complex relationships involving many variables.</li>
+  <li><b>Examples:</b>
+    <ul>
+      <li>Multiple regression: predict house price from area, bedrooms, location.</li>
+      <li>Principal Component Analysis: reduce dimensions.</li>
+      <li>Cluster analysis: group customers by multiple attributes.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3>4. Comparison table</h3>
+<table>
+  <tr><th>Aspect</th><th>Univariate</th><th>Bivariate</th><th>Multivariate</th></tr>
+  <tr><td>Variables</td><td>1</td><td>2</td><td>3 or more</td></tr>
+  <tr><td>Goal</td><td>Describe one variable</td><td>Find relation between two</td><td>Find pattern among many</td></tr>
+  <tr><td>Measures</td><td>Mean, median, std dev</td><td>Correlation, covariance</td><td>Correlation matrix, regression, PCA</td></tr>
+  <tr><td>Visualization</td><td>Histogram, box plot</td><td>Scatter plot, crosstab</td><td>Heatmap, pair plot</td></tr>
+  <tr><td>Example question</td><td>What is the avg age?</td><td>Does age affect income?</td><td>What predicts customer churn?</td></tr>
+</table>
+
+<h3>5. Applications</h3>
+<ul>
+  <li><b>Univariate:</b> quality control, exam-score distributions.</li>
+  <li><b>Bivariate:</b> sales vs marketing spend, height vs weight.</li>
+  <li><b>Multivariate:</b> medical diagnostics, customer segmentation, recommendation systems.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Univariate: 1 variable; describe.</li>
+    <li>Bivariate: 2 variables; find relationship.</li>
+    <li>Multivariate: 3+ variables; complex patterns.</li>
+    <li>Tools: histogram (uni), scatter plot (bi), heatmap (multi).</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q5">Q5 — Data Discretization</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, May'25, Nov'25 — usually 5 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, May'25, Nov'25, 5 marks)</b> Write a short note on data discretization.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Data Discretization</b> is the process of converting CONTINUOUS attributes into DISCRETE intervals (bins or categories). The continuous attribute is replaced by interval labels or by representative values for each interval.</p>
+
+<h3>2. Why discretize?</h3>
+<ul>
+  <li>Some algorithms (e.g., Naive Bayes, association rule mining) require discrete inputs.</li>
+  <li>Reduces noise.</li>
+  <li>Makes data simpler and easier to interpret.</li>
+  <li>Reduces data size.</li>
+</ul>
+
+<h3>3. Example</h3>
+<pre>
+Original (continuous) AGE values: 5, 17, 23, 35, 47, 65, 80
+
+After discretization into bins:
+   "child" (0-12):    [5]
+   "teen" (13-19):    [17]
+   "young adult" (20-35): [23, 35]
+   "middle aged" (36-60): [47]
+   "senior" (60+):    [65, 80]
+</pre>
+
+<h3>4. Discretization techniques</h3>
+
+<h4>(a) Equal-Width Binning</h4>
+<ul>
+  <li>Divide the range into equal-sized intervals.</li>
+  <li>Example: ages 0–100 split into bins of width 20.</li>
+  <li>Simple but sensitive to outliers.</li>
+</ul>
+
+<h4>(b) Equal-Frequency (Equal-Depth) Binning</h4>
+<ul>
+  <li>Each bin contains roughly the same NUMBER of records.</li>
+  <li>Example: 100 customers → 5 bins of 20 customers each.</li>
+  <li>Better for skewed data.</li>
+</ul>
+
+<h4>(c) Clustering-Based Discretization</h4>
+<ul>
+  <li>Apply clustering (e.g., k-means) on the attribute; each cluster = one bin.</li>
+  <li>Bins reflect natural groupings.</li>
+</ul>
+
+<h4>(d) Decision Tree-Based Discretization</h4>
+<ul>
+  <li>Use entropy/information gain to find optimal split points.</li>
+  <li>Supervised — uses class labels.</li>
+</ul>
+
+<h4>(e) Chi-Square Based (ChiMerge)</h4>
+<ul>
+  <li>Statistical test to merge adjacent intervals.</li>
+  <li>Bottom-up — merges similar adjacent bins.</li>
+</ul>
+
+<h4>(f) Concept Hierarchy</h4>
+<ul>
+  <li>Replace numeric values with high-level concepts.</li>
+  <li>Example: age → "youth", "adult", "senior".</li>
+</ul>
+
+<h3>5. Advantages and limitations</h3>
+<ul>
+  <li>+ Easier interpretation.</li>
+  <li>+ Robust to noise.</li>
+  <li>+ Required by some algorithms.</li>
+  <li>− Loss of information (granularity).</li>
+  <li>− Choice of bin width / count affects results.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Discretization = continuous → discrete (bins / categories).</li>
+    <li>Methods: equal-width, equal-frequency, clustering, decision tree, chi-square, concept hierarchy.</li>
+    <li>Used for Naive Bayes, association rules, easier interpretation.</li>
+    <li>Trade-off: simpler but lose granular info.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q6">Q6 — Contingency Table &amp; Marginal Distribution</h2>
+<span class="freq-tag">Asked 2 times</span>(Nov'23, Nov'25 — usually 7 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23 &amp; Nov'25, 7 marks)</b> What is a Contingency Table? What is Marginal Distribution? Justify with suitable example.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Contingency Table</h3>
+<p>A <b>Contingency Table</b> (also called cross-tab) is a TABLE that displays the FREQUENCY DISTRIBUTION of two (or more) categorical variables together. It shows the joint distribution of values.</p>
+
+<h3>2. Example</h3>
+<p>Survey of 200 students about smartphone preference:</p>
+<pre>
+                  Apple    Samsung   OnePlus   Total
+   Male            30       40        20       90
+   Female          40       50        20       110
+   ─────────────────────────────────────────────
+   Total           70       90        40       200
+</pre>
+
+<h3>3. Marginal Distribution</h3>
+<p>The <b>Marginal Distribution</b> of one variable is found by SUMMING the joint frequencies over the other variable. It shows the distribution of one variable IGNORING the others.</p>
+
+<h3>4. Marginal distributions from the example above</h3>
+<ul>
+  <li><b>Marginal distribution of Gender:</b> Male = 90, Female = 110 (sums of rows).</li>
+  <li><b>Marginal distribution of Brand:</b> Apple = 70, Samsung = 90, OnePlus = 40 (sums of columns).</li>
+</ul>
+
+<p>The "Total" row and column in a contingency table show the marginal distributions.</p>
+
+<h3>5. Conditional Distribution (related concept)</h3>
+<ul>
+  <li>The distribution of one variable GIVEN a specific value of the other.</li>
+  <li>Example: among MALES, the distribution of brand is Apple=30/90, Samsung=40/90, OnePlus=20/90.</li>
+</ul>
+
+<h3>6. Uses of Contingency Tables</h3>
+<ul>
+  <li>Examining relationships between categorical variables.</li>
+  <li>Chi-square test of independence.</li>
+  <li>Market segmentation.</li>
+  <li>Health and medical research.</li>
+  <li>Survey analysis.</li>
+  <li>A/B testing comparisons.</li>
+</ul>
+
+<h3>7. Chi-square test (briefly)</h3>
+<ul>
+  <li>Used to test whether two categorical variables are independent.</li>
+  <li>Compares observed frequencies with expected frequencies under independence assumption.</li>
+  <li>χ² = Σ (O − E)² / E.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Contingency table = joint frequency table for 2+ categorical variables.</li>
+    <li>Marginal distribution = sum of joint frequencies for one variable.</li>
+    <li>Total row/column shows marginal distributions.</li>
+    <li>Conditional distribution = distribution given a fixed value of another variable.</li>
+    <li>Used with chi-square test to check independence.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q7">Q7 — Sampling, Feature Selection, PCA</h2>
+<span class="freq-tag">Asked 2 times</span>(Nov'23, Nov'25 — usually 5 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(Nov'23 &amp; Nov'25, 5 marks)</b> Explain following Data reduction techniques: Sampling, Feature selection, Principal component analysis.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Sampling</h3>
+<p><b>Sampling</b> = selecting a smaller subset (sample) of records from the full dataset (population) for analysis.</p>
+<ul>
+  <li><b>Types:</b>
+    <ul>
+      <li><b>Simple Random Sampling:</b> every record has equal chance.</li>
+      <li><b>Stratified Sampling:</b> sample from each subgroup (stratum) proportionally.</li>
+      <li><b>Cluster Sampling:</b> divide population into clusters, sample whole clusters.</li>
+      <li><b>Systematic Sampling:</b> every k-th record.</li>
+    </ul>
+  </li>
+  <li><b>Pros:</b> faster, cheaper analysis.</li>
+  <li><b>Cons:</b> may miss rare patterns; sampling error.</li>
+</ul>
+
+<h3>2. Feature Selection</h3>
+<p><b>Feature Selection</b> = selecting the MOST RELEVANT attributes (columns) and dropping the rest.</p>
+<ul>
+  <li><b>Methods:</b>
+    <ul>
+      <li><b>Filter:</b> rank features by statistical measures (correlation, chi-square, information gain).</li>
+      <li><b>Wrapper:</b> evaluate feature subsets using a ML model (forward selection, backward elimination).</li>
+      <li><b>Embedded:</b> feature selection built into the learning algorithm (Lasso, decision tree importance).</li>
+    </ul>
+  </li>
+  <li><b>Pros:</b> simpler models, less overfitting, faster training.</li>
+  <li><b>Cons:</b> may miss feature interactions.</li>
+</ul>
+
+<h3>3. Principal Component Analysis (PCA)</h3>
+<p><b>PCA</b> = a dimensionality-reduction technique that transforms data into a smaller set of NEW features (principal components) that capture most of the variance.</p>
+
+<h4>How PCA works</h4>
+<ol>
+  <li>Standardize data (mean=0, std=1).</li>
+  <li>Compute the covariance matrix.</li>
+  <li>Find eigenvectors and eigenvalues of the covariance matrix.</li>
+  <li>Sort eigenvectors by eigenvalue (largest first).</li>
+  <li>Pick top-k eigenvectors → these are the principal components.</li>
+  <li>Project data onto these k components → reduced data.</li>
+</ol>
+
+<h4>Properties of PCA</h4>
+<ul>
+  <li>Each PC is a linear combination of original features.</li>
+  <li>PCs are uncorrelated (orthogonal).</li>
+  <li>First PC captures the most variance; second PC second most; etc.</li>
+  <li>Common rule: keep enough PCs to capture 95% of variance.</li>
+</ul>
+
+<h4>Applications</h4>
+<ul>
+  <li>Image compression (face recognition, eigenfaces).</li>
+  <li>Gene expression analysis.</li>
+  <li>Customer segmentation.</li>
+  <li>Visualization of high-dimensional data (project to 2D / 3D).</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Sampling = reduce rows (records); types: simple, stratified, cluster, systematic.</li>
+    <li>Feature Selection = reduce columns (attributes); methods: filter, wrapper, embedded.</li>
+    <li>PCA = transform to fewer NEW orthogonal features capturing most variance.</li>
+    <li>All three are data reduction techniques used in BI and ML.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q8">Q8 — Data Exploration</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, May'25 — usually 7 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'25, 7 marks)</b> Explain data exploration in detail with example.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Definition</h3>
+<p><b>Data Exploration</b> (also called Exploratory Data Analysis, EDA) is the initial step of analyzing a dataset to understand its main characteristics — distributions, patterns, anomalies — usually using visual methods and summary statistics.</p>
+
+<h3>2. Goals of Data Exploration</h3>
+<ul>
+  <li>Understand the structure and content of the dataset.</li>
+  <li>Identify outliers, missing values, and unusual patterns.</li>
+  <li>Discover relationships between variables.</li>
+  <li>Generate hypotheses for further analysis.</li>
+  <li>Choose appropriate models or transformations.</li>
+</ul>
+
+<h3>3. Steps of Data Exploration</h3>
+
+<h4>(1) Univariate Analysis</h4>
+<ul>
+  <li>For each variable: compute summary statistics (mean, median, mode, range).</li>
+  <li>Visualize: histogram, box plot.</li>
+  <li>Identify outliers and skewness.</li>
+</ul>
+
+<h4>(2) Bivariate Analysis</h4>
+<ul>
+  <li>For each pair of variables: compute correlation.</li>
+  <li>Visualize: scatter plots, cross-tabs.</li>
+  <li>Identify linear and non-linear relationships.</li>
+</ul>
+
+<h4>(3) Multivariate Analysis</h4>
+<ul>
+  <li>Look at multiple variables together.</li>
+  <li>Visualize: heatmaps, pair plots, parallel coordinates.</li>
+  <li>Identify clusters and groups.</li>
+</ul>
+
+<h4>(4) Outlier Detection</h4>
+<ul>
+  <li>Use box plots, IQR rule, Z-score.</li>
+  <li>Decide whether to remove, transform, or keep.</li>
+</ul>
+
+<h4>(5) Missing Value Analysis</h4>
+<ul>
+  <li>How many missing? Random or systematic?</li>
+  <li>Decide imputation strategy.</li>
+</ul>
+
+<h3>4. Tools for Data Exploration</h3>
+<ul>
+  <li>Python: Pandas (describe(), info()), Matplotlib, Seaborn, Plotly.</li>
+  <li>R: ggplot2, summary().</li>
+  <li>BI tools: Tableau, Power BI, Excel.</li>
+  <li>Statistical: SPSS, SAS.</li>
+</ul>
+
+<h3>5. Example workflow</h3>
+<pre>
+Dataset: 1000 customers with Age, Income, Spending Score
+1. df.describe() → mean Age=35, Income=₹50,000, Spending=50
+2. Histogram of Age → bell shape; Income → right-skewed.
+3. Box plot → 5 outliers in Income (very high earners).
+4. Scatter plot of Income vs Spending → no clear correlation.
+5. Heatmap of correlations → Spending correlated with Age (r=0.6).
+6. K-means clustering → 3 customer groups.
+</pre>
+
+<h3>6. Measures used in Data Exploration</h3>
+<ul>
+  <li><b>Central tendency:</b> mean, median, mode.</li>
+  <li><b>Dispersion:</b> variance, std deviation, IQR, range.</li>
+  <li><b>Shape:</b> skewness, kurtosis.</li>
+  <li><b>Relationship:</b> correlation coefficient, covariance.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Data Exploration (EDA) = initial analysis to understand data structure.</li>
+    <li>Steps: univariate → bivariate → multivariate → outlier &amp; missing analysis.</li>
+    <li>Visualizations: histogram, box plot, scatter plot, heatmap.</li>
+    <li>Tools: Pandas, Matplotlib, Seaborn, Tableau, Power BI.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="q9">Q9 — Other Questions (Dirty Data, Binning, Mean/Median/Mode)</h2>
+
+<div class="question-block">
+  <div class="qhead">How these appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 6 marks)</b> Define dirty data. Reasons of dirty data.</p>
+    <p><b>(May'24, 6 marks)</b> Explain working of binning with example.</p>
+    <p><b>(May'24, 6 marks)</b> Bivariate analysis types with examples.</p>
+    <p><b>(May'24, 6 marks)</b> Need for data pre-processing and any 2 techniques used.</p>
+    <p><b>(Nov'23, 7 marks)</b> Compute Mean, Median and Mode for grouped data.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer (Quick reference)</div>
+
+<h3>1. Dirty Data</h3>
+<p><b>Dirty Data</b> = data that has quality problems: missing values, duplicates, errors, outliers, inconsistencies.</p>
+<h4>Reasons</h4>
+<ul>
+  <li>Manual data entry errors.</li>
+  <li>Sensor / device malfunction.</li>
+  <li>Data collected from multiple sources with different formats.</li>
+  <li>Outdated data not updated.</li>
+  <li>Software bugs in data collection.</li>
+  <li>Incorrect data integration.</li>
+  <li>User skipping mandatory fields.</li>
+</ul>
+
+<h3>2. Binning (Discretization technique)</h3>
+<p>Binning = sort values, group them into bins, replace with bin summary value.</p>
+<h4>Types</h4>
+<ul>
+  <li><b>Bin by mean:</b> replace each value with bin mean.</li>
+  <li><b>Bin by median:</b> replace with median.</li>
+  <li><b>Bin by boundaries:</b> replace with closest bin boundary.</li>
+</ul>
+<h4>Example (equal-frequency, 3 bins)</h4>
+<pre>
+Sorted data: 4, 8, 9, 15, 21, 21, 24, 25, 26, 28, 29, 34
+Partition into 3 bins of 4 elements each:
+   Bin 1: 4, 8, 9, 15      → mean = 9
+   Bin 2: 21, 21, 24, 25   → mean = 22.75
+   Bin 3: 26, 28, 29, 34   → mean = 29.25
+
+Smoothing by bin mean:
+   Replace 4, 8, 9, 15 with 9
+   Replace 21, 21, 24, 25 with 22.75
+   ...
+</pre>
+
+<h3>3. Bivariate Analysis Types</h3>
+<table>
+  <tr><th>Variable types</th><th>Analysis</th><th>Example</th></tr>
+  <tr><td>Numerical × Numerical</td><td>Correlation, scatter plot, regression</td><td>Height vs Weight</td></tr>
+  <tr><td>Categorical × Categorical</td><td>Contingency table, chi-square</td><td>Gender vs Brand preference</td></tr>
+  <tr><td>Numerical × Categorical</td><td>Box plot per category, ANOVA</td><td>Income vs Education level</td></tr>
+</table>
+
+<h3>4. Need for Data Pre-processing + 2 techniques</h3>
+<p><b>Need:</b></p>
+<ul>
+  <li>Raw data is incomplete, noisy, inconsistent.</li>
+  <li>ML algorithms expect clean, numerical, scaled data.</li>
+  <li>Better data → better predictions.</li>
+</ul>
+<p><b>Two techniques:</b></p>
+<ol>
+  <li><b>Data Cleaning</b> — handle missing values, remove duplicates, smooth noise.</li>
+  <li><b>Data Transformation</b> — normalize, standardize, encode categorical variables.</li>
+</ol>
+
+<h3>5. Mean, Median, Mode (grouped data formulas)</h3>
+<ul>
+  <li><b>Mean</b> = Σ(f × midpoint) / N.</li>
+  <li><b>Median</b> = L + ((N/2 − F) / f) × h
+    <ul>
+      <li>L = lower boundary of median class</li>
+      <li>F = cumulative frequency before median class</li>
+      <li>f = frequency of median class</li>
+      <li>h = class width</li>
+    </ul>
+  </li>
+  <li><b>Mode</b> = L + ((f₁ − f₀) / (2f₁ − f₀ − f₂)) × h
+    <ul>
+      <li>L = lower boundary of modal class</li>
+      <li>f₁ = frequency of modal class</li>
+      <li>f₀ = frequency of previous class</li>
+      <li>f₂ = frequency of next class</li>
+    </ul>
+  </li>
+</ul>
+
+<p>Apply formulas to the given grouped data in the exam question.</p>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Dirty data = errors, missing, duplicates; causes are manual entry, sensors, multiple sources.</li>
+    <li>Binning = group sorted values into bins, replace with bin mean/median/boundary.</li>
+    <li>Bivariate types: Num-Num (correlation), Cat-Cat (contingency), Num-Cat (box plot, ANOVA).</li>
+    <li>Mean/Median/Mode formulas for grouped data must be memorized.</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across 5 past papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>Nov'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>Data Transformation</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>5</td></tr>
+  <tr><td>Data Validation / Quality</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Data Reduction</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Univariate/Bivariate/Multivariate</td><td>✓</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>3</td></tr>
+  <tr><td>Data Discretization</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>✓</td><td>3</td></tr>
+  <tr><td>Contingency Table / Marginal</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>Sampling / Feature Selection / PCA</td><td>—</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>Data Exploration</td><td>✓</td><td>—</td><td>—</td><td>✓</td><td>—</td><td>2</td></tr>
+</table>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>Data preparation = clean (validate), transform (normalize/encode), reduce (sample/PCA), discretize (bin), and explore (uni/bi/multi). Garbage in = garbage out, so this step is crucial.</b>
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  BI Chapter 4 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>

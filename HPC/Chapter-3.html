@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HPC — Chapter 3: Parallel Communication</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Georgia", "Times New Roman", serif;
+    font-size: 16px;
+    line-height: 1.65;
+    color: #1a1a1a;
+    background: #ffffff;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: #1a3a6d;
+    color: #e8eef7;
+    overflow-y: auto;
+    padding: 18px 14px;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 14.5px;
+  }
+  .sidebar .brand {
+    font-weight: bold; font-size: 17px;
+    color: white;
+    padding-bottom: 8px; margin-bottom: 12px;
+    border-bottom: 1px solid #3a5a8d;
+  }
+  .sidebar details { margin: 4px 0; }
+  .sidebar summary {
+    cursor: pointer;
+    padding: 7px 10px;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 4px;
+    list-style: none;
+  }
+  .sidebar summary::-webkit-details-marker { display: none; }
+  .sidebar summary:before {
+    content: "▸ "; color: #88a8d8;
+    display: inline-block; transition: transform 0.2s;
+  }
+  .sidebar details[open] > summary:before { content: "▾ "; }
+  .sidebar summary:hover { background: rgba(255,255,255,0.08); }
+  .sidebar a {
+    color: #c0d0e8; text-decoration: none;
+    padding: 5px 14px 5px 28px;
+    display: block; font-size: 13.5px;
+  }
+  .sidebar a:hover { background: rgba(255,255,255,0.1); color: white; }
+  .sidebar a.current { background: #ffcc44; color: #1a3a6d; font-weight: bold; }
+  .sidebar .small { font-size: 12px; color: #88a8d8; font-style: italic; }
+
+  /* ---------- Main content ---------- */
+  .content {
+    margin-left: 260px;
+    padding: 32px 40px;
+    max-width: 920px;
+  }
+
+  h1 {
+    font-size: 25px;
+    color: #1a3a6d;
+    border-bottom: 2px solid #1a3a6d;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+  }
+  h2 {
+    font-size: 20px;
+    color: #1a3a6d;
+    margin-top: 36px;
+    border-bottom: 1px solid #aaa;
+    padding-bottom: 4px;
+  }
+  h3 {
+    font-size: 17px;
+    color: #1a1a1a;
+    margin-top: 18px;
+    margin-bottom: 4px;
+    font-weight: bold;
+  }
+  h4 {
+    font-size: 15.5px;
+    color: #333;
+    margin-top: 14px;
+    margin-bottom: 4px;
+    font-weight: bold;
+    font-style: italic;
+  }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0; padding-left: 24px; }
+  li { margin: 3px 0; }
+
+  .meta {
+    color: #555; font-size: 13.5px;
+    font-style: italic;
+    margin-bottom: 20px;
+  }
+
+  .question-block {
+    border-left: 4px solid #1a3a6d;
+    background: #eef2f8;
+    padding: 10px 16px;
+    margin: 18px 0 10px 0;
+  }
+  .question-block .qhead {
+    font-weight: bold;
+    color: #1a3a6d;
+    font-size: 14.5px;
+    margin-bottom: 4px;
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+  .question-block .qbody p { margin: 4px 0; font-size: 15px; }
+
+  .freq-tag {
+    display: inline-block;
+    background: #1a3a6d; color: white;
+    padding: 2px 10px; font-size: 12.5px;
+    border-radius: 3px; margin-right: 6px;
+    font-family: "Segoe UI", Arial, sans-serif;
+  }
+
+  .answer-label {
+    font-size: 17px; font-weight: bold;
+    color: #1a3a6d;
+    margin-top: 14px; margin-bottom: 4px;
+    border-bottom: 1px dashed #999;
+    padding-bottom: 2px;
+  }
+
+  pre {
+    background: #f0f0f0;
+    color: #1a1a1a;
+    padding: 11px 14px;
+    border-left: 3px solid #1a3a6d;
+    overflow-x: auto;
+    font-size: 13.5px;
+    font-family: "Consolas", "Monaco", monospace;
+    line-height: 1.5;
+    margin: 8px 0;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%; margin: 10px 0;
+    background: white;
+  }
+  th, td {
+    border: 1px solid #888;
+    padding: 6px 9px;
+    text-align: left;
+    font-size: 14px;
+  }
+  th { background: #e6ecf4; color: #1a3a6d; font-weight: bold; }
+
+  .analogy {
+    background: #fcf6dd;
+    border-left: 3px solid #b8902a;
+    padding: 8px 14px;
+    margin: 9px 0;
+    color: #5a4400;
+  }
+  .analogy::before {
+    content: "Think of it like this — ";
+    font-weight: bold;
+  }
+
+  .simple {
+    background: #e6f4e6;
+    border-left: 3px solid #2a8a3a;
+    padding: 7px 14px;
+    margin: 8px 0;
+  }
+  .simple::before {
+    content: "In simple words — ";
+    font-weight: bold; color: #1a5a25;
+  }
+
+  .formula-line {
+    background: #eef2f8;
+    border-left: 3px solid #1a3a6d;
+    padding: 6px 14px;
+    margin: 8px 0;
+    font-family: "Consolas", monospace;
+    font-size: 14.5px;
+  }
+  .formula-line::before {
+    content: "Formula: ";
+    font-weight: bold; font-family: "Segoe UI", sans-serif;
+    color: #1a3a6d;
+  }
+
+  .key-points {
+    background: #fafafa;
+    border: 1px solid #aaa;
+    padding: 10px 16px;
+    margin: 10px 0;
+  }
+  .key-points h4 {
+    margin-top: 0; color: #1a3a6d;
+    font-style: normal;
+  }
+
+  hr {
+    border: none; border-top: 1px solid #ccc;
+    margin: 24px 0;
+  }
+  code {
+    background: #f0f0f0;
+    padding: 1px 5px;
+    font-family: "Consolas", monospace;
+    font-size: 14px;
+    color: #5a1a8a;
+  }
+  .toc {
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 10px 18px;
+    margin: 14px 0 24px 0;
+  }
+  .toc h3 { margin-top: 0; }
+  .toc ol { padding-left: 22px; font-size: 14.5px; }
+  .toc a { color: #1a3a6d; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  @media (max-width: 800px) {
+    .sidebar { position: relative; width: 100%; height: auto; }
+    .content { margin-left: 0; padding: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== SIDEBAR ===================== -->
+<nav class="sidebar">
+  <div class="brand">📘 BE Endsem Notes<br><span class="small">SPPU Computer Engg 2026</span></div>
+
+  <details open>
+    <summary>HPC <span class="small">(02 Jun)</span></summary>
+    <a href="Chapter-3.html" class="current">Ch 3 — Parallel Communication</a>
+    <a href="Chapter-4.html">Ch 4 — Analytical Modeling</a>
+    <a href="Chapter-5.html">Ch 5 — CUDA Architecture</a>
+    <a href="Chapter-6.html">Ch 6 — HPC Applications</a>
+  </details>
+
+  <details>
+    <summary>DL <span class="small">(04 Jun)</span></summary>
+    <a href="../DL/Chapter-3.html">Ch 3 — CNN Basics</a>
+    <a href="../DL/Chapter-4.html">Ch 4 — CNN Architectures</a>
+    <a href="../DL/Chapter-5.html">Ch 5 — RNN &amp; Sequence</a>
+    <a href="../DL/Chapter-6.html">Ch 6 — Auto-Encoders &amp; GAN</a>
+  </details>
+
+  <details>
+    <summary>NLP <span class="small">(09 Jun)</span></summary>
+    <a href="../NLP/Chapter-3.html">Ch 3 — Syntax Analysis</a>
+    <a href="../NLP/Chapter-4.html">Ch 4 — Semantic Analysis</a>
+    <a href="../NLP/Chapter-5.html">Ch 5 — Discourse / Pragmatics</a>
+    <a href="../NLP/Chapter-6.html">Ch 6 — NLP Applications</a>
+  </details>
+
+  <details>
+    <summary>BI <span class="small">(11 Jun)</span></summary>
+    <a href="../BI/Chapter-3.html">Ch 3 — Data Warehousing</a>
+    <a href="../BI/Chapter-4.html">Ch 4 — Data Mining</a>
+    <a href="../BI/Chapter-5.html">Ch 5 — BI Tools &amp; OLAP</a>
+    <a href="../BI/Chapter-6.html">Ch 6 — BI Applications</a>
+  </details>
+
+  <hr style="border-top: 1px solid #3a5a8d; margin: 14px 0;">
+  <a href="../index.html" style="color: #ffcc44;">← Back to Home</a>
+</nav>
+
+<!-- ===================== MAIN CONTENT ===================== -->
+<main class="content">
+
+<h1>HPC — Chapter 3: Parallel Communication (Unit III)</h1>
+<p class="meta">
+  Subject Code: 410250 &nbsp;|&nbsp; End-Sem Exam: 02 June 2026, Tuesday, 2:00 PM – 4:30 PM (70 marks)<br>
+  This chapter contributes about <b>17–18 marks</b> in your paper (Q1 or Q2).
+</p>
+
+<div class="toc">
+  <h3>What's inside this chapter</h3>
+  <ol>
+    <li><a href="#prelim">Preliminary concepts — words you must know first</a></li>
+    <li><a href="#q1">Q1 — One-to-All Broadcast and All-to-One Reduction (asked 4 times)</a></li>
+    <li><a href="#q2">Q2 — All-to-All Broadcast and Reduction (asked 4 times)</a></li>
+    <li><a href="#q3">Q3 — Scatter and Gather operation (asked 4 times)</a></li>
+    <li><a href="#q4">Q4 — Circular Shift operation (asked 4 times)</a></li>
+    <li><a href="#q5">Q5 — Prefix-Sum (Scan) operation (asked 3 times)</a></li>
+    <li><a href="#q6">Q6 — Blocking vs Non-Blocking Communication in MPI (asked 2 times)</a></li>
+    <li><a href="#q7">Q7 — Improving Speed of Communication Operations (asked 2 times)</a></li>
+    <li><a href="#q8">Q8 — All-Reduce and combined Broadcast/Reduce (asked 1 time)</a></li>
+    <li><a href="#revision">Last-day revision summary</a></li>
+  </ol>
+</div>
+
+<!-- ============== Preliminary ============== -->
+<h2 id="prelim">Preliminary Concepts (Must Know Before Anything)</h2>
+
+<p>Before we start the actual questions, let's understand 5 small ideas that will appear in EVERY answer. If you skip these, the formulas later will not make sense.</p>
+
+<h3>1. What is a "node" and what is a "topology"?</h3>
+<div class="simple">A "node" is just one computer (or processor) in our parallel system. A "topology" is the SHAPE in which we connect all these computers together using wires.</div>
+
+<p>Think of "p" as the total number of nodes (= number of processors working together). The four shapes you must remember:</p>
+
+<table>
+  <tr><th>Topology (shape)</th><th>How it looks</th><th>Each node connects to</th><th>"Diameter" (farthest distance)</th></tr>
+  <tr><td><b>Linear array</b></td><td>Computers in a straight line</td><td>1 or 2 neighbours</td><td>p − 1</td></tr>
+  <tr><td><b>Ring</b></td><td>Computers in a circle (ends joined)</td><td>2 neighbours</td><td>p / 2</td></tr>
+  <tr><td><b>2-D Mesh</b></td><td>Grid (e.g. 3×3 square)</td><td>2 to 4 neighbours</td><td>2(√p − 1)</td></tr>
+  <tr><td><b>Hypercube</b></td><td>3D cube (8 nodes = corners of cube)</td><td>log p neighbours</td><td>log p</td></tr>
+</table>
+
+<h3>2. Hypercube — the most important topology in this chapter</h3>
+<ul>
+  <li>A <b>d-dimensional hypercube</b> has p = 2<sup>d</sup> nodes. So d = log<sub>2</sub> p.</li>
+  <li>Each node has a label which is a <b>d-bit binary number</b> (e.g. for 8 nodes, labels are 000, 001, 010, ..., 111).</li>
+  <li>Two nodes are <b>directly connected</b> if their labels differ in exactly 1 bit. For example, 010 and 011 differ in only the last bit, so they are connected.</li>
+  <li>Each node has exactly <b>d = log p neighbours</b>.</li>
+  <li>Why it is fast: because every node has many neighbours, data can spread very quickly (in only log p steps, not p steps).</li>
+</ul>
+
+<pre>
+8-node Hypercube (3-cube):
+
+       110────────111
+       ╱│         ╱│
+      ╱ │        ╱ │
+    010────────011 │
+     │ 100──────┼─101
+     │ ╱        │ ╱
+     │╱         │╱
+    000────────001
+</pre>
+
+<h3>3. Two cost numbers — t<sub>s</sub> and t<sub>w</sub></h3>
+<div class="simple">Every time one computer sends a message to another, the time taken has TWO parts: a fixed "setup time" plus an amount that depends on the size of the message.</div>
+
+<ul>
+  <li><b>t<sub>s</sub> (startup time)</b> — fixed cost to prepare and start sending a message (handshake, header, etc.). Like dialling a phone number before you can start talking.</li>
+  <li><b>t<sub>w</sub> (per-word transfer time)</b> — time taken to send 1 word of data on the wire. Like how fast you can talk once the call connects.</li>
+  <li>If a message has <b>m words</b>, the total time on one link is:</li>
+</ul>
+
+<div class="formula-line">Cost of one message = t<sub>s</sub> + m · t<sub>w</sub></div>
+
+<h3>4. What is "log p"? (a small math reminder)</h3>
+<p>"log p" means log base 2 of p. The trick is that log p is a very small number compared to p:</p>
+<ul>
+  <li>p = 2 → log p = 1</li>
+  <li>p = 8 → log p = 3</li>
+  <li>p = 64 → log p = 6</li>
+  <li>p = 1024 → log p = 10</li>
+</ul>
+<p>So any algorithm whose time is "log p" is much faster than one whose time is "p". <b>Hypercube algorithms are mostly log p — that is why we love hypercubes.</b></p>
+
+<h3>5. What is a "collective operation"?</h3>
+<div class="simple">A "collective operation" is a special function call that ALL processors must call at the same time. It performs a coordinated communication pattern (like broadcast, scatter, gather, reduce).</div>
+
+<p>The library that gives us these functions is called <b>MPI (Message Passing Interface)</b>. You will see MPI function names like <code>MPI_Bcast</code>, <code>MPI_Scatter</code>, <code>MPI_Reduce</code> throughout this chapter.</p>
+
+<hr>
+
+<!-- ===================== Q1 ===================== -->
+<h2 id="q1">Q1 — One-to-All Broadcast and All-to-One Reduction</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, May'24, May'25, Nov'25 — usually 6–7 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 7 marks)</b> Explain with diagram One-to-all broadcast on an eight-node ring with recursive doubling technique. Node 0 is the source of the broadcast. Also explain all-to-one reduction with node 0 as destination.</p>
+    <p><b>(May'24 &amp; Nov'25, 7 marks)</b> What is one-to-all broadcast? Explain it with the help of algorithm for one-to-all broadcast on hypercube. Comment on cost calculation.</p>
+    <p><b>(May'25, 6 marks)</b> Explain Broadcast and Reduce operation with diagram. Explain All-to-One Broadcast and Reduction on a ring.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A school teacher (the source/root computer) has 1 printed notice. There are 30 students (the other computers) who all need a copy. Slow way: teacher hand-delivers to each student one by one (30 trips). Smart way: teacher gives copy to 1 student → now 2 of them give copies to 2 new students → now 4 give to 4 new → and so on. In just ⌈log<sub>2</sub> 30⌉ = 5 rounds, everyone has the notice. This "doubling every round" idea is called <b>recursive doubling</b>.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>One-to-All Broadcast</b> is a collective communication operation in which a single source computer (called the <b>root</b>) sends the same identical message to all other p − 1 computers in the parallel system.</p>
+
+<div class="simple">ONE sender → ALL receivers, and everyone gets the SAME message.</div>
+
+<h3>2. Key characteristics</h3>
+<ul>
+  <li>It is a <b>one-to-many</b> pattern.</li>
+  <li>The source computer is called the <b>root</b>.</li>
+  <li>All other p − 1 computers receive an identical copy of the same m-word message.</li>
+  <li>Naïve method (root sends to each non-root one by one) takes p − 1 steps — slow.</li>
+  <li>Smart method using <b>recursive doubling</b> takes only <b>log p steps</b>.</li>
+  <li>The reverse / dual operation is <b>All-to-One Reduction</b>.</li>
+  <li>In MPI, this is implemented by the function <code>MPI_Bcast</code>.</li>
+  <li>It is a fundamental building block used by many higher operations (all-to-all broadcast, all-reduce, prefix-sum).</li>
+</ul>
+
+<h3>3. The Recursive Doubling Idea (most important to write)</h3>
+<p>In every step, every computer that <b>already has</b> the message sends a copy to one computer that <b>doesn't have it yet</b>. So:</p>
+<ul>
+  <li>After step 1 — 2 computers have it</li>
+  <li>After step 2 — 4 computers have it</li>
+  <li>After step 3 — 8 computers have it</li>
+  <li>After step k — 2<sup>k</sup> computers have it</li>
+</ul>
+<p>So for p nodes, total steps = <b>⌈log<sub>2</sub> p⌉</b>.</p>
+
+<h3>4. Algorithm — One-to-All Broadcast on a Hypercube</h3>
+<pre>
+Algorithm ONE_TO_ALL_BCAST_HYPERCUBE (d, my_id, X):
+   // d  = number of dimensions (= log p)
+   // my_id = the label of this node (binary)
+   // X = the message
+   mask = 2^d − 1
+   for i = d − 1 down to 0:
+       mask = mask XOR 2^i        // clear bit i in mask
+       if (my_id AND mask) == 0:  // node is active in this step
+           if (my_id AND 2^i) == 0:
+               partner = my_id XOR 2^i
+               send X to partner
+           else:
+               partner = my_id XOR 2^i
+               receive X from partner
+   end for
+</pre>
+
+<h3>5. Step-by-step on an 8-node Ring (source = node 0)</h3>
+<pre>
+●—○—○—○—○—○—○—○         Start: only Node 0 has data (● = has, ○ = empty)
+0  1  2  3  4  5  6  7
+
+Step 1: Node 0 → Node 4 (distance = p/2 = 4)
+●—○—○—○—●—○—○—○         Now {0, 4} have data
+0  1  2  3  4  5  6  7
+
+Step 2: Node 0 → Node 2, AND Node 4 → Node 6 (both in parallel)
+●—○—●—○—●—○—●—○         Now {0, 2, 4, 6} have data
+0  1  2  3  4  5  6  7
+
+Step 3: Each holder sends to its right neighbour: 0→1, 2→3, 4→5, 6→7
+●—●—●—●—●—●—●—●         ALL 8 nodes have data — done in 3 steps ✓
+0  1  2  3  4  5  6  7
+</pre>
+
+<h3>6. Step-by-step on an 8-node Hypercube (3-cube, source = node 000)</h3>
+<ul>
+  <li><b>Step 1 (dim 2):</b> 000 → 100. Holders: {000, 100}.</li>
+  <li><b>Step 2 (dim 1):</b> 000 → 010 and 100 → 110. Holders: {000, 010, 100, 110}.</li>
+  <li><b>Step 3 (dim 0):</b> 000 → 001, 010 → 011, 100 → 101, 110 → 111. <b>All 8 nodes have data.</b></li>
+</ul>
+
+<h3>7. Cost calculation (comment on it)</h3>
+<p>Each step transmits one m-word message across one link. So each step costs (t<sub>s</sub> + m · t<sub>w</sub>). Total steps = log p.</p>
+<div class="formula-line">T<sub>one-to-all</sub> = (t<sub>s</sub> + m · t<sub>w</sub>) · log p</div>
+
+<p>Numerical idea:</p>
+<ul>
+  <li>For p = 8 → 3 steps</li>
+  <li>For p = 64 → 6 steps</li>
+  <li>For p = 1024 → 10 steps</li>
+</ul>
+<p>Even for thousand-node systems, broadcast finishes in just 10 communication steps. This is why hypercube/recursive-doubling is so powerful.</p>
+
+<h3>8. Applications of One-to-All Broadcast (write 3–5)</h3>
+<ul>
+  <li>Master computer broadcasting input data (matrix, vector) to all worker computers in parallel computations.</li>
+  <li>Broadcasting the pivot element in parallel quicksort.</li>
+  <li>Distributing common configuration / shared constants to all nodes in a cluster.</li>
+  <li>Broadcasting the search target in parallel search algorithms.</li>
+  <li>Sending model parameters to all GPU workers in distributed deep-learning training.</li>
+</ul>
+
+<hr style="border-top: 1px dashed #aaa; margin: 18px 0;">
+
+<h3>9. All-to-One Reduction (Part B of the question)</h3>
+
+<div class="analogy">
+Reverse situation. Every student has written one number on paper. The teacher wants the TOTAL. Students pair up — each pair adds the two numbers and passes ONE paper forward. Pairs of pairs then add again. After ⌈log<sub>2</sub> 30⌉ = 5 rounds, the teacher receives one paper holding the final total.
+</div>
+
+<h4>Definition</h4>
+<p>Every computer holds a value (v<sub>0</sub>, v<sub>1</sub>, ..., v<sub>p−1</sub>). These values are combined using an associative operator (such as +, ×, max, min, AND, OR, XOR) into ONE single result at the destination computer. It is the EXACT REVERSE of one-to-all broadcast.</p>
+
+<div class="simple">ALL senders → ONE receiver, with values combined (added / max'd / min'd) into one final value.</div>
+
+<h4>Key characteristics</h4>
+<ul>
+  <li>It is a <b>many-to-one</b> communication pattern.</li>
+  <li>The operator must be <b>associative</b> so that grouping order does not matter (since pairs combine in parallel).</li>
+  <li>It runs in <b>log p steps</b> using <b>recursive halving</b> (the reverse of recursive doubling).</li>
+  <li>At every step the number of "active" nodes is halved.</li>
+  <li>In MPI it is implemented by <code>MPI_Reduce</code>.</li>
+  <li>Common MPI reduction operators: <code>MPI_SUM, MPI_PROD, MPI_MAX, MPI_MIN, MPI_LAND, MPI_LOR, MPI_BAND, MPI_BOR</code>.</li>
+</ul>
+
+<h4>Step-by-step on 8-node Ring (destination = Node 0)</h4>
+<pre>
+Initial:    v0   v1   v2   v3   v4   v5   v6   v7
+            P0   P1   P2   P3   P4   P5   P6   P7
+
+Step 1: 1→0, 3→2, 5→4, 7→6   (receiver ADDS the value)
+        [v0+v1]   [v2+v3]   [v4+v5]   [v6+v7]
+           P0        P2        P4        P6
+
+Step 2: 2→0, 6→4
+        [v0+v1+v2+v3]         [v4+v5+v6+v7]
+              P0                    P4
+
+Step 3: 4→0
+        [v0+v1+v2+v3+v4+v5+v6+v7]
+                  P0     ✓ Destination has the final result
+</pre>
+
+<h4>Cost of All-to-One Reduction</h4>
+<div class="formula-line">T<sub>reduction</sub> = (t<sub>s</sub> + m · t<sub>w</sub>) · log p</div>
+
+<h4>Applications of All-to-One Reduction</h4>
+<ul>
+  <li>Computing the global sum / average / max / min from partial results of all workers.</li>
+  <li>Computing the dot product of two distributed vectors.</li>
+  <li>Convergence detection in iterative numerical solvers (sum of error from all processors).</li>
+  <li>Counting "hits" in Monte-Carlo simulations (e.g. Pi estimation).</li>
+  <li>Voting and consensus algorithms in distributed systems.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember (write these for sure)</h4>
+  <ul>
+    <li>One-to-all broadcast = same message from one root to all others; uses recursive doubling.</li>
+    <li>All-to-one reduction = combine all values into one at destination; uses recursive halving.</li>
+    <li>Both take only log p steps on a hypercube/ring.</li>
+    <li>Cost formula for both: <code>(t<sub>s</sub> + m · t<sub>w</sub>) · log p</code>.</li>
+    <li>They are duals — same number of steps, just data flowing in opposite direction.</li>
+    <li>MPI calls: <code>MPI_Bcast</code> for broadcast and <code>MPI_Reduce</code> for reduction.</li>
+    <li>Reduction operator must be associative: +, ×, max, min, AND, OR, XOR.</li>
+  </ul>
+</div>
+
+<hr>
+
+<!-- ===================== Q2 ===================== -->
+<h2 id="q2">Q2 — All-to-All Broadcast and Reduction</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, May'24, May'25, Nov'25 — usually 6–7 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23, 7 marks)</b> What is all-to-all broadcast communication operation? Explain all-to-all broadcast on an eight-node ring with step-wise diagrams. (Show first two steps and last communication step.)</p>
+    <p><b>(May'24, 7 marks)</b> Explain all-to-all broadcast and all-to-all reduction communication operation with example. Discuss cost analysis.</p>
+    <p><b>(May'25 &amp; Nov'25)</b> Explain with example and algorithm all-to-all broadcast on 3 × 3 mesh. Explain cost analysis of all-to-all broadcast operation.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+Eight friends sit in a circle. Each one has a DIFFERENT juicy news to share. After the operation, every friend should know ALL 8 news items. Each person whispers their news to the friend on the right; in the next round, that friend forwards what was received; after 7 rounds, every friend has heard every piece of news.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>All-to-All Broadcast</b> (also called <b>gossip</b> or <b>total exchange</b>) is a collective communication operation in which every computer broadcasts its OWN message to every other computer, simultaneously. At the end, each computer has a copy of ALL p messages (one from every node, including itself).</p>
+
+<div class="simple">EVERY sender → EVERY receiver, and each receiver collects everyone's different messages.</div>
+
+<h3>2. Key characteristics</h3>
+<ul>
+  <li>It is a <b>many-to-many</b> pattern — every node acts as both sender and receiver.</li>
+  <li>Equivalent to running p simultaneous one-to-all broadcasts.</li>
+  <li>Total data received by each node = p · m words.</li>
+  <li>The number of steps depends on the topology:
+    <ul>
+      <li>Ring → p − 1 steps</li>
+      <li>2-D Mesh (√p × √p) → 2(√p − 1) steps</li>
+      <li>Hypercube → log p steps</li>
+    </ul>
+  </li>
+  <li>On a hypercube, the message size DOUBLES at every step (because at each step a node receives all the data its partner has).</li>
+  <li>The dual operation is <b>All-to-All Reduction</b>.</li>
+  <li>In MPI: <code>MPI_Allgather</code> for broadcast and <code>MPI_Reduce_scatter</code> for reduction.</li>
+</ul>
+
+<h3>3. Algorithm — All-to-All Broadcast on a Ring</h3>
+<pre>
+Algorithm ALL_TO_ALL_BCAST_RING (my_id, my_msg, p):
+   left  = (my_id - 1 + p) mod p
+   right = (my_id + 1) mod p
+   result[my_id] = my_msg
+   msg = my_msg
+   for i = 1 to p - 1:
+       send msg to right
+       receive msg from left
+       result[(my_id - i + p) mod p] = msg
+   end for
+</pre>
+
+<h3>4. Step-by-step on an 8-node ring (each node forwards to the RIGHT)</h3>
+<p>Notation: <code>Pi:{M0, M1}</code> means processor i currently holds messages M0 and M1.</p>
+<pre>
+Initial:
+P0:{M0}   P1:{M1}   P2:{M2}   P3:{M3}   P4:{M4}   P5:{M5}   P6:{M6}   P7:{M7}
+
+Step 1:  Each processor sends its OWN message to right neighbour
+P0:{M0,M7}  P1:{M1,M0}  P2:{M2,M1}  P3:{M3,M2}  ...  P7:{M7,M6}
+
+Step 2:  Each forwards the most recently received message to its right neighbour
+P0:{M0,M7,M6}  P1:{M1,M0,M7}  P2:{M2,M1,M0}  ...  P7:{M7,M6,M5}
+
+(steps 3, 4, 5, 6 continue similarly ...)
+
+Step 7 (LAST step): every node now holds all 8 messages.
+P0 through P7 all hold {M0, M1, M2, M3, M4, M5, M6, M7}    ✓
+</pre>
+
+<h3>5. All-to-All Broadcast on a 3 × 3 Mesh (two-phase algorithm)</h3>
+<p>The mesh algorithm has 2 phases — first along the rows, then along the columns.</p>
+<pre>
+Initial layout (Pij holds its own message Mij):
+P00:{M00}  P01:{M01}  P02:{M02}
+P10:{M10}  P11:{M11}  P12:{M12}
+P20:{M20}  P21:{M21}  P22:{M22}
+
+Phase 1 — Row-wise all-to-all broadcast (within each row of 3 nodes):
+After this phase, every node holds all 3 messages of its row.
+   Row 0 nodes now each hold {M00, M01, M02}
+   Row 1 nodes now each hold {M10, M11, M12}
+   Row 2 nodes now each hold {M20, M21, M22}
+
+Phase 2 — Column-wise all-to-all broadcast (within each column):
+Each node now sends a combined "row message" of size 3m.
+After this phase, every node holds all 9 messages.
+</pre>
+
+<p>So in total: 2 phases × (√p − 1) steps each = <b>2(√p − 1) steps</b>.</p>
+
+<h3>6. Cost analysis on different topologies</h3>
+<table>
+  <tr><th>Topology</th><th>Steps</th><th>Cost</th></tr>
+  <tr><td>Ring (p nodes)</td><td>p − 1</td><td>(t<sub>s</sub> + m · t<sub>w</sub>) · (p − 1)</td></tr>
+  <tr><td>2-D Mesh (√p × √p)</td><td>2(√p − 1)</td><td>2 t<sub>s</sub> (√p − 1) + t<sub>w</sub> · m · (p − 1)</td></tr>
+  <tr><td>Hypercube</td><td>log p</td><td>t<sub>s</sub> · log p + t<sub>w</sub> · m · (p − 1)</td></tr>
+</table>
+
+<h3>7. Why is the m · t<sub>w</sub> · (p − 1) part the same in all three formulas?</h3>
+<p>Because no matter what shape we use, each node ultimately RECEIVES p − 1 different messages (one from every other node). That is a FIXED amount of data per node. Only the startup-cost component (t<sub>s</sub>) varies between topologies, because different shapes need different numbers of communication steps.</p>
+
+<h3>8. All-to-All Reduction (the dual)</h3>
+<ul>
+  <li>Each node has p values; the j-th value is destined for node j.</li>
+  <li>After the operation, each destination node j receives the COMBINED value (sum / max / etc.) of the j-th values from all senders.</li>
+  <li>Implemented by reversing the all-to-all broadcast algorithm: forward instead of broadcast, but apply the reduction operator at the destination.</li>
+  <li>Cost is identical to all-to-all broadcast on the same topology.</li>
+  <li>MPI function: <code>MPI_Reduce_scatter</code>.</li>
+</ul>
+
+<h3>9. Applications</h3>
+<ul>
+  <li>Matrix transpose operation (every row of A becomes a column of A<sup>T</sup>).</li>
+  <li>Fast Fourier Transform (FFT) algorithms.</li>
+  <li>Sample sort and bucket sort in parallel.</li>
+  <li>Parallel database join operations.</li>
+  <li>Distributed cache update — propagating local state to all peers.</li>
+  <li>n-body and molecular dynamics simulations.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>All-to-all broadcast: each node sends its OWN message to every other node.</li>
+    <li>Each node ends up with copies of ALL p messages.</li>
+    <li>Ring → p−1 steps; Mesh → 2(√p−1) steps using row+column phases; Hypercube → log p steps.</li>
+    <li>The transfer term m · t<sub>w</sub> · (p − 1) is the same in all topologies.</li>
+    <li>Dual operation is all-to-all reduction with same cost.</li>
+    <li>MPI: <code>MPI_Allgather</code> and <code>MPI_Reduce_scatter</code>.</li>
+  </ul>
+</div>
+
+<hr>
+
+<!-- ===================== Q3 ===================== -->
+<h2 id="q3">Q3 — Scatter and Gather Operations</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, May'24, May'25, Nov'25 — usually 4–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'25, 6 marks)</b> Explain scatter and gather communication operation with diagram.</p>
+    <p><b>(May'24 &amp; Nov'25, 4–6 marks)</b> Explain scatter and gather operation.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A pizza box arrives at the office. The boss (the root) cuts the pizza into 4 slices and gives one DIFFERENT slice to each of 4 colleagues — that is <b>scatter</b>. Later, each colleague writes a review on paper; the boss collects all 4 papers and staples them together in order — that is <b>gather</b>.
+</div>
+
+<h3>1. Scatter — definition</h3>
+<p><b>Scatter</b> (also called <b>personalised one-to-all communication</b>) is a collective operation in which the root computer holds an array of p · k items, splits it into p equal-size pieces, and sends ONE different piece to each of the p processes (including itself).</p>
+
+<div class="simple">Root cuts a big array into p equal chunks and gives a DIFFERENT chunk to each process.</div>
+
+<h3>2. Characteristics of Scatter</h3>
+<ul>
+  <li>It is a <b>one-to-many personalised</b> pattern.</li>
+  <li>Each receiver gets a DIFFERENT chunk (this is what makes it different from broadcast, where everyone gets the SAME message).</li>
+  <li>On a hypercube, it is performed in log p steps; the message size HALVES at every step (because the root sends successively smaller pieces to each subcube).</li>
+  <li>Total amount of data moved through the network = m · (p − 1) words.</li>
+  <li>MPI function: <code>MPI_Scatter</code>.</li>
+  <li>If chunk sizes are unequal, use <code>MPI_Scatterv</code>.</li>
+  <li>The dual (reverse) operation is Gather.</li>
+</ul>
+
+<h3>3. Diagram — Scatter</h3>
+<pre>
+BEFORE SCATTER:                    AFTER SCATTER:
+Root P0: [A B C D]                  P0: [A]
+P1: empty                           P1: [B]
+P2: empty                           P2: [C]
+P3: empty                           P3: [D]
+                                   (each process got a DIFFERENT piece)
+</pre>
+
+<h3>4. MPI function signature (good to write in answer)</h3>
+<pre>
+MPI_Scatter(
+    void* sendbuf,    // source buffer (only the root reads from this)
+    int   sendcount,  // number of items sent to EACH process
+    MPI_Datatype sendtype,
+    void* recvbuf,    // every process writes its piece here
+    int   recvcount,  // number of items each process receives
+    MPI_Datatype recvtype,
+    int   root,       // rank of the root process
+    MPI_Comm comm     // communicator (e.g. MPI_COMM_WORLD)
+);
+</pre>
+
+<h3>5. Cost of Scatter (on hypercube)</h3>
+<div class="formula-line">T<sub>scatter</sub> = t<sub>s</sub> · log p + t<sub>w</sub> · m · (p − 1)</div>
+
+<h3>6. Applications of Scatter</h3>
+<ul>
+  <li>Distributing rows or blocks of a large matrix to worker processes for parallel matrix-vector multiplication.</li>
+  <li>Splitting a big input file into smaller chunks for parallel processing (MapReduce input split).</li>
+  <li>Distributing different mini-batches of training data to GPU workers in deep learning.</li>
+  <li>Assigning different sub-problems in parallel divide-and-conquer algorithms.</li>
+  <li>Distributing graph partitions to processors for parallel graph algorithms.</li>
+</ul>
+
+<hr style="border-top: 1px dashed #aaa; margin: 18px 0;">
+
+<h3>7. Gather — definition</h3>
+<p><b>Gather</b> (also called <b>personalised all-to-one communication</b>) is the EXACT REVERSE of scatter: each process sends its k-item piece to the root, which concatenates them in process-rank order to form one large buffer of p · k items.</p>
+
+<div class="simple">Each process sends its piece to root; root joins all pieces into one big array.</div>
+
+<h3>8. Characteristics of Gather</h3>
+<ul>
+  <li>It is a <b>many-to-one personalised</b> pattern.</li>
+  <li>The result on the root is a concatenation of all senders' pieces in rank order (P0's piece first, then P1's, then P2's, …).</li>
+  <li>Implementation just runs scatter "in reverse"; cost is identical to scatter.</li>
+  <li>MPI function: <code>MPI_Gather</code>.</li>
+  <li>If the result should be available on EVERY process (not just root), use <code>MPI_Allgather</code>.</li>
+  <li>If chunks have unequal sizes, use <code>MPI_Gatherv</code>.</li>
+</ul>
+
+<h3>9. Diagram — Gather</h3>
+<pre>
+BEFORE GATHER:                AFTER GATHER:
+P0: [A]                        Root P0: [A B C D]
+P1: [B]                        P1: empty
+P2: [C]                        P2: empty
+P3: [D]                        P3: empty
+</pre>
+
+<h3>10. Cost of Gather</h3>
+<div class="formula-line">T<sub>gather</sub> = t<sub>s</sub> · log p + t<sub>w</sub> · m · (p − 1)</div>
+
+<h3>11. Applications of Gather</h3>
+<ul>
+  <li>Collecting partial sums or partial results from each worker back to the master.</li>
+  <li>Assembling the final result matrix in parallel matrix multiplication.</li>
+  <li>Joining sorted sub-arrays in the final stage of parallel merge sort.</li>
+  <li>Collecting log files / status messages from worker nodes.</li>
+  <li>Building a global histogram from local histograms computed on each node.</li>
+</ul>
+
+<h3>12. Scatter vs Gather vs Broadcast vs Reduction (don't get confused!)</h3>
+<table>
+  <tr><th>Operation</th><th>Direction</th><th>What each receiver gets</th><th>MPI call</th></tr>
+  <tr><td>Broadcast</td><td>Root → all</td><td>SAME identical message</td><td>MPI_Bcast</td></tr>
+  <tr><td>Scatter</td><td>Root → all</td><td>DIFFERENT chunk per process</td><td>MPI_Scatter</td></tr>
+  <tr><td>Reduction</td><td>All → root</td><td>Combined value (sum, max, …)</td><td>MPI_Reduce</td></tr>
+  <tr><td>Gather</td><td>All → root</td><td>Concatenation of all chunks</td><td>MPI_Gather</td></tr>
+  <tr><td>All-Gather</td><td>All → all</td><td>Concatenated array on every node</td><td>MPI_Allgather</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Scatter = root cuts a big array and gives a DIFFERENT piece to each process.</li>
+    <li>Gather = each process sends its piece to root; root concatenates them.</li>
+    <li>Both cost: t<sub>s</sub> · log p + t<sub>w</sub> · m · (p − 1) on hypercube.</li>
+    <li>Scatter is OPPOSITE of broadcast (different vs. same chunks).</li>
+    <li>Gather is OPPOSITE of reduction (concatenate vs. combine).</li>
+    <li>MPI: <code>MPI_Scatter</code>, <code>MPI_Gather</code>, <code>MPI_Allgather</code>.</li>
+  </ul>
+</div>
+
+<hr>
+
+<!-- ===================== Q4 ===================== -->
+<h2 id="q4">Q4 — Circular Shift Operation</h2>
+<span class="freq-tag">Asked 4 times</span>(May'23, May'24, May'25, Nov'25 — usually 4–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'24, 4 marks)</b> Explain circular shift operation.</p>
+    <p><b>(May'25, 5 marks)</b> Write a short note on Circular shift on a mesh.</p>
+    <p><b>(Nov'25, 6 marks)</b> Explain circular shift operation on mesh and hypercube network.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A musical-chairs party — when the music starts, every child passes their toy to the friend sitting on the right. If the music plays for 3 seconds, every toy moves 3 seats to the right. The fancy technical name for this rotation is <b>circular shift</b>, and the number of seats to move is the "shift distance" q.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Circular Shift</b> is a permutation communication operation in which every node i sends its data to node <b>(i + q) mod p</b>, where q is the shift distance and p is the total number of nodes. So all data effectively rotates around the network by q positions.</p>
+
+<div class="simple">Every node rotates its data by q positions around the network — like an array rotation.</div>
+
+<h3>2. Characteristics and properties</h3>
+<ul>
+  <li>It is a <b>one-to-one (permutation)</b> operation — same number of words leave and arrive at each node.</li>
+  <li>Two main variants:
+    <ul>
+      <li><b>End-around (cyclic) shift</b> — data that "falls off" one end re-enters from the other end.</li>
+      <li><b>Compaction shift</b> — no wrap-around; nodes at the boundary lose or gain padding.</li>
+    </ul>
+  </li>
+  <li>The shift direction can be either left or right; the implementation picks whichever needs fewer hops.</li>
+  <li>If q = 0 or q = p, the operation is a no-op (nothing changes).</li>
+  <li>It is heavily used in matrix algorithms (Cannon's matrix multiplication), image processing, and stencil computations.</li>
+  <li>On a hypercube, it uses <b>e-cube routing</b> dimension-by-dimension.</li>
+</ul>
+
+<h3>3. Simple example (4 nodes, shift by 1 to the right)</h3>
+<pre>
+Before:   P0:[A]   P1:[B]   P2:[C]   P3:[D]
+After:    P0:[D]   P1:[A]   P2:[B]   P3:[C]
+                  (each item rotated 1 step to the right)
+</pre>
+
+<h3>4. Circular shift on a Ring</h3>
+<p>Each node sends its data q hops along the chosen direction. Since on a ring you can go either left or right, we choose the shorter direction:</p>
+<div class="formula-line">T<sub>ring</sub> = (t<sub>s</sub> + m · t<sub>w</sub>) · min(q, p − q)</div>
+<p><b>Working:</b></p>
+<ol>
+  <li>Compute d = min(q, p − q) and decide direction.</li>
+  <li>Repeat d times:
+    <ul>
+      <li>Each node sends its current data to neighbour in chosen direction.</li>
+      <li>Each node receives data from neighbour in opposite direction.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>5. Circular shift on a 2-D Mesh (√p × √p)</h3>
+<p>Done in 2 phases:</p>
+<ol>
+  <li><b>Row shift:</b> each row independently shifts its data by (q mod √p) positions along the row.</li>
+  <li><b>Column compensation:</b> rows whose data wrapped around during the row shift are shifted up by one row.</li>
+</ol>
+<pre>
+3 × 3 mesh, shift by q = 4 (= 1 row + 1 column):
+
+   Before              After
+   1 2 3               6 7 8
+   4 5 6               9 1 2
+   7 8 9               3 4 5
+</pre>
+<div class="formula-line">T<sub>mesh</sub> ≈ 2 (t<sub>s</sub> + m · t<sub>w</sub> · √p / 2)</div>
+
+<h3>6. Circular shift on a Hypercube</h3>
+<p>Uses dimension-by-dimension routing called <b>E-cube routing</b>: each node forwards the data along the dimensions in which the destination ID differs from the current node's ID.</p>
+<p>Done in <b>O(log p)</b> steps for any power-of-2 shift.</p>
+<div class="formula-line">T<sub>hypercube</sub> ≈ (t<sub>s</sub> + m · t<sub>w</sub>) · log p</div>
+
+<h3>7. Cost comparison across topologies</h3>
+<table>
+  <tr><th>Topology</th><th>Cost</th><th>Big-O</th></tr>
+  <tr><td>Linear array</td><td>(t<sub>s</sub> + m · t<sub>w</sub>) · q</td><td>O(p)</td></tr>
+  <tr><td>Ring</td><td>(t<sub>s</sub> + m · t<sub>w</sub>) · min(q, p − q)</td><td>O(p)</td></tr>
+  <tr><td>2-D Mesh</td><td>≈ 2(t<sub>s</sub> + m · t<sub>w</sub> · √p / 2)</td><td>O(√p)</td></tr>
+  <tr><td>Hypercube</td><td>≈ (t<sub>s</sub> + m · t<sub>w</sub>) · log p</td><td>O(log p)</td></tr>
+</table>
+
+<h3>8. Applications of Circular Shift</h3>
+<ul>
+  <li><b>Cannon's matrix multiplication algorithm</b> — A-blocks are shifted LEFT and B-blocks are shifted UP after each iteration.</li>
+  <li><b>Stencil computations</b> in weather modelling, computational fluid dynamics, image processing.</li>
+  <li><b>Sorting on a mesh</b> — odd-even merge sort, shear sort.</li>
+  <li><b>Image rotation</b> on distributed-memory systems.</li>
+  <li><b>Distributed hash-table re-balancing</b> when nodes are added or removed.</li>
+  <li><b>Convolution operations</b> in distributed CNNs.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Circular shift = every node i sends data to (i + q) mod p.</li>
+    <li>Ring cost = O(min(q, p − q)); Mesh = O(√p); Hypercube = O(log p).</li>
+    <li>Mesh uses 2 phases: row shift + column compensation.</li>
+    <li>Hypercube uses E-cube routing (dimension-by-dimension).</li>
+    <li>Used in Cannon's algorithm, stencil computations, and parallel sorting.</li>
+  </ul>
+</div>
+
+<hr>
+
+<!-- ===================== Q5 ===================== -->
+<h2 id="q5">Q5 — Prefix-Sum (Scan) Operation</h2>
+<span class="freq-tag">Asked 3 times</span>(May'23, May'25, Nov'25 — usually 4–6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; Nov'25, 4 marks)</b> Write a short note on prefix-sum operation.</p>
+    <p><b>(May'25, 6 marks)</b> Explain prefix-sum operation for an eight-node hypercube.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A queue of 8 customers at the bank, each holding a different amount of money. Each customer wants to know: "What is the TOTAL money held by ME and everyone in front of me?" Customer 1 knows only their own amount. Customer 2 knows their own + Customer 1's. Customer 3 knows the first three combined. This running cumulative total is the <b>prefix sum</b>.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Prefix-Sum</b> (also called <b>Scan</b> or <b>Parallel Prefix</b>) is a collective operation in which every node i (holding value x<sub>i</sub>) computes the cumulative combination
+s<sub>i</sub> = x<sub>0</sub> ⊕ x<sub>1</sub> ⊕ … ⊕ x<sub>i</sub>,
+where ⊕ is any associative operator (+, ×, max, min, AND, OR, XOR).</p>
+
+<div class="simple">Each node ends up with the running total of all values from node 0 up to and including itself.</div>
+
+<h3>2. Characteristics</h3>
+<ul>
+  <li>The operator must be <b>associative</b>; if also commutative, additional optimizations are possible.</li>
+  <li>Two variants:
+    <ul>
+      <li><b>Inclusive scan:</b> s<sub>i</sub> INCLUDES x<sub>i</sub> itself.</li>
+      <li><b>Exclusive scan:</b> s<sub>i</sub> EXCLUDES x<sub>i</sub> (useful for computing array offsets / starting positions).</li>
+    </ul>
+  </li>
+  <li>Uses the same recursive-doubling idea as broadcast and reduction.</li>
+  <li>Completes in <b>log p steps</b> on a hypercube.</li>
+  <li>Total work = p − 1 operator applications (same as serial), but done in only log p TIME on parallel hardware.</li>
+  <li>MPI functions: <code>MPI_Scan</code> (inclusive) and <code>MPI_Exscan</code> (exclusive).</li>
+</ul>
+
+<h3>3. Worked example (inclusive prefix sum with addition)</h3>
+<table>
+  <tr><th>Node</th><th>x<sub>i</sub> (input)</th><th>s<sub>i</sub> (after scan)</th></tr>
+  <tr><td>P0</td><td>3</td><td>3</td></tr>
+  <tr><td>P1</td><td>5</td><td>3 + 5 = 8</td></tr>
+  <tr><td>P2</td><td>2</td><td>3 + 5 + 2 = 10</td></tr>
+  <tr><td>P3</td><td>7</td><td>17</td></tr>
+  <tr><td>P4</td><td>1</td><td>18</td></tr>
+  <tr><td>P5</td><td>4</td><td>22</td></tr>
+  <tr><td>P6</td><td>6</td><td>28</td></tr>
+  <tr><td>P7</td><td>9</td><td>37</td></tr>
+</table>
+
+<h3>4. Algorithm — Prefix-Sum on a Hypercube</h3>
+<pre>
+Algorithm PREFIX_SUM_HYPERCUBE (d, my_id, my_value):
+   s = my_value         // running prefix sum
+   m = my_value         // value used for forwarding
+   for i = 0 to d − 1:
+       partner = my_id XOR 2^i
+       send m to partner
+       receive m_recv from partner
+       s = s + m_recv                  // every node updates its own total
+       if (my_id AND 2^i) != 0:
+           m = m + m_recv              // only higher-numbered keeps it
+   end for
+   return s
+</pre>
+
+<h3>5. Step-by-step on an 8-node hypercube (3 dimensions = 3 steps)</h3>
+<ul>
+  <li><b>Step 0 (dimension 0, bit 0 differs):</b> pairs exchange — (0,1), (2,3), (4,5), (6,7).</li>
+  <li><b>Step 1 (dimension 1, bit 1 differs):</b> pairs exchange — (0,2), (1,3), (4,6), (5,7).</li>
+  <li><b>Step 2 (dimension 2, bit 2 differs):</b> pairs exchange — (0,4), (1,5), (2,6), (3,7).</li>
+</ul>
+
+<h3>6. Cost</h3>
+<div class="formula-line">T<sub>prefix-sum</sub> = (t<sub>s</sub> + m · t<sub>w</sub>) · log p</div>
+
+<h3>7. Applications of Prefix-Sum</h3>
+<ul>
+  <li>Computing bucket starting offsets in parallel radix sort.</li>
+  <li>Parallel stream compaction on GPUs (removing unwanted items from an array).</li>
+  <li>Parallel histogram construction.</li>
+  <li>Polynomial evaluation using Horner's rule in parallel.</li>
+  <li>Load balancing — figuring out how much work to assign each processor based on cumulative load.</li>
+  <li>Parallel lexicographic ranking of strings or tuples.</li>
+  <li>Parallel list ranking and many graph algorithms.</li>
+  <li>Building summed-area tables in image processing.</li>
+</ul>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Prefix-sum: node i finally holds x<sub>0</sub> ⊕ x<sub>1</sub> ⊕ … ⊕ x<sub>i</sub>.</li>
+    <li>Variants: inclusive scan and exclusive scan.</li>
+    <li>Cost on hypercube = (t<sub>s</sub> + m · t<sub>w</sub>) · log p.</li>
+    <li>Operator must be associative (e.g., +, ×, max, min).</li>
+    <li>MPI calls: <code>MPI_Scan</code> and <code>MPI_Exscan</code>.</li>
+    <li>Used heavily in radix sort, stream compaction, and load balancing.</li>
+  </ul>
+</div>
+
+<hr>
+
+<!-- ===================== Q6 ===================== -->
+<h2 id="q6">Q6 — Blocking vs Non-Blocking Communication in MPI</h2>
+<span class="freq-tag">Asked 2 times</span>(May'23, May'24 — usually 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'23 &amp; May'24, 6 marks)</b> Explain in detail Blocking and Non-Blocking Communication Using MPI.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<div class="analogy">
+A <b>blocking call</b> is like phoning someone and waiting on the line until they pick up — you cannot do anything else while waiting. A <b>non-blocking call</b> is like sending a WhatsApp message: you send it and immediately go back to work, then check later if they replied.
+</div>
+
+<h3>1. Definition</h3>
+<p><b>Blocking communication</b> is an MPI mode where the function call does NOT return to the program until the message has been fully sent or received (i.e., until the local buffer is safe to reuse). The CPU sits idle during this wait.</p>
+<p><b>Non-blocking communication</b> is an MPI mode where the function call returns IMMEDIATELY, regardless of whether the actual transfer has completed. The transfer happens in the background, and the programmer must later check completion using <code>MPI_Wait</code> or <code>MPI_Test</code>.</p>
+
+<h3>2. Blocking Communication functions</h3>
+<ul>
+  <li><code>MPI_Send</code> — standard blocking send.</li>
+  <li><code>MPI_Recv</code> — blocking receive.</li>
+  <li><code>MPI_Ssend</code> — blocking synchronous send (returns only when receiver has begun to receive).</li>
+  <li><code>MPI_Bsend</code> — blocking buffered send (uses an explicit user-provided buffer).</li>
+  <li><code>MPI_Rsend</code> — blocking ready-mode send (assumes receiver is already ready).</li>
+  <li><code>MPI_Sendrecv</code> — combined blocking send and receive in one call.</li>
+</ul>
+
+<h3>3. Properties of Blocking</h3>
+<ul>
+  <li>The sender's buffer is safe to reuse as soon as <code>MPI_Send</code> returns.</li>
+  <li>The receiver's buffer contains the received data as soon as <code>MPI_Recv</code> returns.</li>
+  <li>Execution order is straightforward — easy to reason about.</li>
+  <li>CPU sits idle during the wait — no useful work can be done concurrently.</li>
+  <li>If two processes block on each other's sends, a <b>deadlock</b> may occur.</li>
+</ul>
+
+<h3>4. Advantages of Blocking</h3>
+<ul>
+  <li>Easy to program — programmer does not have to track request handles.</li>
+  <li>Once the call returns, the operation is guaranteed complete.</li>
+  <li>Easier debugging due to deterministic ordering.</li>
+  <li>Lower memory overhead (no request objects to maintain).</li>
+</ul>
+
+<h3>5. Disadvantages of Blocking</h3>
+<ul>
+  <li>CPU is idle while waiting — wastes processor time.</li>
+  <li>High risk of deadlock if communication patterns are not carefully designed.</li>
+  <li>Cannot overlap communication with computation.</li>
+  <li>Generally lower performance for data-intensive applications.</li>
+</ul>
+
+<h3>6. Non-Blocking Communication functions</h3>
+<ul>
+  <li><code>MPI_Isend</code> — non-blocking standard send (the "I" stands for <i>Immediate</i>).</li>
+  <li><code>MPI_Irecv</code> — non-blocking receive.</li>
+  <li><code>MPI_Issend</code>, <code>MPI_Ibsend</code>, <code>MPI_Irsend</code> — non-blocking variants of the other modes.</li>
+  <li><code>MPI_Wait(request, status)</code> — blocks until the specified non-blocking operation completes.</li>
+  <li><code>MPI_Test(request, flag, status)</code> — non-blocking check whether the operation has finished.</li>
+  <li><code>MPI_Waitall</code>, <code>MPI_Waitany</code>, <code>MPI_Waitsome</code> — wait variants for multiple requests.</li>
+</ul>
+
+<h3>7. Properties of Non-Blocking</h3>
+<ul>
+  <li>Function calls return immediately — CPU can do other useful work in parallel.</li>
+  <li>Each non-blocking call returns a <b>request handle</b> that must be later completed.</li>
+  <li>The data buffer must NOT be modified until <code>MPI_Wait</code>/<code>MPI_Test</code> confirms completion.</li>
+  <li>Multiple non-blocking operations can be in flight at the same time.</li>
+  <li>Enables overlapping of computation and communication for performance.</li>
+</ul>
+
+<h3>8. Advantages of Non-Blocking</h3>
+<ul>
+  <li>Computation and communication can overlap → improved throughput.</li>
+  <li>Dramatically reduces the risk of deadlock.</li>
+  <li>Allows more flexible and complex communication patterns.</li>
+  <li>Better utilization of network bandwidth.</li>
+  <li>Useful in producer–consumer pipelines and asynchronous algorithms.</li>
+</ul>
+
+<h3>9. Disadvantages of Non-Blocking</h3>
+<ul>
+  <li>Code is more complex; programmer must manage request handles.</li>
+  <li>Must remember not to touch the buffer until <code>MPI_Wait</code> succeeds.</li>
+  <li>Debugging is harder due to asynchronous behaviour.</li>
+  <li>Slight per-call overhead due to extra bookkeeping.</li>
+</ul>
+
+<h3>10. Code examples</h3>
+<pre>
+// Blocking send/receive
+int data = 42;
+MPI_Send(&amp;data, 1, MPI_INT, dest, tag, MPI_COMM_WORLD);    // waits until safe
+MPI_Recv(&amp;data, 1, MPI_INT, src,  tag, MPI_COMM_WORLD, &amp;status);
+</pre>
+<pre>
+// Non-blocking send/receive
+int data = 42;
+MPI_Request req;
+MPI_Status status;
+
+MPI_Isend(&amp;data, 1, MPI_INT, dest, tag, MPI_COMM_WORLD, &amp;req);
+// CPU does other useful work here ...
+do_some_computation();
+MPI_Wait(&amp;req, &amp;status);    // confirm send is complete
+</pre>
+
+<h3>11. Comparison table</h3>
+<table>
+  <tr><th>Feature</th><th>Blocking</th><th>Non-Blocking</th></tr>
+  <tr><td>Function names</td><td>MPI_Send, MPI_Recv</td><td>MPI_Isend, MPI_Irecv</td></tr>
+  <tr><td>Return time</td><td>After completion</td><td>Immediately</td></tr>
+  <tr><td>Buffer reuse</td><td>Safe after return</td><td>Only after MPI_Wait</td></tr>
+  <tr><td>CPU usage during wait</td><td>Idle (wasted)</td><td>Can compute</td></tr>
+  <tr><td>Overlap compute + comm</td><td>No</td><td>Yes</td></tr>
+  <tr><td>Deadlock risk</td><td>High</td><td>Low</td></tr>
+  <tr><td>Programming complexity</td><td>Easy</td><td>Medium</td></tr>
+  <tr><td>Performance</td><td>Lower</td><td>Higher (for big data)</td></tr>
+  <tr><td>Needs MPI_Wait?</td><td>No</td><td>Yes</td></tr>
+  <tr><td>Best for</td><td>Simple programs</td><td>Performance-critical apps</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Blocking = call waits until safe to reuse buffer; simple but wastes CPU.</li>
+    <li>Non-blocking = returns immediately with a request handle; must call MPI_Wait later.</li>
+    <li>Non-blocking enables overlap of computation and communication.</li>
+    <li>Non-blocking avoids most deadlock scenarios.</li>
+    <li>MPI provides several variants: standard, synchronous, buffered, ready-mode.</li>
+  </ul>
+</div>
+
+<hr>
+
+<!-- ===================== Q7 ===================== -->
+<h2 id="q7">Q7 — Improving the Speed of Communication Operations</h2>
+<span class="freq-tag">Asked 2 times</span>(May'24, Nov'25 — usually 4 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'24, 4 marks)</b> Comment on "Improving the Speed of Communication Operations".</p>
+    <p><b>(Nov'25, 4 marks)</b> How to improve speed of communication operation.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<p>The total time for a communication has two main parts: <b>startup time (t<sub>s</sub>)</b> and <b>per-word transfer time (t<sub>w</sub>)</b>. We can reduce communication time by attacking either or both of these. Below are the 7 standard techniques used.</p>
+
+<h3>1. Splitting messages and routing along multiple paths</h3>
+<ul>
+  <li>A single large message uses only ONE network path at a time, leaving other links idle.</li>
+  <li>SPLIT the message into smaller portions and send each through a DIFFERENT path simultaneously.</li>
+  <li>This increases effective bandwidth utilization.</li>
+  <li>Especially effective in hypercubes and tori, where multiple disjoint paths exist between every pair of nodes.</li>
+</ul>
+
+<h3>2. Pipelining of long messages</h3>
+<ul>
+  <li>A long message is divided into smaller segments.</li>
+  <li>The receiver starts CONSUMING segment 1 while the sender is STILL SENDING segment 2.</li>
+  <li>This hides the time gap between successive segments — successive stages of the transmission overlap.</li>
+  <li>Similar in spirit to instruction pipelining inside a CPU.</li>
+</ul>
+
+<h3>3. Aggregating (combining) short messages</h3>
+<ul>
+  <li>Each message pays a fixed startup cost t<sub>s</sub>, regardless of its size.</li>
+  <li>Sending 100 tiny messages pays this cost 100 times.</li>
+  <li>COMBINE many small messages into one larger message; t<sub>s</sub> is paid only ONCE.</li>
+  <li>Trade-off: small extra latency for the messages that wait while being buffered.</li>
+</ul>
+
+<h3>4. Choosing the right topology and routing strategy</h3>
+<ul>
+  <li>The same operation has very different costs on different topologies (e.g., O(p) on ring vs. O(log p) on hypercube).</li>
+  <li>Choose efficient routing strategies such as <b>e-cube routing</b> on hypercubes or <b>dimension-order routing</b> on meshes.</li>
+  <li>Use better forwarding strategies: store-and-forward, cut-through, or wormhole routing, depending on hardware capability.</li>
+</ul>
+
+<h3>5. Overlapping computation with communication</h3>
+<ul>
+  <li>Use NON-BLOCKING MPI calls (<code>MPI_Isend</code>, <code>MPI_Irecv</code>) so the processor performs useful computation while a message is in transit.</li>
+  <li>Place the corresponding <code>MPI_Wait</code> as late as possible to maximize overlap.</li>
+  <li>Especially effective when the computation between send and wait is comparable to the communication time.</li>
+</ul>
+
+<h3>6. Topology-aware mapping of processes to processors</h3>
+<ul>
+  <li>Place processes that communicate frequently on PHYSICALLY ADJACENT processors.</li>
+  <li>This reduces the number of hops per message and lowers latency.</li>
+  <li>MPI implementations can be tuned with rank-reorder hints for topology awareness.</li>
+</ul>
+
+<h3>7. Use collective operations instead of point-to-point loops</h3>
+<ul>
+  <li>Hand-rolled loops of <code>MPI_Send</code>/<code>MPI_Recv</code> are usually slower than the corresponding collective call (<code>MPI_Bcast</code>, <code>MPI_Reduce</code>, etc.).</li>
+  <li>MPI collectives are heavily optimized for the underlying network topology by the library implementor.</li>
+</ul>
+
+<h3>8. Summary table of optimization techniques</h3>
+<table>
+  <tr><th>Technique</th><th>What it improves</th><th>Mechanism</th></tr>
+  <tr><td>Splitting + multi-path routing</td><td>Bandwidth utilization</td><td>Uses multiple links in parallel</td></tr>
+  <tr><td>Pipelining</td><td>Latency hiding</td><td>Overlaps successive segments</td></tr>
+  <tr><td>Message aggregation</td><td>Startup overhead</td><td>Pays t<sub>s</sub> once instead of many times</td></tr>
+  <tr><td>Better topology &amp; routing</td><td>Path length</td><td>Fewer hops per message</td></tr>
+  <tr><td>Non-blocking calls</td><td>CPU utilization</td><td>Compute while communicating</td></tr>
+  <tr><td>Topology-aware mapping</td><td>Hop count</td><td>Talkative processes placed close</td></tr>
+  <tr><td>Use collective operations</td><td>Algorithmic efficiency</td><td>Library tuned for hardware</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Combine many small messages into one to reduce startup cost.</li>
+    <li>Split big messages across multiple paths for parallel transmission.</li>
+    <li>Hide latency using pipelining and non-blocking calls.</li>
+    <li>Pick topology-friendly routing (e-cube, dimension-order).</li>
+    <li>Prefer MPI collectives over hand-rolled point-to-point loops.</li>
+  </ul>
+</div>
+
+<hr>
+
+<!-- ===================== Q8 ===================== -->
+<h2 id="q8">Q8 — All-Reduce and Combined Broadcast/Reduce</h2>
+<span class="freq-tag">Asked 1 time</span>(May'25 — overview question, 6 marks)
+
+<div class="question-block">
+  <div class="qhead">How this question appeared in past papers:</div>
+  <div class="qbody">
+    <p><b>(May'25, 6 marks)</b> Explain Broadcast and Reduce operation with diagram.</p>
+  </div>
+</div>
+
+<div class="answer-label">Answer</div>
+
+<h3>1. Quick recap of Broadcast</h3>
+<p>One root sends an identical message to every other node. Implemented in MPI as <code>MPI_Bcast</code>. Done in <b>log p</b> steps using recursive doubling.</p>
+<pre>
+              Root P0
+                │
+      ┌─────┬───┼───┬─────┐
+      ↓     ↓   ↓   ↓     ↓
+      P1    P2  P3  P4    P5
+       (every receiver gets the SAME copy)
+</pre>
+
+<h3>2. Quick recap of Reduce</h3>
+<p>Every node contributes a value; the destination receives the combined result. Implemented in MPI as <code>MPI_Reduce</code>. Done in <b>log p</b> steps using recursive halving.</p>
+<pre>
+      P1    P2  P3  P4    P5
+      │     │   │   │     │
+      ↓     ↓   ↓   ↓     ↓
+      └─────┴───⊕───┴─────┘
+                │
+             Root P0
+      (root has combined value)
+</pre>
+
+<h3>3. All-Reduce</h3>
+<ul>
+  <li>An all-reduce is conceptually a Reduce followed by a Broadcast, so that EVERY node ends up with the combined result (not just the root).</li>
+  <li>It can be implemented more efficiently than separate reduce + broadcast by using a <b>butterfly pattern</b> on a hypercube in log p steps.</li>
+  <li>MPI function: <code>MPI_Allreduce</code>.</li>
+  <li>Heavily used in distributed deep-learning training — averaging gradient values across all GPU workers after each batch.</li>
+</ul>
+
+<h3>4. Comparison of related collective operations</h3>
+<table>
+  <tr><th>Operation</th><th>Direction</th><th>Result location</th><th>Steps</th><th>MPI call</th></tr>
+  <tr><td>Broadcast</td><td>Root → all</td><td>Same message on all</td><td>log p</td><td>MPI_Bcast</td></tr>
+  <tr><td>Reduce</td><td>All → root</td><td>Combined value at root</td><td>log p</td><td>MPI_Reduce</td></tr>
+  <tr><td>All-Reduce</td><td>All → all</td><td>Combined value on all</td><td>log p</td><td>MPI_Allreduce</td></tr>
+  <tr><td>Scatter</td><td>Root → all</td><td>Different chunk per node</td><td>log p</td><td>MPI_Scatter</td></tr>
+  <tr><td>Gather</td><td>All → root</td><td>Concatenated array at root</td><td>log p</td><td>MPI_Gather</td></tr>
+  <tr><td>All-Gather</td><td>All → all</td><td>Concatenated array on all</td><td>log p</td><td>MPI_Allgather</td></tr>
+</table>
+
+<div class="key-points">
+  <h4>Key points to remember</h4>
+  <ul>
+    <li>Broadcast: one to all, same message.</li>
+    <li>Reduce: all to one, combined result.</li>
+    <li>All-Reduce: all to all, combined result on EVERY node.</li>
+    <li>All three complete in log p steps on a hypercube.</li>
+    <li>All-Reduce is the dominant communication primitive in distributed deep learning.</li>
+  </ul>
+</div>
+
+<hr>
+
+<!-- ===================== Revision ===================== -->
+<h2 id="revision">Last-Day Revision Summary</h2>
+
+<h3>Question frequency across past 4 papers</h3>
+<table>
+  <tr><th>Topic</th><th>May'23</th><th>May'24</th><th>May'25</th><th>Nov'25</th><th>Total</th></tr>
+  <tr><td>One-to-all broadcast + reduction</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>All-to-all broadcast</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Scatter and Gather</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Circular shift</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>4</td></tr>
+  <tr><td>Prefix-sum</td><td>✓</td><td>—</td><td>✓</td><td>✓</td><td>3</td></tr>
+  <tr><td>Blocking vs Non-Blocking MPI</td><td>✓</td><td>✓</td><td>—</td><td>—</td><td>2</td></tr>
+  <tr><td>All-to-one reduction</td><td>✓</td><td>—</td><td>✓</td><td>—</td><td>2</td></tr>
+  <tr><td>Cost analysis of all-to-all</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>2</td></tr>
+  <tr><td>Improving speed of comm</td><td>—</td><td>✓</td><td>—</td><td>✓</td><td>2</td></tr>
+</table>
+
+<h3>All formulas in one place</h3>
+<div class="formula-line">
+  One-to-all broadcast: &nbsp;(t<sub>s</sub> + m · t<sub>w</sub>) · log p<br>
+  All-to-one reduction: &nbsp;(t<sub>s</sub> + m · t<sub>w</sub>) · log p<br>
+  All-to-all broadcast (ring): &nbsp;(t<sub>s</sub> + m · t<sub>w</sub>) · (p − 1)<br>
+  All-to-all broadcast (mesh): &nbsp;2 t<sub>s</sub> (√p − 1) + t<sub>w</sub> m (p − 1)<br>
+  All-to-all broadcast (hypercube): &nbsp;t<sub>s</sub> · log p + t<sub>w</sub> · m · (p − 1)<br>
+  Prefix-sum (hypercube): &nbsp;(t<sub>s</sub> + m · t<sub>w</sub>) · log p<br>
+  Scatter / Gather (hypercube): &nbsp;t<sub>s</sub> · log p + t<sub>w</sub> · m · (p − 1)<br>
+  Circular shift (ring): &nbsp;(t<sub>s</sub> + m · t<sub>w</sub>) · min(q, p − q)<br>
+  Circular shift (hypercube): &nbsp;≈ (t<sub>s</sub> + m · t<sub>w</sub>) · log p
+</div>
+
+<h3>One-liner to remember the whole chapter</h3>
+<p style="background:#fff8e1; padding:10px 16px; border-left:4px solid #b8902a;">
+  <b>Hypercube &gt; Mesh &gt; Ring</b> in terms of speed for almost every operation, because the hypercube takes only <b>log p steps</b> thanks to the doubling/halving trick along d dimensions.
+</p>
+
+<p style="text-align: center; color: #666; font-size: 13px; margin-top: 30px;">
+  HPC Chapter 3 — SPPU BE Computer Engineering 2026 End-Sem<br>
+  Open this file in any web browser. Use Ctrl + P to print or save as PDF.
+</p>
+
+</main>
+</body>
+</html>
